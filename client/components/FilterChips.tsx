@@ -1,0 +1,191 @@
+import React from "react";
+import { ScrollView, StyleSheet, Pressable, View } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withSpring,
+  WithSpringConfig,
+} from "react-native-reanimated";
+import * as Haptics from "expo-haptics";
+import { ThemedText } from "@/components/ThemedText";
+import { useTheme } from "@/hooks/useTheme";
+import { BorderRadius, Spacing } from "@/constants/theme";
+import { Genre } from "@/types/tmdb";
+
+const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
+
+const springConfig: WithSpringConfig = {
+  damping: 15,
+  mass: 0.3,
+  stiffness: 150,
+  overshootClamping: true,
+};
+
+interface FilterChipsProps {
+  genres: Genre[];
+  selectedGenreId: number | null;
+  onSelectGenre: (genreId: number | null) => void;
+}
+
+export function FilterChips({
+  genres,
+  selectedGenreId,
+  onSelectGenre,
+}: FilterChipsProps) {
+  const { theme } = useTheme();
+
+  const handlePress = (genreId: number | null) => {
+    Haptics.selectionAsync();
+    onSelectGenre(genreId);
+  };
+
+  return (
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={styles.container}
+    >
+      <FilterChip
+        label="All"
+        isSelected={selectedGenreId === null}
+        onPress={() => handlePress(null)}
+      />
+      {genres.map((genre) => (
+        <FilterChip
+          key={genre.id}
+          label={genre.name}
+          isSelected={selectedGenreId === genre.id}
+          onPress={() => handlePress(genre.id)}
+        />
+      ))}
+    </ScrollView>
+  );
+}
+
+interface FilterChipProps {
+  label: string;
+  isSelected: boolean;
+  onPress: () => void;
+}
+
+function FilterChip({ label, isSelected, onPress }: FilterChipProps) {
+  const { theme } = useTheme();
+  const scale = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+  }));
+
+  const handlePressIn = () => {
+    scale.value = withSpring(0.95, springConfig);
+  };
+
+  const handlePressOut = () => {
+    scale.value = withSpring(1, springConfig);
+  };
+
+  return (
+    <AnimatedPressable
+      onPress={onPress}
+      onPressIn={handlePressIn}
+      onPressOut={handlePressOut}
+      style={[
+        styles.chip,
+        {
+          backgroundColor: isSelected
+            ? theme.primary
+            : theme.backgroundSecondary,
+          borderColor: isSelected ? theme.primary : theme.border,
+        },
+        animatedStyle,
+      ]}
+    >
+      <ThemedText
+        style={[
+          styles.chipText,
+          {
+            color: isSelected ? "#FFFFFF" : theme.text,
+          },
+        ]}
+      >
+        {label}
+      </ThemedText>
+    </AnimatedPressable>
+  );
+}
+
+interface TabSwitchProps {
+  tabs: string[];
+  selectedIndex: number;
+  onSelectTab: (index: number) => void;
+}
+
+export function TabSwitch({ tabs, selectedIndex, onSelectTab }: TabSwitchProps) {
+  const { theme } = useTheme();
+
+  return (
+    <View style={[styles.tabContainer, { backgroundColor: theme.backgroundSecondary }]}>
+      {tabs.map((tab, index) => (
+        <Pressable
+          key={tab}
+          onPress={() => {
+            Haptics.selectionAsync();
+            onSelectTab(index);
+          }}
+          style={[
+            styles.tab,
+            {
+              backgroundColor:
+                selectedIndex === index ? theme.primary : "transparent",
+            },
+          ]}
+        >
+          <ThemedText
+            style={[
+              styles.tabText,
+              {
+                color: selectedIndex === index ? "#FFFFFF" : theme.textSecondary,
+              },
+            ]}
+          >
+            {tab}
+          </ThemedText>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+const styles = StyleSheet.create({
+  container: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+  },
+  chip: {
+    paddingHorizontal: Spacing.lg,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.full,
+    marginRight: Spacing.sm,
+    borderWidth: 1,
+  },
+  chipText: {
+    fontSize: 14,
+    fontWeight: "500",
+  },
+  tabContainer: {
+    flexDirection: "row",
+    marginHorizontal: Spacing.lg,
+    borderRadius: BorderRadius.md,
+    padding: 4,
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: Spacing.sm,
+    borderRadius: BorderRadius.sm,
+    alignItems: "center",
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: "600",
+  },
+});

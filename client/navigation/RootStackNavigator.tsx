@@ -1,12 +1,13 @@
 import React from "react";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import MainTabNavigator from "@/navigation/MainTabNavigator";
-import ModalScreen from "@/screens/ModalScreen";
+import DetailScreen from "@/screens/DetailScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
+import { MediaType } from "@/types/tmdb";
 
 export type RootStackParamList = {
   Main: undefined;
-  Modal: undefined;
+  Detail: { id: number; mediaType: MediaType };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -22,11 +23,12 @@ export default function RootStackNavigator() {
         options={{ headerShown: false }}
       />
       <Stack.Screen
-        name="Modal"
-        component={ModalScreen}
+        name="Detail"
+        component={DetailScreen}
         options={{
-          presentation: "modal",
-          headerTitle: "Modal",
+          headerTransparent: true,
+          headerTitle: "",
+          headerBackTitle: "Back",
         }}
       />
     </Stack.Navigator>

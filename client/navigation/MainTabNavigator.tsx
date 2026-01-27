@@ -4,12 +4,16 @@ import { Feather } from "@expo/vector-icons";
 import { BlurView } from "expo-blur";
 import { Platform, StyleSheet } from "react-native";
 import HomeStackNavigator from "@/navigation/HomeStackNavigator";
-import ProfileStackNavigator from "@/navigation/ProfileStackNavigator";
+import BrowseStackNavigator from "@/navigation/BrowseStackNavigator";
+import SearchStackNavigator from "@/navigation/SearchStackNavigator";
+import LibraryStackNavigator from "@/navigation/LibraryStackNavigator";
 import { useTheme } from "@/hooks/useTheme";
 
 export type MainTabParamList = {
   HomeTab: undefined;
-  ProfileTab: undefined;
+  BrowseTab: undefined;
+  SearchTab: undefined;
+  LibraryTab: undefined;
 };
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
@@ -21,7 +25,7 @@ export default function MainTabNavigator() {
     <Tab.Navigator
       initialRouteName="HomeTab"
       screenOptions={{
-        tabBarActiveTintColor: theme.tabIconSelected,
+        tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarStyle: {
           position: "absolute",
@@ -36,7 +40,7 @@ export default function MainTabNavigator() {
           Platform.OS === "ios" ? (
             <BlurView
               intensity={100}
-              tint={isDark ? "dark" : "light"}
+              tint="dark"
               style={StyleSheet.absoluteFill}
             />
           ) : null,
@@ -54,12 +58,32 @@ export default function MainTabNavigator() {
         }}
       />
       <Tab.Screen
-        name="ProfileTab"
-        component={ProfileStackNavigator}
+        name="BrowseTab"
+        component={BrowseStackNavigator}
         options={{
-          title: "Profile",
+          title: "Browse",
           tabBarIcon: ({ color, size }) => (
-            <Feather name="user" size={size} color={color} />
+            <Feather name="grid" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="SearchTab"
+        component={SearchStackNavigator}
+        options={{
+          title: "Search",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="search" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="LibraryTab"
+        component={LibraryStackNavigator}
+        options={{
+          title: "Library",
+          tabBarIcon: ({ color, size }) => (
+            <Feather name="bookmark" size={size} color={color} />
           ),
         }}
       />
