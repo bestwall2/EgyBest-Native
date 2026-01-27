@@ -1,0 +1,211 @@
+Advanced React Native Movie & Series Streaming App - Development Prompt
+Create a complete React Native application for streaming movies and TV series using the TMDB API. Follow these specifications:
+Core Requirements
+Tech Stack:
+
+React Native (latest stable version)
+TypeScript for type safety
+React Navigation v6 for routing
+Redux Toolkit or Zustand for state management
+Axios for API calls
+React Query for data fetching and caching
+Async Storage for local data persistence
+
+Architecture:
+
+Implement clean architecture with separation of concerns
+Organize code into: screens, components, services, hooks, store, types, utils, constants
+Use custom hooks for reusable logic
+Implement error boundaries for crash handling
+
+TMDB API Integration
+Setup:
+
+Create a secure API service layer with interceptors
+Store API key securely (use react-native-dotenv)
+Implement request/response interceptors for error handling
+Add request throttling and caching strategies
+
+Required Endpoints:
+
+Trending movies/TV shows (daily/weekly)
+Popular, top-rated, upcoming content
+Search movies and TV shows
+Genre lists and filtering
+Movie/show details with cast, crew, videos
+Recommendations and similar content
+Multi-season TV show data with episodes
+Person details and filmography
+
+Features to Implement
+1. Authentication & User Management:
+
+Optional user profiles (local storage)
+Watchlist and favorites functionality
+Continue watching history
+Viewing preferences
+
+2. Home Screen:
+
+Hero banner with trending content
+Horizontal scrollable sections: Trending, Popular, Top Rated, By Genre
+Skeleton loaders for better UX
+Pull-to-refresh functionality
+Infinite scroll implementation
+
+3. Browse/Discover:
+
+Filter by: Genre, year, rating, popularity
+Sort options
+Separate tabs for Movies and TV Shows
+Advanced search with filters
+
+4. Detail Screen:
+
+High-quality backdrop and poster images
+Title, release date, runtime, rating
+Overview/synopsis with read more/less
+Cast carousel with profile images
+Trailers and clips player
+Similar content recommendations
+Add to watchlist/favorites buttons
+Share functionality
+For TV shows: Season selector, episode lists
+
+5. Search:
+
+Real-time search with debouncing
+Search history (stored locally)
+Multi-category search (movies, TV, people)
+Filter search results
+
+6. Video Player Integration:
+
+Integrate react-native-video or expo-video
+Play trailers and clips from TMDB
+Custom playback controls
+Fullscreen support
+Picture-in-picture mode (if possible)
+
+7. User Library:
+
+Watchlist tab
+Favorites tab
+Continue watching section
+Viewing history
+
+UI/UX Design
+Design System:
+
+Dark theme optimized for media content
+Custom color palette with TMDB red (#E50914 style) accents
+Consistent typography scale
+Reusable component library (Button, Card, Input, etc.)
+Smooth animations using React Native Reanimated
+Gesture handling with React Native Gesture Handler
+
+Components:
+
+MediaCard (movie/show thumbnail with details)
+HorizontalList (scrollable content rows)
+DetailsHeader (gradient overlay design)
+CastCard (circular profile images)
+SearchBar (animated with clear button)
+FilterChips (genre selection)
+Rating display (stars or percentage)
+Loading skeletons matching content layout
+
+Navigation:
+
+Bottom tab navigation (Home, Browse, Search, Library)
+Stack navigation for detail screens
+Smooth transitions and animations
+Deep linking support
+
+Performance Optimization
+
+Image lazy loading with react-native-fast-image
+List optimization with FlatList props (windowSize, maxToRenderPerBatch)
+Memoization for expensive renders
+Code splitting where applicable
+Bundle size optimization
+Reduce unnecessary re-renders
+
+Data Management
+
+Implement pagination for all lists
+Cache API responses with React Query (staleTime, cacheTime)
+Offline support for cached data
+Optimistic updates for watchlist/favorites
+Data normalization in state
+
+Error Handling & Edge Cases
+
+Network error handling with retry logic
+Empty states for lists
+Loading states (skeleton screens)
+Error boundaries for component crashes
+Form validation
+API rate limiting handling
+No results found states
+
+Additional Features
+
+Push notifications (optional)
+App rating prompt
+Share content to social media
+Multi-language support (i18n)
+Accessibility features (screen reader support)
+Analytics integration points
+
+Code Quality
+
+ESLint and Prettier configuration
+TypeScript strict mode
+Comprehensive prop types/interfaces
+Reusable utility functions
+Constants file for magic numbers
+Environment variables for API keys
+Comments for complex logic
+
+Testing Considerations
+
+Structure code for testability
+Separate business logic from UI
+Mock service layer for testing
+Add test IDs for E2E testing
+
+Folder Structure
+src/
+├── components/
+│   ├── common/
+│   └── media/
+├── screens/
+├── navigation/
+├── services/
+│   └── tmdb/
+├── hooks/
+├── store/
+├── types/
+├── utils/
+├── constants/
+├── theme/
+└── assets/
+Deliverables
+
+Complete source code with TypeScript
+Package.json with all dependencies
+Environment setup instructions
+README with setup and API key configuration
+Comments explaining complex logic
+Reusable components documented
+
+Notes
+
+Use TMDB's image CDN for optimal image loading
+Implement proper image sizing (w500, w780, original)
+Handle adult content filtering
+Respect TMDB attribution requirements
+Consider platform-specific code for iOS/Android differences
+
+Build this as a production-ready MVP that can be extended with additional features like actual streaming, user accounts, or premium content.
