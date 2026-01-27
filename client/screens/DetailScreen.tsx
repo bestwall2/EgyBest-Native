@@ -10,7 +10,6 @@ import {
   ActivityIndicator,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useHeaderHeight } from "@react-navigation/elements";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { useQuery } from "@tanstack/react-query";
@@ -29,7 +28,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { RatingBadge } from "@/components/RatingBadge";
 import { CastCard } from "@/components/CastCard";
 import { MediaCard } from "@/components/MediaCard";
-import { SkeletonLoader } from "@/components/SkeletonLoader";
+import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
@@ -38,15 +37,11 @@ import {
   TVShowDetails,
   MediaType,
   MediaItem,
-  CastMember,
-  Season,
 } from "@/types/tmdb";
 import {
   getImageUrl,
-  formatDate,
   formatYear,
   formatRuntime,
-  normalizeToMediaItem,
   isMovie,
 } from "@/utils/helpers";
 import {
@@ -58,6 +53,7 @@ import {
   isInFavorites,
   addToWatchHistory,
 } from "@/services/storage";
+import { getMovieDetails, getTVShowDetails } from "@/services/tmdb";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DetailRouteProp = RouteProp<RootStackParamList, "Detail">;
@@ -66,7 +62,6 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function DetailScreen() {
   const insets = useSafeAreaInsets();
-  const headerHeight = useHeaderHeight();
   const { theme } = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<DetailRouteProp>();
@@ -77,13 +72,16 @@ export default function DetailScreen() {
   const [showFullOverview, setShowFullOverview] = useState(false);
   const [selectedSeason, setSelectedSeason] = useState(1);
 
-  const endpoint =
-    mediaType === "movie"
-      ? `/api/tmdb/movie/${id}`
-      : `/api/tmdb/tv/${id}`;
-
-  const { data: details, isLoading } = useQuery<MovieDetails | TVShowDetails>({
-    queryKey: [endpoint, { append_to_response: "credits,videos,similar,recommendations" }],
+  const {
+    data: details,
+    isLoading,
+    isError,
+    error,
+    refetch,
+  } = useQuery<MovieDetails | TVShowDetails>({
+    queryKey: [`/api/tmdb/${mediaType}/${id}?append_to_response=credits,videos,similar,recommendations`],
+    retry: 2,
+    retryDelay: 1000,
   });
 
   useEffect(() => {
@@ -163,10 +161,14 @@ export default function DetailScreen() {
     const title = "title" in details ? details.title : details.name;
     try {
       await Share.share({
-        message: `Check out ${title} on StreamFlix!`,
+        message: `Check out ${title} on EGYBEST!`,
         title: title,
       });
     } catch {}
+  };
+
+  const handlePlay = () => {
+    Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
   };
 
   const handleItemPress = useCallback(
@@ -181,16 +183,24 @@ export default function DetailScreen() {
       <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
+          <ThemedText style={styles.loadingText}>Loading details...</ThemedText>
         </View>
       </View>
     );
   }
 
-  if (!details) {
+  if (isError || !details) {
     return (
       <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
         <View style={styles.errorContainer}>
-          <ThemedText>Failed to load details</ThemedText>
+          <Feather name="alert-circle" size={48} color={theme.primary} />
+          <ThemedText style={styles.errorTitle}>Failed to load details</ThemedText>
+          <ThemedText style={[styles.errorMessage, { color: theme.textSecondary }]}>
+            {error?.message || "Something went wrong. Please try again."}
+          </ThemedText>
+          <Button onPress={() => refetch()} style={styles.retryButton}>
+            Try Again
+          </Button>
         </View>
       </View>
     );
@@ -297,13 +307,33 @@ export default function DetailScreen() {
             </View>
           </View>
 
-          <View style={styles.actionsRow}>
-            <ActionButton
-              icon={inWatchlist ? "check" : "plus"}
-              label={inWatchlist ? "In Watchlist" : "Watchlist"}
+          <View style={styles.playButtonsRow}>
+            <Pressable
+              onPress={handlePlay}
+              style={[styles.playButton, { backgroundColor: "#FFFFFF" }]}
+            >
+              <Feather name="play" size={20} color="#000000" />
+              <ThemedText style={styles.playButtonText}>Play</ThemedText>
+            </Pressable>
+            <Pressable
               onPress={handleWatchlistToggle}
-              isActive={inWatchlist}
-            />
+              style={[
+                styles.infoButton,
+                { backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FFFFFF" },
+              ]}
+            >
+              <Feather
+                name={inWatchlist ? "check" : "plus"}
+                size={20}
+                color="#FFFFFF"
+              />
+              <ThemedText style={styles.infoButtonText}>
+                {inWatchlist ? "Added" : "My List"}
+              </ThemedText>
+            </Pressable>
+          </View>
+
+          <View style={styles.actionsRow}>
             <ActionButton
               icon={inFavorites ? "heart" : "heart"}
               label="Favorite"
@@ -314,6 +344,12 @@ export default function DetailScreen() {
               icon="share"
               label="Share"
               onPress={handleShare}
+              isActive={false}
+            />
+            <ActionButton
+              icon="download"
+              label="Download"
+              onPress={() => {}}
               isActive={false}
             />
           </View>
@@ -437,20 +473,14 @@ export default function DetailScreen() {
         ]}
       >
         <Pressable
-          onPress={handleWatchlistToggle}
+          onPress={handlePlay}
           style={({ pressed }) => [
             styles.floatingButtonInner,
             { opacity: pressed ? 0.8 : 1 },
           ]}
         >
-          <Feather
-            name={inWatchlist ? "check" : "plus"}
-            size={20}
-            color="#FFFFFF"
-          />
-          <ThemedText style={styles.floatingButtonText}>
-            {inWatchlist ? "In Watchlist" : "Add to Watchlist"}
-          </ThemedText>
+          <Feather name="play" size={20} color="#FFFFFF" />
+          <ThemedText style={styles.floatingButtonText}>Watch Now</ThemedText>
         </Pressable>
       </View>
     </View>
@@ -526,10 +556,29 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
+  loadingText: {
+    marginTop: Spacing.md,
+    fontSize: 14,
+  },
   errorContainer: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    padding: Spacing["3xl"],
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
+  errorMessage: {
+    fontSize: 14,
+    textAlign: "center",
+    marginBottom: Spacing.xl,
+  },
+  retryButton: {
+    paddingHorizontal: Spacing["3xl"],
   },
   backdropContainer: {
     height: 280,
@@ -586,6 +635,40 @@ const styles = StyleSheet.create({
   genres: {
     fontSize: 13,
     marginTop: Spacing.xs,
+  },
+  playButtonsRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
+  playButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    gap: Spacing.sm,
+  },
+  playButtonText: {
+    color: "#000000",
+    fontSize: 16,
+    fontWeight: "600",
+  },
+  infoButton: {
+    flex: 1,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    borderRadius: BorderRadius.sm,
+    borderWidth: 1,
+    gap: Spacing.sm,
+  },
+  infoButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "600",
   },
   actionsRow: {
     flexDirection: "row",

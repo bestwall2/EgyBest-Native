@@ -16,7 +16,7 @@ const tmdbApi = axios.create({
 export async function registerRoutes(app: Express): Promise<Server> {
   // TMDB API proxy routes
   
-  // Trending
+  // Trending (including "all" for mixed content)
   app.get("/api/tmdb/trending/:mediaType/:timeWindow", async (req, res) => {
     try {
       const { mediaType, timeWindow } = req.params;
@@ -242,6 +242,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const response = await tmdbApi.get(`/person/${id}`, {
         params: { append_to_response },
       });
+      res.json(response.data);
+    } catch (error: any) {
+      console.error("TMDB API error:", error.message);
+      res.status(error.response?.status || 500).json({ error: error.message });
+    }
+  });
+
+  // Images endpoints (for logos)
+  app.get("/api/tmdb/movie/:id/images", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const response = await tmdbApi.get(`/movie/${id}/images`);
+      res.json(response.data);
+    } catch (error: any) {
+      console.error("TMDB API error:", error.message);
+      res.status(error.response?.status || 500).json({ error: error.message });
+    }
+  });
+
+  app.get("/api/tmdb/tv/:id/images", async (req, res) => {
+    try {
+      const { id } = req.params;
+      const response = await tmdbApi.get(`/tv/${id}/images`);
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
