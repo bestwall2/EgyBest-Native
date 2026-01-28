@@ -5,3 +5,5 @@
 Serving static Expo files with dynamic manifest routing
 Expo routing: Checking expo-platform header on / and /manifest
 express server serving on port 5000
+TMDB API error: Request failed with status code 401
+GET /api/tmdb/trending/all/week 401 in 149ms :: {"error":"Request failed with s…

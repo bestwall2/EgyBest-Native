@@ -55,7 +55,7 @@ mode = "sequential"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "npm run server:dev"
+args = "npm run \"npm \""
 waitForPort = 5000
 
 [[workflows.workflow]]

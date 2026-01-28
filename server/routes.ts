@@ -333,6 +333,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Proxy for TMDB images to avoid CORS issues
+  app.get("/api/tmdb/image/:size/:file", async (req, res) => {
+    try {
+      const imagePath = `${req.params.size}/${req.params.file}`;
+      const imageUrl = `https://image.tmdb.org/t/p/${imagePath}`;
+      const response = await axios.get(imageUrl, {
+        responseType: "stream",
+        timeout: 10000,
+      });
+      if (response.headers["content-type"]) {
+        res.setHeader("Content-Type", response.headers["content-type"]);
+      }
+      res.setHeader("Cache-Control", "public, max-age=31536000");
+      response.data.pipe(res);
+    } catch (_error: any) {
+      res.status(404).send("Image not found");
+    }
+  });
+
   const httpServer = createServer(app);
 
   return httpServer;

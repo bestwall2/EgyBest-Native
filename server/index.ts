@@ -18,33 +18,22 @@ function setupCors(app: express.Application) {
     const origin = req.header("origin");
 
     if (origin) {
-      const isReplit =
-        origin.endsWith(".repl.co") ||
-        origin.endsWith(".replit.app") ||
-        origin.endsWith(".replit.dev") ||
-        (process.env.REPLIT_DEV_DOMAIN &&
-          origin.includes(process.env.REPLIT_DEV_DOMAIN));
-
-      const isLocalhost =
-        origin.startsWith("http://localhost:") ||
-        origin.startsWith("http://127.0.0.1:");
-
-      if (isReplit || isLocalhost) {
-        res.header("Access-Control-Allow-Origin", origin);
-        res.header(
-          "Access-Control-Allow-Methods",
-          "GET, POST, PUT, DELETE, OPTIONS",
-        );
-        res.header(
-          "Access-Control-Allow-Headers",
-          "Content-Type, Authorization, X-Requested-With",
-        );
-        res.header("Access-Control-Allow-Credentials", "true");
-      }
+      // For development, allow the current origin
+      res.header("Access-Control-Allow-Origin", origin);
+      res.header("Access-Control-Allow-Credentials", "true");
     } else {
-      // For non-browser requests or missing origin, allow all for development
+      // For non-browser requests, allow all
       res.header("Access-Control-Allow-Origin", "*");
     }
+
+    res.header(
+      "Access-Control-Allow-Methods",
+      "GET, POST, PUT, DELETE, OPTIONS",
+    );
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, X-Requested-With, Range, expo-platform",
+    );
 
     if (req.method === "OPTIONS") {
       return res.sendStatus(200);
