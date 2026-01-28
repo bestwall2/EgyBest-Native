@@ -217,6 +217,11 @@ function setupErrorHandler(app: express.Application) {
 }
 
 (async () => {
+  // Add status endpoint first
+  app.get("/api/status", (_req, res) => {
+    res.json({ status: "ok", timestamp: new Date().toISOString() });
+  });
+
   setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);
@@ -232,7 +237,6 @@ function setupErrorHandler(app: express.Application) {
     {
       port,
       host: "0.0.0.0",
-      reusePort: true,
     },
     () => {
       log(`express server serving on port ${port}`);
