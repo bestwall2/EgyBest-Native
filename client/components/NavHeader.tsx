@@ -1,7 +1,6 @@
 import React from "react";
-import { View, StyleSheet, Pressable, Platform } from "react-native";
+import { View, StyleSheet, Pressable } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
 import { Feather } from "@expo/vector-icons";
 import Animated, {
   useSharedValue,
@@ -44,18 +43,13 @@ export function NavHeader({
 
   return (
     <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Animated.View style={[styles.background, animatedStyle]}>
-        {Platform.OS === "ios" ? (
-          <BlurView intensity={80} tint="dark" style={StyleSheet.absoluteFill} />
-        ) : (
-          <View
-            style={[
-              StyleSheet.absoluteFill,
-              { backgroundColor: "rgba(10,10,10,0.9)" },
-            ]}
-          />
-        )}
-      </Animated.View>
+      <Animated.View
+        style={[
+          styles.background,
+          { backgroundColor: "rgba(10,10,10,0.85)" },
+          animatedStyle,
+        ]}
+      />
 
       <View style={styles.content}>
         <NavButton icon="settings" onPress={onSettingsPress} />

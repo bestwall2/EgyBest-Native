@@ -4,7 +4,6 @@ import {
   FlatList,
   StyleSheet,
   Pressable,
-  ActivityIndicator,
   Dimensions,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
@@ -94,17 +93,16 @@ export default function SearchScreen() {
     await loadSearchHistory();
   };
 
-  const searchEndpoint = selectedTab === 0
-    ? "/api/tmdb/search/movie"
-    : selectedTab === 1
-    ? "/api/tmdb/search/tv"
-    : "/api/tmdb/search/multi";
+  const searchType = selectedTab === 0 ? "movie" : selectedTab === 1 ? "tv" : "multi";
+  const searchEndpoint = debouncedQuery.length > 0
+    ? `/api/tmdb/search/${searchType}?query=${encodeURIComponent(debouncedQuery)}`
+    : null;
 
   const { data: searchResults, isLoading } = useQuery<{
     results: (Movie | TVShow)[];
   }>({
-    queryKey: [searchEndpoint, { query: debouncedQuery }],
-    enabled: debouncedQuery.length > 0,
+    queryKey: [searchEndpoint],
+    enabled: searchEndpoint !== null,
   });
 
   const handleItemPress = useCallback(
@@ -152,7 +150,7 @@ export default function SearchScreen() {
         <View style={styles.skeletonGrid}>
           {[1, 2, 3, 4].map((i) => (
             <View key={i} style={styles.cardWrapper}>
-              <MediaCardSkeleton />
+              <MediaCardSkeleton size="large" />
             </View>
           ))}
         </View>
@@ -235,7 +233,10 @@ export default function SearchScreen() {
           value={searchQuery}
           onChangeText={handleSearchChange}
           onSubmit={handleSearchSubmit}
-          onClear={() => setDebouncedQuery("")}
+          onClear={() => {
+            setSearchQuery("");
+            setDebouncedQuery("");
+          }}
           autoFocus={false}
         />
         <View style={styles.tabContainer}>
@@ -320,7 +321,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.sm,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
   },
   historyIcon: {
     marginRight: Spacing.md,

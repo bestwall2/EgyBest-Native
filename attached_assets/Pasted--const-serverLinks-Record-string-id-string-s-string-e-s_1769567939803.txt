@@ -1,0 +1,54 @@
+
+const serverLinks: Record<
+  string,
+  (id: string, s: string, e: string, type: string) => string
+> = {
+  server1: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://vidlink.pro/movie/${id}`
+      : `https://vidlink.pro/tv/${id}/${s}/${e}`,
+  server2: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://vidsrcme.ru/embed/movie?tmdb=${id}`
+      : `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
+  server3: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://vidsrc.cc/v2/embed/movie/${id}`
+      : `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`,
+  server4: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://player.videasy.net/movie/${id}`
+      : `https://player.videasy.net/tv/${id}/${s}/${e}`,
+  server5: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://111movies.com/movie/${id}`
+      : `https://111movies.com/tv/${id}/${s}/${e}`,
+  server6: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://godriveplayer.com/player.php?tmdb=${id}`
+      : `https://godriveplayer.com/player.php?type=series&tmdb=${id}&season=${s}&episode=${e}`,
+  server7: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://vidsrc.cx/embed/movie/${id}`
+      : `https://vidsrc.cx/embed/tv/${id}/${s}/${e}`,
+  server8: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://player.vidzee.wtf/embed/movie/${id}`
+      : `https://player.vidzee.wtf/embed/tv/${id}/${s}/${e}`,
+  server9: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://www.nontongo.win/embed/movie/${id}`
+      : `https://www.nontongo.win/embed/tv/${id}/${s}/${e}`,
+  server10: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://vidfast.pro/movie/${id}`
+      : `https://vidfast.pro/tv/${id}/${s}/${e}`,
+  server11: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://netplayz.live/watch?type=movie&id=${id}`
+      : `https://netplayz.live/watch?type=tv&id=${id}&s=${s}&e=${e}`,
+  server12: (id, s, e, type) =>
+    type === "MOVIE"
+      ? `https://mapple.uk/watch/movie/${id}`
+      : `https://mapple.uk/watch/tv/${id}-${s}-${e}`,
+};

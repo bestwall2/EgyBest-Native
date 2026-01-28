@@ -8,6 +8,7 @@ import {
   Share,
   FlatList,
   ActivityIndicator,
+  Linking,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -22,6 +23,7 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   FadeIn,
+  FadeInUp,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
@@ -53,7 +55,6 @@ import {
   isInFavorites,
   addToWatchHistory,
 } from "@/services/storage";
-import { getMovieDetails, getTVShowDetails } from "@/services/tmdb";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DetailRouteProp = RouteProp<RootStackParamList, "Detail">;
@@ -70,7 +71,6 @@ export default function DetailScreen() {
   const [inWatchlist, setInWatchlist] = useState(false);
   const [inFavorites, setInFavorites] = useState(false);
   const [showFullOverview, setShowFullOverview] = useState(false);
-  const [selectedSeason, setSelectedSeason] = useState(1);
 
   const {
     data: details,
@@ -168,7 +168,30 @@ export default function DetailScreen() {
   };
 
   const handlePlay = () => {
+    if (!details) return;
     Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    const title = "title" in details ? details.title : details.name;
+    navigation.navigate("Watch", {
+      id,
+      mediaType,
+      title,
+      season: 1,
+      episode: 1,
+    });
+  };
+
+  const handleTrailer = () => {
+    if (!details) return;
+    const trailer = details.videos?.results?.find(
+      (v) => v.type === "Trailer" && v.site === "YouTube"
+    );
+    if (trailer) {
+      Linking.openURL(`https://www.youtube.com/watch?v=${trailer.key}`);
+    }
+  };
+
+  const handlePersonPress = (personId: number) => {
+    navigation.navigate("Person", { id: personId });
   };
 
   const handleItemPress = useCallback(
@@ -207,18 +230,12 @@ export default function DetailScreen() {
   }
 
   const title = "title" in details ? details.title : details.name;
-  const releaseDate =
-    "release_date" in details ? details.release_date : details.first_air_date;
-  const runtime =
-    "runtime" in details
-      ? details.runtime
-      : details.episode_run_time?.[0] || 0;
+  const releaseDate = "release_date" in details ? details.release_date : details.first_air_date;
+  const runtime = "runtime" in details ? details.runtime : details.episode_run_time?.[0] || 0;
   const backdropUrl = getImageUrl(details.backdrop_path, "backdrop", "large");
   const posterUrl = getImageUrl(details.poster_path, "poster", "large");
   const cast = details.credits?.cast?.slice(0, 10) || [];
-  const trailer = details.videos?.results?.find(
-    (v) => v.type === "Trailer" && v.site === "YouTube"
-  );
+  const trailer = details.videos?.results?.find((v) => v.type === "Trailer" && v.site === "YouTube");
   const similar = details.similar?.results?.slice(0, 10) || [];
   const genres = details.genres?.map((g) => g.name).join(", ");
 
@@ -238,43 +255,21 @@ export default function DetailScreen() {
               transition={300}
             />
           ) : (
-            <View
-              style={[
-                styles.backdrop,
-                { backgroundColor: theme.backgroundSecondary },
-              ]}
-            />
+            <View style={[styles.backdrop, { backgroundColor: theme.backgroundSecondary }]} />
           )}
           <LinearGradient
-            colors={[
-              "transparent",
-              `${theme.backgroundRoot}99`,
-              theme.backgroundRoot,
-            ]}
+            colors={["transparent", `${theme.backgroundRoot}99`, theme.backgroundRoot]}
             style={styles.backdropGradient}
           />
         </View>
 
-        <Animated.View
-          entering={FadeIn.duration(400)}
-          style={[styles.content, { marginTop: -80 }]}
-        >
+        <Animated.View entering={FadeIn.duration(400)} style={[styles.content, { marginTop: -80 }]}>
           <View style={styles.posterRow}>
             <View style={styles.posterContainer}>
               {posterUrl ? (
-                <Image
-                  source={{ uri: posterUrl }}
-                  style={styles.poster}
-                  contentFit="cover"
-                  transition={300}
-                />
+                <Image source={{ uri: posterUrl }} style={styles.poster} contentFit="cover" transition={300} />
               ) : (
-                <View
-                  style={[
-                    styles.poster,
-                    { backgroundColor: theme.backgroundSecondary },
-                  ]}
-                />
+                <View style={[styles.poster, { backgroundColor: theme.backgroundSecondary }]} />
               )}
             </View>
             <View style={styles.metaContainer}>
@@ -283,24 +278,17 @@ export default function DetailScreen() {
               </ThemedText>
               <View style={styles.metaRow}>
                 <RatingBadge rating={details.vote_average} size="medium" />
-                <ThemedText
-                  style={[styles.metaText, { color: theme.textSecondary }]}
-                >
+                <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
                   {formatYear(releaseDate)}
                 </ThemedText>
                 {runtime > 0 ? (
-                  <ThemedText
-                    style={[styles.metaText, { color: theme.textSecondary }]}
-                  >
+                  <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
                     {formatRuntime(runtime)}
                   </ThemedText>
                 ) : null}
               </View>
               {genres ? (
-                <ThemedText
-                  style={[styles.genres, { color: theme.textSecondary }]}
-                  numberOfLines={2}
-                >
+                <ThemedText style={[styles.genres, { color: theme.textSecondary }]} numberOfLines={2}>
                   {genres}
                 </ThemedText>
               ) : null}
@@ -308,28 +296,16 @@ export default function DetailScreen() {
           </View>
 
           <View style={styles.playButtonsRow}>
-            <Pressable
-              onPress={handlePlay}
-              style={[styles.playButton, { backgroundColor: "#FFFFFF" }]}
-            >
-              <Feather name="play" size={20} color="#000000" />
-              <ThemedText style={styles.playButtonText}>Play</ThemedText>
+            <Pressable onPress={handlePlay} style={[styles.playButton, { backgroundColor: theme.primary }]}>
+              <Feather name="play" size={20} color="#FFFFFF" />
+              <ThemedText style={styles.playButtonText}>Watch Now</ThemedText>
             </Pressable>
             <Pressable
               onPress={handleWatchlistToggle}
-              style={[
-                styles.infoButton,
-                { backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FFFFFF" },
-              ]}
+              style={[styles.infoButton, { backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FFFFFF" }]}
             >
-              <Feather
-                name={inWatchlist ? "check" : "plus"}
-                size={20}
-                color="#FFFFFF"
-              />
-              <ThemedText style={styles.infoButtonText}>
-                {inWatchlist ? "Added" : "My List"}
-              </ThemedText>
+              <Feather name={inWatchlist ? "check" : "plus"} size={20} color="#FFFFFF" />
+              <ThemedText style={styles.infoButtonText}>{inWatchlist ? "Added" : "My List"}</ThemedText>
             </Pressable>
           </View>
 
@@ -340,22 +316,14 @@ export default function DetailScreen() {
               onPress={handleFavoriteToggle}
               isActive={inFavorites}
             />
-            <ActionButton
-              icon="share"
-              label="Share"
-              onPress={handleShare}
-              isActive={false}
-            />
-            <ActionButton
-              icon="download"
-              label="Download"
-              onPress={() => {}}
-              isActive={false}
-            />
+            {trailer ? (
+              <ActionButton icon="youtube" label="Trailer" onPress={handleTrailer} isActive={false} />
+            ) : null}
+            <ActionButton icon="share" label="Share" onPress={handleShare} isActive={false} />
           </View>
 
           {details.overview ? (
-            <View style={styles.section}>
+            <Animated.View entering={FadeInUp.delay(100).duration(300)} style={styles.section}>
               <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
               <Pressable onPress={() => setShowFullOverview(!showFullOverview)}>
                 <ThemedText
@@ -370,78 +338,35 @@ export default function DetailScreen() {
                   </ThemedText>
                 ) : null}
               </Pressable>
-            </View>
-          ) : null}
-
-          {"seasons" in details && details.seasons?.length > 0 ? (
-            <View style={styles.section}>
-              <ThemedText style={styles.sectionTitle}>Seasons</ThemedText>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.seasonsList}
-              >
-                {details.seasons
-                  .filter((s) => s.season_number > 0)
-                  .map((season) => (
-                    <Pressable
-                      key={season.id}
-                      onPress={() => setSelectedSeason(season.season_number)}
-                      style={[
-                        styles.seasonChip,
-                        {
-                          backgroundColor:
-                            selectedSeason === season.season_number
-                              ? theme.primary
-                              : theme.backgroundSecondary,
-                        },
-                      ]}
-                    >
-                      <ThemedText
-                        style={[
-                          styles.seasonChipText,
-                          {
-                            color:
-                              selectedSeason === season.season_number
-                                ? "#FFFFFF"
-                                : theme.text,
-                          },
-                        ]}
-                      >
-                        S{season.season_number}
-                      </ThemedText>
-                    </Pressable>
-                  ))}
-              </ScrollView>
-            </View>
+            </Animated.View>
           ) : null}
 
           {cast.length > 0 ? (
-            <View style={styles.section}>
+            <Animated.View entering={FadeInUp.delay(200).duration(300)} style={styles.section}>
               <ThemedText style={styles.sectionTitle}>Cast</ThemedText>
               <FlatList
                 horizontal
                 data={cast}
                 keyExtractor={(item) => item.id.toString()}
-                renderItem={({ item }) => <CastCard cast={item} />}
+                renderItem={({ item }) => (
+                  <CastCard cast={item} onPress={() => handlePersonPress(item.id)} />
+                )}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.castList}
               />
-            </View>
+            </Animated.View>
           ) : null}
 
           {similar.length > 0 ? (
-            <View style={styles.section}>
+            <Animated.View entering={FadeInUp.delay(300).duration(300)} style={styles.section}>
               <ThemedText style={styles.sectionTitle}>Similar</ThemedText>
               <FlatList
                 horizontal
                 data={similar}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
-                  const itemTitle = isMovie(item) ? item.title : item.name;
-                  const itemDate = isMovie(item)
-                    ? item.release_date
-                    : item.first_air_date;
+                  const itemTitle = isMovie(item) ? item.title : (item as any).name;
+                  const itemDate = isMovie(item) ? item.release_date : (item as any).first_air_date;
                   return (
                     <MediaCard
                       id={item.id}
@@ -457,7 +382,7 @@ export default function DetailScreen() {
                 }}
                 showsHorizontalScrollIndicator={false}
               />
-            </View>
+            </Animated.View>
           ) : null}
         </Animated.View>
       </ScrollView>
@@ -474,10 +399,7 @@ export default function DetailScreen() {
       >
         <Pressable
           onPress={handlePlay}
-          style={({ pressed }) => [
-            styles.floatingButtonInner,
-            { opacity: pressed ? 0.8 : 1 },
-          ]}
+          style={({ pressed }) => [styles.floatingButtonInner, { opacity: pressed ? 0.8 : 1 }]}
         >
           <Feather name="play" size={20} color="#FFFFFF" />
           <ThemedText style={styles.floatingButtonText}>Watch Now</ThemedText>
@@ -512,173 +434,66 @@ function ActionButton({ icon, label, onPress, isActive }: ActionButtonProps) {
 
   return (
     <Animated.View style={animatedStyle}>
-      <Pressable
-        onPress={onPress}
-        onPressIn={handlePressIn}
-        onPressOut={handlePressOut}
-        style={styles.actionButton}
-      >
+      <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.actionButton}>
         <View
           style={[
             styles.actionIconContainer,
-            {
-              backgroundColor: isActive
-                ? theme.primary
-                : theme.backgroundSecondary,
-            },
+            { backgroundColor: isActive ? theme.primary : theme.backgroundSecondary },
           ]}
         >
-          <Feather
-            name={icon as any}
-            size={20}
-            color={isActive ? "#FFFFFF" : theme.text}
-          />
+          <Feather name={icon as any} size={20} color={isActive ? "#FFFFFF" : theme.text} />
         </View>
-        <ThemedText
-          style={[styles.actionLabel, { color: theme.textSecondary }]}
-        >
-          {label}
-        </ThemedText>
+        <ThemedText style={[styles.actionLabel, { color: theme.textSecondary }]}>{label}</ThemedText>
       </Pressable>
     </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-  },
-  loadingText: {
-    marginTop: Spacing.md,
-    fontSize: 14,
-  },
-  errorContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: Spacing["3xl"],
-  },
-  errorTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginTop: Spacing.lg,
-    marginBottom: Spacing.sm,
-  },
-  errorMessage: {
-    fontSize: 14,
-    textAlign: "center",
-    marginBottom: Spacing.xl,
-  },
-  retryButton: {
-    paddingHorizontal: Spacing["3xl"],
-  },
-  backdropContainer: {
-    height: 280,
-    position: "relative",
-  },
-  backdrop: {
-    width: "100%",
-    height: "100%",
-  },
-  backdropGradient: {
-    position: "absolute",
-    left: 0,
-    right: 0,
-    bottom: 0,
-    height: 160,
-  },
-  content: {
-    paddingHorizontal: Spacing.lg,
-  },
-  posterRow: {
-    flexDirection: "row",
-    marginBottom: Spacing.xl,
-  },
-  posterContainer: {
-    width: 120,
-    height: 180,
-    borderRadius: BorderRadius.md,
-    overflow: "hidden",
-    ...Shadows.card,
-  },
-  poster: {
-    width: "100%",
-    height: "100%",
-  },
-  metaContainer: {
-    flex: 1,
-    marginLeft: Spacing.lg,
-    justifyContent: "flex-end",
-  },
-  title: {
-    fontSize: 22,
-    fontWeight: "700",
-    marginBottom: Spacing.sm,
-  },
-  metaRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: Spacing.sm,
-    marginBottom: Spacing.xs,
-  },
-  metaText: {
-    fontSize: 14,
-  },
-  genres: {
-    fontSize: 13,
-    marginTop: Spacing.xs,
-  },
-  playButtonsRow: {
-    flexDirection: "row",
-    gap: Spacing.md,
-    marginBottom: Spacing.lg,
-  },
+  container: { flex: 1 },
+  scrollView: { flex: 1 },
+  loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
+  loadingText: { marginTop: Spacing.md, fontSize: 14 },
+  errorContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: Spacing["3xl"] },
+  errorTitle: { fontSize: 18, fontWeight: "600", marginTop: Spacing.lg, marginBottom: Spacing.sm },
+  errorMessage: { fontSize: 14, textAlign: "center", marginBottom: Spacing.xl },
+  retryButton: { paddingHorizontal: Spacing["3xl"] },
+  backdropContainer: { height: 280, position: "relative" },
+  backdrop: { width: "100%", height: "100%" },
+  backdropGradient: { position: "absolute", left: 0, right: 0, bottom: 0, height: 160 },
+  content: { paddingHorizontal: Spacing.lg },
+  posterRow: { flexDirection: "row", marginBottom: Spacing.xl },
+  posterContainer: { width: 120, height: 180, borderRadius: BorderRadius.lg, overflow: "hidden", ...Shadows.card },
+  poster: { width: "100%", height: "100%" },
+  metaContainer: { flex: 1, marginLeft: Spacing.lg, justifyContent: "flex-end" },
+  title: { fontSize: 22, fontWeight: "700", marginBottom: Spacing.sm },
+  metaRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.xs },
+  metaText: { fontSize: 14 },
+  genres: { fontSize: 13, marginTop: Spacing.xs },
+  playButtonsRow: { flexDirection: "row", gap: Spacing.md, marginBottom: Spacing.lg },
   playButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
     gap: Spacing.sm,
   },
-  playButtonText: {
-    color: "#000000",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  playButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
   infoButton: {
     flex: 1,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.md,
     borderWidth: 1,
     gap: Spacing.sm,
   },
-  infoButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  actionsRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginBottom: Spacing.xl,
-    paddingVertical: Spacing.md,
-  },
-  actionButton: {
-    alignItems: "center",
-  },
+  infoButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  actionsRow: { flexDirection: "row", justifyContent: "space-around", marginBottom: Spacing.xl, paddingVertical: Spacing.md },
+  actionButton: { alignItems: "center" },
   actionIconContainer: {
     width: 50,
     height: 50,
@@ -687,58 +502,13 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: Spacing.xs,
   },
-  actionLabel: {
-    fontSize: 12,
-  },
-  section: {
-    marginBottom: Spacing.xl,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    marginBottom: Spacing.md,
-  },
-  overview: {
-    fontSize: 15,
-    lineHeight: 24,
-  },
-  readMore: {
-    fontSize: 14,
-    fontWeight: "500",
-    marginTop: Spacing.xs,
-  },
-  seasonsList: {
-    gap: Spacing.sm,
-  },
-  seasonChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.full,
-  },
-  seasonChipText: {
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  castList: {
-    paddingRight: Spacing.lg,
-  },
-  floatingButton: {
-    position: "absolute",
-    left: Spacing.lg,
-    right: Spacing.lg,
-    borderRadius: BorderRadius.lg,
-    overflow: "hidden",
-  },
-  floatingButtonInner: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    paddingVertical: Spacing.md,
-    gap: Spacing.sm,
-  },
-  floatingButtonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
+  actionLabel: { fontSize: 12 },
+  section: { marginBottom: Spacing.xl },
+  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: Spacing.md },
+  overview: { fontSize: 15, lineHeight: 24 },
+  readMore: { fontSize: 14, fontWeight: "500", marginTop: Spacing.xs },
+  castList: { paddingRight: Spacing.lg },
+  floatingButton: { position: "absolute", left: Spacing.lg, right: Spacing.lg, borderRadius: BorderRadius.lg, overflow: "hidden" },
+  floatingButtonInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: Spacing.md, gap: Spacing.sm },
+  floatingButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
 });

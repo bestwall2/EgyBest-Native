@@ -56,7 +56,7 @@ export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
         setActiveIndex(viewableItems[0].index);
       }
     },
-    []
+    [],
   );
 
   const viewabilityConfig = {
@@ -85,7 +85,11 @@ export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
     ({ item, index }: { item: Movie | TVShow; index: number }) => {
       const title = isMovie(item) ? item.title : item.name;
       const mediaType = getMediaType(item);
-      const backdropUrl = getImageUrl(item.backdrop_path, "backdrop", "original");
+      const backdropUrl = getImageUrl(
+        item.backdrop_path,
+        "backdrop",
+        "original",
+      );
       const year = isMovie(item)
         ? item.release_date?.substring(0, 4)
         : item.first_air_date?.substring(0, 4);
@@ -125,7 +129,12 @@ export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
                 </ThemedText>
               </View>
               {year ? (
-                <View style={[styles.yearBadge, { backgroundColor: "rgba(255,255,255,0.2)" }]}>
+                <View
+                  style={[
+                    styles.yearBadge,
+                    { backgroundColor: "rgba(255,255,255,0.2)" },
+                  ]}
+                >
                   <ThemedText style={styles.yearText}>{year}</ThemedText>
                 </View>
               ) : null}
@@ -166,7 +175,7 @@ export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
         </View>
       );
     },
-    [theme, onPlay, onInfo]
+    [theme, onPlay, onInfo],
   );
 
   return (
@@ -299,13 +308,13 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: 60,
+    bottom: 50,
     paddingHorizontal: Spacing.lg,
   },
   badgeRow: {
     flexDirection: "row",
     alignItems: "center",
-    gap: Spacing.sm,
+    gap: Spacing.md,
     marginBottom: Spacing.md,
   },
   badge: {
@@ -330,9 +339,10 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
   title: {
-    fontSize: 32,
+    fontSize: 30,
     fontWeight: "800",
-    marginBottom: Spacing.sm,
+    marginBottom: 5,
+    lineHeight: 30,
     textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,

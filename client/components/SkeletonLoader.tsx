@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, ViewStyle } from "react-native";
+import { View, StyleSheet, ViewStyle, Dimensions } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -10,7 +10,10 @@ import Animated, {
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/hooks/useTheme";
-import { BorderRadius } from "@/constants/theme";
+import { BorderRadius, Spacing } from "@/constants/theme";
+
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / 2;
 
 interface SkeletonLoaderProps {
   width: number | string;
@@ -37,11 +40,7 @@ export function SkeletonLoader({
   }, [shimmerPosition]);
 
   const animatedStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(
-      shimmerPosition.value,
-      [0, 1],
-      [-200, 200]
-    );
+    const translateX = interpolate(shimmerPosition.value, [0, 1], [-200, 200]);
     return {
       transform: [{ translateX }],
     };
@@ -62,11 +61,7 @@ export function SkeletonLoader({
     >
       <Animated.View style={[styles.shimmer, animatedStyle]}>
         <LinearGradient
-          colors={[
-            "transparent",
-            theme.skeletonHighlight,
-            "transparent",
-          ]}
+          colors={["transparent", theme.skeletonHighlight, "transparent"]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
           style={styles.gradient}
@@ -78,16 +73,25 @@ export function SkeletonLoader({
 
 interface MediaCardSkeletonProps {
   style?: ViewStyle;
+  size?: "small" | "medium" | "large";
 }
 
-export function MediaCardSkeleton({ style }: MediaCardSkeletonProps) {
+export function MediaCardSkeleton({ style, size = "medium" }: MediaCardSkeletonProps) {
+  const dimensions = {
+    small: { width: 100, height: 150 },
+    medium: { width: 140, height: 210 },
+    large: { width: CARD_WIDTH, height: CARD_WIDTH * 1.5 },
+  };
+
+  const { width, height } = dimensions[size];
+
   return (
-    <View style={[styles.mediaCard, style]}>
-      <SkeletonLoader width={140} height={210} borderRadius={BorderRadius.md} />
+    <View style={[{ width }, style]}>
+      <SkeletonLoader width={width} height={height} borderRadius={BorderRadius.lg} />
       <View style={styles.mediaCardInfo}>
-        <SkeletonLoader width={120} height={14} borderRadius={BorderRadius.xs} />
+        <SkeletonLoader width={width * 0.85} height={14} borderRadius={BorderRadius.xs} />
         <SkeletonLoader
-          width={80}
+          width={width * 0.6}
           height={12}
           borderRadius={BorderRadius.xs}
           style={{ marginTop: 6 }}
@@ -137,9 +141,6 @@ const styles = StyleSheet.create({
   gradient: {
     width: 200,
     height: "100%",
-  },
-  mediaCard: {
-    width: 140,
   },
   mediaCardInfo: {
     marginTop: 8,

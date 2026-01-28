@@ -95,7 +95,8 @@ export default function HomeScreen() {
   }, [navigation]);
 
   const handleSettingsPress = useCallback(() => {
-  }, []);
+    navigation.navigate("Settings");
+  }, [navigation]);
 
   const heroData = trendingAll?.results?.slice(0, 5) || [];
 
