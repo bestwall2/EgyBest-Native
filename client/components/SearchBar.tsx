@@ -1,11 +1,5 @@
 import React, { useState, useRef } from "react";
-import {
-  View,
-  TextInput,
-  StyleSheet,
-  Pressable,
-  Platform,
-} from "react-native";
+import { View, TextInput, StyleSheet, Pressable, Platform } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -46,12 +40,18 @@ export function SearchBar({
 
   const handleFocus = () => {
     setIsFocused(true);
-    borderOpacity.value = withTiming(1, { duration: 200, easing: Easing.out(Easing.ease) });
+    borderOpacity.value = withTiming(1, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    });
   };
 
   const handleBlur = () => {
     setIsFocused(false);
-    borderOpacity.value = withTiming(0.3, { duration: 200, easing: Easing.out(Easing.ease) });
+    borderOpacity.value = withTiming(0.3, {
+      duration: 200,
+      easing: Easing.out(Easing.ease),
+    });
   };
 
   const handleClear = () => {

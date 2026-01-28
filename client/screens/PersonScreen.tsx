@@ -20,7 +20,7 @@ import { MediaCard } from "@/components/MediaCard";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import { PersonDetails, Movie, TVShow, MediaType } from "@/types/tmdb";
+import { PersonDetails, Movie, MediaType } from "@/types/tmdb";
 import { getImageUrl, isMovie } from "@/utils/helpers";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -43,12 +43,14 @@ export default function PersonScreen() {
     (itemId: number, mediaType: MediaType) => {
       navigation.push("Detail", { id: itemId, mediaType });
     },
-    [navigation]
+    [navigation],
   );
 
   if (isLoading || !person) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
         </View>
@@ -57,13 +59,31 @@ export default function PersonScreen() {
   }
 
   const profileUrl = getImageUrl(person.profile_path, "profile", "large");
-  const castCredits = person.combined_credits?.cast || [];
-  const knownForMovies = castCredits
-    .filter((item): item is Movie & { media_type: string } => "title" in item || (item as any).media_type === "movie")
+
+  // Combine cast and crew credits and deduplicate
+  const allCredits = [
+    ...(person.combined_credits?.cast || []),
+    ...(person.combined_credits?.crew || []),
+  ];
+
+  const uniqueCreditsMap = new Map();
+  allCredits.forEach((item) => {
+    const mediaType =
+      (item as any).media_type || (isMovie(item) ? "movie" : "tv");
+    const key = `${item.id}-${mediaType}`;
+    if (!uniqueCreditsMap.has(key)) {
+      uniqueCreditsMap.set(key, { ...item, media_type: mediaType });
+    }
+  });
+  const uniqueCredits = Array.from(uniqueCreditsMap.values());
+
+  const knownForMovies = uniqueCredits
+    .filter((item) => item.media_type === "movie")
     .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     .slice(0, 20);
-  const knownForTV = castCredits
-    .filter((item): item is TVShow & { media_type: string } => "name" in item && !("title" in item) || (item as any).media_type === "tv")
+
+  const knownForTV = uniqueCredits
+    .filter((item) => item.media_type === "tv")
     .sort((a, b) => (b.popularity || 0) - (a.popularity || 0))
     .slice(0, 20);
 
@@ -97,7 +117,10 @@ export default function PersonScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.xl }}
       >
         <View style={styles.headerSection}>
-          <Animated.View entering={FadeIn.duration(400)} style={styles.profileImageContainer}>
+          <Animated.View
+            entering={FadeIn.duration(400)}
+            style={styles.profileImageContainer}
+          >
             {profileUrl ? (
               <Image
                 source={{ uri: profileUrl }}
@@ -105,7 +128,12 @@ export default function PersonScreen() {
                 contentFit="cover"
               />
             ) : (
-              <View style={[styles.profileImage, { backgroundColor: theme.backgroundSecondary }]} />
+              <View
+                style={[
+                  styles.profileImage,
+                  { backgroundColor: theme.backgroundSecondary },
+                ]}
+              />
             )}
             <LinearGradient
               colors={["transparent", theme.backgroundRoot]}
@@ -113,7 +141,10 @@ export default function PersonScreen() {
             />
           </Animated.View>
 
-          <Animated.View entering={FadeInUp.delay(200).duration(400)} style={styles.infoContainer}>
+          <Animated.View
+            entering={FadeInUp.delay(200).duration(400)}
+            style={styles.infoContainer}
+          >
             <ThemedText style={styles.name}>{person.name}</ThemedText>
             <ThemedText style={[styles.department, { color: theme.primary }]}>
               {person.known_for_department}
@@ -121,23 +152,39 @@ export default function PersonScreen() {
 
             <View style={styles.statsRow}>
               {person.birthday ? (
-                <View style={[styles.statItem, { backgroundColor: theme.backgroundSecondary }]}>
-                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+                <View
+                  style={[
+                    styles.statItem,
+                    { backgroundColor: theme.backgroundSecondary },
+                  ]}
+                >
+                  <ThemedText
+                    style={[styles.statLabel, { color: theme.textSecondary }]}
+                  >
                     Born
                   </ThemedText>
                   <ThemedText style={styles.statValue}>
                     {formatDate(person.birthday)}
                   </ThemedText>
                   {age !== null ? (
-                    <ThemedText style={[styles.statAge, { color: theme.textSecondary }]}>
+                    <ThemedText
+                      style={[styles.statAge, { color: theme.textSecondary }]}
+                    >
                       ({age} years{person.deathday ? " old" : ""})
                     </ThemedText>
                   ) : null}
                 </View>
               ) : null}
               {person.place_of_birth ? (
-                <View style={[styles.statItem, { backgroundColor: theme.backgroundSecondary }]}>
-                  <ThemedText style={[styles.statLabel, { color: theme.textSecondary }]}>
+                <View
+                  style={[
+                    styles.statItem,
+                    { backgroundColor: theme.backgroundSecondary },
+                  ]}
+                >
+                  <ThemedText
+                    style={[styles.statLabel, { color: theme.textSecondary }]}
+                  >
                     From
                   </ThemedText>
                   <ThemedText style={styles.statValue} numberOfLines={2}>
@@ -152,7 +199,9 @@ export default function PersonScreen() {
         {person.biography ? (
           <View style={styles.section}>
             <ThemedText style={styles.sectionTitle}>Biography</ThemedText>
-            <ThemedText style={[styles.biography, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.biography, { color: theme.textSecondary }]}
+            >
               {person.biography}
             </ThemedText>
           </View>
@@ -168,10 +217,10 @@ export default function PersonScreen() {
               renderItem={({ item }) => (
                 <MediaCard
                   id={item.id}
-                  title={item.title}
+                  title={(item as Movie).title || ""}
                   posterPath={item.poster_path}
                   voteAverage={item.vote_average}
-                  releaseDate={item.release_date}
+                  releaseDate={(item as Movie).release_date || ""}
                   mediaType="movie"
                   onPress={() => handleItemPress(item.id, "movie")}
                   size="small"

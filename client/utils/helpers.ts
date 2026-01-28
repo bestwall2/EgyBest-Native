@@ -4,7 +4,7 @@ import { Movie, TVShow, MediaItem, MediaType } from "@/types/tmdb";
 export function getImageUrl(
   path: string | null,
   type: "poster" | "backdrop" | "profile" = "poster",
-  size: "small" | "medium" | "large" | "original" = "medium"
+  size: "small" | "medium" | "large" | "original" = "medium",
 ): string | null {
   if (!path) return null;
   const sizeValue = TMDBImageSizes[type][size];
@@ -55,7 +55,7 @@ export function isTVShow(item: Movie | TVShow): item is TVShow {
 
 export function normalizeToMediaItem(
   item: Movie | TVShow,
-  mediaType?: MediaType
+  mediaType?: MediaType,
 ): MediaItem {
   if (isMovie(item)) {
     return {
@@ -88,7 +88,7 @@ export function truncateText(text: string, maxLength: number): string {
 
 export function debounce<T extends (...args: unknown[]) => void>(
   func: T,
-  wait: number
+  wait: number,
 ): (...args: Parameters<T>) => void {
   let timeout: ReturnType<typeof setTimeout>;
   return (...args: Parameters<T>) => {

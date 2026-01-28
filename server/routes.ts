@@ -19,9 +19,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { mediaType, timeWindow } = req.params;
       const { language = "en-US" } = req.query;
-      const response = await tmdbApi.get(`/trending/${mediaType}/${timeWindow}`, {
-        params: { language },
-      });
+      const response = await tmdbApi.get(
+        `/trending/${mediaType}/${timeWindow}`,
+        {
+          params: { language },
+        },
+      );
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -33,7 +36,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/movie/popular", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/movie/popular", { params: { page, language } });
+      const response = await tmdbApi.get("/movie/popular", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -44,7 +49,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/movie/top_rated", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/movie/top_rated", { params: { page, language } });
+      const response = await tmdbApi.get("/movie/top_rated", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -55,7 +62,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/movie/upcoming", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/movie/upcoming", { params: { page, language } });
+      const response = await tmdbApi.get("/movie/upcoming", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -66,7 +75,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/movie/now_playing", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/movie/now_playing", { params: { page, language } });
+      const response = await tmdbApi.get("/movie/now_playing", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -92,7 +103,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/tv/popular", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/tv/popular", { params: { page, language } });
+      const response = await tmdbApi.get("/tv/popular", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -103,7 +116,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/tv/top_rated", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/tv/top_rated", { params: { page, language } });
+      const response = await tmdbApi.get("/tv/top_rated", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -114,7 +129,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/tv/on_the_air", async (req, res) => {
     try {
       const { page = 1, language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/tv/on_the_air", { params: { page, language } });
+      const response = await tmdbApi.get("/tv/on_the_air", {
+        params: { page, language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -153,7 +170,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Discover endpoints
   app.get("/api/tmdb/discover/movie", async (req, res) => {
     try {
-      const { page = 1, with_genres, sort_by = "popularity.desc", language = "en-US" } = req.query;
+      const {
+        page = 1,
+        with_genres,
+        sort_by = "popularity.desc",
+        language = "en-US",
+      } = req.query;
       const response = await tmdbApi.get("/discover/movie", {
         params: { page, with_genres, sort_by, language },
       });
@@ -166,7 +188,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get("/api/tmdb/discover/tv", async (req, res) => {
     try {
-      const { page = 1, with_genres, sort_by = "popularity.desc", language = "en-US" } = req.query;
+      const {
+        page = 1,
+        with_genres,
+        sort_by = "popularity.desc",
+        language = "en-US",
+      } = req.query;
       const response = await tmdbApi.get("/discover/tv", {
         params: { page, with_genres, sort_by, language },
       });
@@ -181,7 +208,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/genre/movie/list", async (req, res) => {
     try {
       const { language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/genre/movie/list", { params: { language } });
+      const response = await tmdbApi.get("/genre/movie/list", {
+        params: { language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -192,7 +221,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get("/api/tmdb/genre/tv/list", async (req, res) => {
     try {
       const { language = "en-US" } = req.query;
-      const response = await tmdbApi.get("/genre/tv/list", { params: { language } });
+      const response = await tmdbApi.get("/genre/tv/list", {
+        params: { language },
+      });
       res.json(response.data);
     } catch (error: any) {
       console.error("TMDB API error:", error.message);
@@ -205,7 +236,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { query, page = 1, language = "en-US" } = req.query;
       if (!query) {
-        return res.json({ results: [], page: 1, total_pages: 0, total_results: 0 });
+        return res.json({
+          results: [],
+          page: 1,
+          total_pages: 0,
+          total_results: 0,
+        });
       }
       const response = await tmdbApi.get("/search/movie", {
         params: { query, page, language },
@@ -221,7 +257,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { query, page = 1, language = "en-US" } = req.query;
       if (!query) {
-        return res.json({ results: [], page: 1, total_pages: 0, total_results: 0 });
+        return res.json({
+          results: [],
+          page: 1,
+          total_pages: 0,
+          total_results: 0,
+        });
       }
       const response = await tmdbApi.get("/search/tv", {
         params: { query, page, language },
@@ -237,7 +278,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { query, page = 1, language = "en-US" } = req.query;
       if (!query) {
-        return res.json({ results: [], page: 1, total_pages: 0, total_results: 0 });
+        return res.json({
+          results: [],
+          page: 1,
+          total_pages: 0,
+          total_results: 0,
+        });
       }
       const response = await tmdbApi.get("/search/multi", {
         params: { query, page, language },

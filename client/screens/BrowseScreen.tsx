@@ -53,7 +53,8 @@ export default function BrowseScreen() {
 
   const genres = selectedTab === 0 ? movieGenres?.genres : tvGenres?.genres;
 
-  const discoverEndpoint = selectedTab === 0 ? "/api/tmdb/discover/movie" : "/api/tmdb/discover/tv";
+  const discoverEndpoint =
+    selectedTab === 0 ? "/api/tmdb/discover/movie" : "/api/tmdb/discover/tv";
   const queryParams = selectedGenreId ? `?with_genres=${selectedGenreId}` : "";
 
   const {
@@ -90,7 +91,7 @@ export default function BrowseScreen() {
     (id: number, type: MediaType) => {
       navigation.navigate("Detail", { id, mediaType: type });
     },
-    [navigation]
+    [navigation],
   );
 
   const handleTabChange = useCallback((index: number) => {
@@ -122,7 +123,7 @@ export default function BrowseScreen() {
         </View>
       );
     },
-    [mediaType, handleItemPress]
+    [mediaType, handleItemPress],
   );
 
   const renderFooter = useCallback(() => {

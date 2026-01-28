@@ -36,7 +36,7 @@ export function NavHeader({
       scrollY.value,
       [0, 100],
       [0.4, 0.95],
-      Extrapolation.CLAMP
+      Extrapolation.CLAMP,
     );
     return { opacity };
   });

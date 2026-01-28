@@ -36,27 +36,39 @@ export default function HomeScreen() {
     },
   });
 
-  const { data: trendingAll, isLoading: loadingTrendingAll } = useQuery<TMDBResponse<Movie | TVShow>>({
+  const { data: trendingAll, isLoading: loadingTrendingAll } = useQuery<
+    TMDBResponse<Movie | TVShow>
+  >({
     queryKey: ["/api/tmdb/trending/all/week"],
   });
 
-  const { data: trendingMovies, isLoading: loadingTrending } = useQuery<TMDBResponse<Movie>>({
+  const { data: trendingMovies, isLoading: loadingTrending } = useQuery<
+    TMDBResponse<Movie>
+  >({
     queryKey: ["/api/tmdb/trending/movie/day"],
   });
 
-  const { data: popularMovies, isLoading: loadingPopular } = useQuery<TMDBResponse<Movie>>({
+  const { data: popularMovies, isLoading: loadingPopular } = useQuery<
+    TMDBResponse<Movie>
+  >({
     queryKey: ["/api/tmdb/movie/popular"],
   });
 
-  const { data: topRatedMovies, isLoading: loadingTopRated } = useQuery<TMDBResponse<Movie>>({
+  const { data: topRatedMovies, isLoading: loadingTopRated } = useQuery<
+    TMDBResponse<Movie>
+  >({
     queryKey: ["/api/tmdb/movie/top_rated"],
   });
 
-  const { data: trendingTV, isLoading: loadingTrendingTV } = useQuery<TMDBResponse<TVShow>>({
+  const { data: trendingTV, isLoading: loadingTrendingTV } = useQuery<
+    TMDBResponse<TVShow>
+  >({
     queryKey: ["/api/tmdb/trending/tv/day"],
   });
 
-  const { data: popularTV, isLoading: loadingPopularTV } = useQuery<TMDBResponse<TVShow>>({
+  const { data: popularTV, isLoading: loadingPopularTV } = useQuery<
+    TMDBResponse<TVShow>
+  >({
     queryKey: ["/api/tmdb/tv/popular"],
   });
 
@@ -72,7 +84,7 @@ export default function HomeScreen() {
     (id: number, mediaType: MediaType) => {
       navigation.navigate("Detail", { id, mediaType });
     },
-    [navigation]
+    [navigation],
   );
 
   const handlePlay = useCallback(
@@ -80,14 +92,14 @@ export default function HomeScreen() {
       Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       navigation.navigate("Detail", { id, mediaType });
     },
-    [navigation]
+    [navigation],
   );
 
   const handleInfo = useCallback(
     (id: number, mediaType: MediaType) => {
       navigation.navigate("Detail", { id, mediaType });
     },
-    [navigation]
+    [navigation],
   );
 
   const handleSearchPress = useCallback(() => {
@@ -128,7 +140,11 @@ export default function HomeScreen() {
         {loadingTrendingAll ? (
           <View style={styles.heroPlaceholder} />
         ) : heroData.length > 0 ? (
-          <HeroCarousel data={heroData} onPlay={handlePlay} onInfo={handleInfo} />
+          <HeroCarousel
+            data={heroData}
+            onPlay={handlePlay}
+            onInfo={handleInfo}
+          />
         ) : null}
 
         <View style={styles.sectionsContainer}>

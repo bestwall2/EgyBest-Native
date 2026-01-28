@@ -120,11 +120,20 @@ interface TabSwitchProps {
   onSelectTab: (index: number) => void;
 }
 
-export function TabSwitch({ tabs, selectedIndex, onSelectTab }: TabSwitchProps) {
+export function TabSwitch({
+  tabs,
+  selectedIndex,
+  onSelectTab,
+}: TabSwitchProps) {
   const { theme } = useTheme();
 
   return (
-    <View style={[styles.tabContainer, { backgroundColor: theme.backgroundSecondary }]}>
+    <View
+      style={[
+        styles.tabContainer,
+        { backgroundColor: theme.backgroundSecondary },
+      ]}
+    >
       {tabs.map((tab, index) => (
         <Pressable
           key={tab}
@@ -144,7 +153,8 @@ export function TabSwitch({ tabs, selectedIndex, onSelectTab }: TabSwitchProps) 
             style={[
               styles.tabText,
               {
-                color: selectedIndex === index ? "#FFFFFF" : theme.textSecondary,
+                color:
+                  selectedIndex === index ? "#FFFFFF" : theme.textSecondary,
               },
             ]}
           >

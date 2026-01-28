@@ -98,7 +98,13 @@ export default function WatchScreen() {
   const { theme } = useTheme();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<WatchRouteProp>();
-  const { id, mediaType, title, season: initialSeason = 1, episode: initialEpisode = 1 } = route.params;
+  const {
+    id,
+    mediaType,
+    title,
+    season: initialSeason = 1,
+    episode: initialEpisode = 1,
+  } = route.params;
 
   const [selectedServer, setSelectedServer] = useState("server1");
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
@@ -115,7 +121,7 @@ export default function WatchScreen() {
     id.toString(),
     selectedSeason.toString(),
     selectedEpisode.toString(),
-    mediaType
+    mediaType,
   );
 
   const handleEpisodePress = useCallback((episodeNumber: number) => {
@@ -148,7 +154,9 @@ export default function WatchScreen() {
             style={[
               styles.episodeCard,
               {
-                backgroundColor: isSelected ? theme.primary : theme.backgroundSecondary,
+                backgroundColor: isSelected
+                  ? theme.primary
+                  : theme.backgroundSecondary,
                 borderColor: isSelected ? theme.primary : "transparent",
               },
             ]}
@@ -161,7 +169,12 @@ export default function WatchScreen() {
                   contentFit="cover"
                 />
               ) : (
-                <View style={[styles.episodeImage, { backgroundColor: theme.backgroundRoot }]}>
+                <View
+                  style={[
+                    styles.episodeImage,
+                    { backgroundColor: theme.backgroundRoot },
+                  ]}
+                >
                   <Feather name="play" size={24} color={theme.textSecondary} />
                 </View>
               )}
@@ -173,14 +186,24 @@ export default function WatchScreen() {
             </View>
             <View style={styles.episodeInfo}>
               <ThemedText
-                style={[styles.episodeTitle, { color: isSelected ? "#FFFFFF" : theme.text }]}
+                style={[
+                  styles.episodeTitle,
+                  { color: isSelected ? "#FFFFFF" : theme.text },
+                ]}
                 numberOfLines={2}
               >
                 {item.name}
               </ThemedText>
               {item.runtime ? (
                 <ThemedText
-                  style={[styles.episodeRuntime, { color: isSelected ? "rgba(255,255,255,0.7)" : theme.textSecondary }]}
+                  style={[
+                    styles.episodeRuntime,
+                    {
+                      color: isSelected
+                        ? "rgba(255,255,255,0.7)"
+                        : theme.textSecondary,
+                    },
+                  ]}
                 >
                   {item.runtime} min
                 </ThemedText>
@@ -190,7 +213,7 @@ export default function WatchScreen() {
         </Animated.View>
       );
     },
-    [selectedEpisode, theme, handleEpisodePress]
+    [selectedEpisode, theme, handleEpisodePress],
   );
 
   return (
@@ -213,7 +236,10 @@ export default function WatchScreen() {
           injectedJavaScript={adBlockScript}
           onLoadEnd={() => setIsLoading(false)}
           onShouldStartLoadWithRequest={(request) => {
-            if (request.url !== videoUrl && !request.url.includes(videoUrl.split("/")[2])) {
+            if (
+              request.url !== videoUrl &&
+              !request.url.includes(videoUrl.split("/")[2])
+            ) {
               return false;
             }
             return true;
@@ -230,7 +256,9 @@ export default function WatchScreen() {
             {title}
           </ThemedText>
           {mediaType === "tv" ? (
-            <ThemedText style={[styles.episodeLabel, { color: theme.textSecondary }]}>
+            <ThemedText
+              style={[styles.episodeLabel, { color: theme.textSecondary }]}
+            >
               Season {selectedSeason}, Episode {selectedEpisode}
             </ThemedText>
           ) : null}
@@ -251,7 +279,9 @@ export default function WatchScreen() {
                   styles.serverChip,
                   {
                     backgroundColor:
-                      selectedServer === server ? theme.primary : theme.backgroundSecondary,
+                      selectedServer === server
+                        ? theme.primary
+                        : theme.backgroundSecondary,
                   },
                 ]}
               >
@@ -263,7 +293,9 @@ export default function WatchScreen() {
                 <ThemedText
                   style={[
                     styles.serverText,
-                    { color: selectedServer === server ? "#FFFFFF" : theme.text },
+                    {
+                      color: selectedServer === server ? "#FFFFFF" : theme.text,
+                    },
                   ]}
                 >
                   Server {index + 1}
@@ -282,34 +314,46 @@ export default function WatchScreen() {
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.seasonsList}
               >
-                {Array.from({ length: 20 }, (_, i) => i + 1).map((seasonNum) => (
-                  <Pressable
-                    key={seasonNum}
-                    onPress={() => handleSeasonPress(seasonNum)}
-                    style={[
-                      styles.seasonChip,
-                      {
-                        backgroundColor:
-                          selectedSeason === seasonNum ? theme.primary : theme.backgroundSecondary,
-                      },
-                    ]}
-                  >
-                    <ThemedText
+                {Array.from({ length: 20 }, (_, i) => i + 1).map(
+                  (seasonNum) => (
+                    <Pressable
+                      key={seasonNum}
+                      onPress={() => handleSeasonPress(seasonNum)}
                       style={[
-                        styles.seasonText,
-                        { color: selectedSeason === seasonNum ? "#FFFFFF" : theme.text },
+                        styles.seasonChip,
+                        {
+                          backgroundColor:
+                            selectedSeason === seasonNum
+                              ? theme.primary
+                              : theme.backgroundSecondary,
+                        },
                       ]}
                     >
-                      S{seasonNum}
-                    </ThemedText>
-                  </Pressable>
-                ))}
+                      <ThemedText
+                        style={[
+                          styles.seasonText,
+                          {
+                            color:
+                              selectedSeason === seasonNum
+                                ? "#FFFFFF"
+                                : theme.text,
+                          },
+                        ]}
+                      >
+                        S{seasonNum}
+                      </ThemedText>
+                    </Pressable>
+                  ),
+                )}
               </ScrollView>
             </View>
 
             <View style={styles.episodesSection}>
               <ThemedText style={styles.sectionTitle}>
-                Episodes {seasonDetails?.episodes?.length ? `(${seasonDetails.episodes.length})` : ""}
+                Episodes{" "}
+                {seasonDetails?.episodes?.length
+                  ? `(${seasonDetails.episodes.length})`
+                  : ""}
               </ThemedText>
               {seasonDetails?.episodes ? (
                 <FlatList

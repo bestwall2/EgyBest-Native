@@ -6,18 +6,17 @@ import {
   Pressable,
   FlatList,
   ViewToken,
-  Platform,
 } from "react-native";
 import { Image } from "expo-image";
 import { LinearGradient } from "expo-linear-gradient";
 import { Feather } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import * as Haptics from "expo-haptics";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
   withTiming,
   withSpring,
-  FadeIn,
   FadeInDown,
   Easing,
 } from "react-native-reanimated";
@@ -26,7 +25,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { getImageUrl } from "@/utils/helpers";
-import { Movie, TVShow, MediaType } from "@/types/tmdb";
+import { Movie, TVShow, MediaType, TMDBImages } from "@/types/tmdb";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.65;
@@ -39,16 +38,129 @@ interface HeroCarouselProps {
   onInfo: (id: number, mediaType: MediaType) => void;
 }
 
-export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
+function HeroSlide({
+  item,
+  onPlay,
+  onInfo,
+}: {
+  item: Movie | TVShow;
+  onPlay: (id: number, mediaType: MediaType) => void;
+  onInfo: (id: number, mediaType: MediaType) => void;
+}) {
   const { theme } = useTheme();
+  const isMovie = "title" in item;
+  const title = isMovie ? item.title : item.name;
+  const mediaType = isMovie ? "movie" : "tv";
+  const backdropUrl = getImageUrl(item.backdrop_path, "backdrop", "original");
+  const year = isMovie
+    ? item.release_date?.substring(0, 4)
+    : item.first_air_date?.substring(0, 4);
+
+  const { data: images } = useQuery<TMDBImages>({
+    queryKey: [`/api/tmdb/${mediaType}/${item.id}/images`],
+  });
+
+  const logo =
+    images?.logos?.find((l) => l.iso_639_1 === "en") || images?.logos?.[0];
+  const logoUrl = logo
+    ? getImageUrl(logo.file_path, "poster", "original")
+    : null;
+
+  return (
+    <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
+      {backdropUrl ? (
+        <Image
+          source={{ uri: backdropUrl }}
+          style={styles.backdropImage}
+          contentFit="cover"
+          transition={500}
+        />
+      ) : (
+        <View
+          style={[
+            styles.backdropImage,
+            { backgroundColor: theme.backgroundSecondary },
+          ]}
+        />
+      )}
+
+      <LinearGradient
+        colors={["transparent", "rgba(10,10,10,0.5)", theme.backgroundRoot]}
+        locations={[0, 0.5, 1]}
+        style={styles.gradient}
+      />
+
+      <Animated.View
+        entering={FadeInDown.delay(200).duration(400)}
+        style={styles.contentContainer}
+      >
+        <View style={styles.badgeRow}>
+          <View style={[styles.badge, { backgroundColor: theme.primary }]}>
+            <ThemedText style={styles.badgeText}>
+              {mediaType === "movie" ? "MOVIE" : "SERIES"}
+            </ThemedText>
+          </View>
+          {year ? (
+            <View
+              style={[
+                styles.yearBadge,
+                { backgroundColor: "rgba(255,255,255,0.2)" },
+              ]}
+            >
+              <ThemedText style={styles.yearText}>{year}</ThemedText>
+            </View>
+          ) : null}
+        </View>
+
+        {logoUrl ? (
+          <Image
+            source={{ uri: logoUrl }}
+            style={styles.logoTitle}
+            contentFit="contain"
+            transition={300}
+          />
+        ) : (
+          <ThemedText style={styles.title} numberOfLines={2}>
+            {title}
+          </ThemedText>
+        )}
+
+        <ThemedText
+          style={[styles.overview, { color: theme.textSecondary }]}
+          numberOfLines={3}
+        >
+          {item.overview}
+        </ThemedText>
+
+        <View style={styles.buttonRow}>
+          <HeroButton
+            icon="play"
+            label="PLAY"
+            variant="primary"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+              onPlay(item.id, mediaType);
+            }}
+          />
+          <HeroButton
+            icon="info"
+            label="INFO"
+            variant="secondary"
+            onPress={() => {
+              Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+              onInfo(item.id, mediaType);
+            }}
+          />
+        </View>
+      </Animated.View>
+    </View>
+  );
+}
+
+export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
   const [activeIndex, setActiveIndex] = useState(0);
   const flatListRef = useRef<FlatList>(null);
   const autoPlayRef = useRef<ReturnType<typeof setInterval> | null>(null);
-
-  const isMovie = (item: Movie | TVShow): item is Movie => "title" in item;
-
-  const getMediaType = (item: Movie | TVShow): MediaType =>
-    isMovie(item) ? "movie" : "tv";
 
   const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
@@ -82,100 +194,10 @@ export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
   }, [activeIndex, data.length]);
 
   const renderItem = useCallback(
-    ({ item, index }: { item: Movie | TVShow; index: number }) => {
-      const title = isMovie(item) ? item.title : item.name;
-      const mediaType = getMediaType(item);
-      const backdropUrl = getImageUrl(
-        item.backdrop_path,
-        "backdrop",
-        "original",
-      );
-      const year = isMovie(item)
-        ? item.release_date?.substring(0, 4)
-        : item.first_air_date?.substring(0, 4);
-
-      return (
-        <View style={[styles.slide, { width: SCREEN_WIDTH }]}>
-          {backdropUrl ? (
-            <Image
-              source={{ uri: backdropUrl }}
-              style={styles.backdropImage}
-              contentFit="cover"
-              transition={500}
-            />
-          ) : (
-            <View
-              style={[
-                styles.backdropImage,
-                { backgroundColor: theme.backgroundSecondary },
-              ]}
-            />
-          )}
-
-          <LinearGradient
-            colors={["transparent", "rgba(10,10,10,0.5)", theme.backgroundRoot]}
-            locations={[0, 0.5, 1]}
-            style={styles.gradient}
-          />
-
-          <Animated.View
-            entering={FadeInDown.delay(200).duration(400)}
-            style={styles.contentContainer}
-          >
-            <View style={styles.badgeRow}>
-              <View style={[styles.badge, { backgroundColor: theme.primary }]}>
-                <ThemedText style={styles.badgeText}>
-                  {mediaType === "movie" ? "MOVIE" : "SERIES"}
-                </ThemedText>
-              </View>
-              {year ? (
-                <View
-                  style={[
-                    styles.yearBadge,
-                    { backgroundColor: "rgba(255,255,255,0.2)" },
-                  ]}
-                >
-                  <ThemedText style={styles.yearText}>{year}</ThemedText>
-                </View>
-              ) : null}
-            </View>
-
-            <ThemedText style={styles.title} numberOfLines={2}>
-              {title}
-            </ThemedText>
-
-            <ThemedText
-              style={[styles.overview, { color: theme.textSecondary }]}
-              numberOfLines={3}
-            >
-              {item.overview}
-            </ThemedText>
-
-            <View style={styles.buttonRow}>
-              <HeroButton
-                icon="play"
-                label="PLAY"
-                variant="primary"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  onPlay(item.id, mediaType);
-                }}
-              />
-              <HeroButton
-                icon="info"
-                label="INFO"
-                variant="secondary"
-                onPress={() => {
-                  Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-                  onInfo(item.id, mediaType);
-                }}
-              />
-            </View>
-          </Animated.View>
-        </View>
-      );
-    },
-    [theme, onPlay, onInfo],
+    ({ item }: { item: Movie | TVShow }) => (
+      <HeroSlide item={item} onPlay={onPlay} onInfo={onInfo} />
+    ),
+    [onPlay, onInfo],
   );
 
   return (
@@ -341,11 +363,17 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 30,
     fontWeight: "800",
-    marginBottom: 5,
+    marginBottom: 10,
     lineHeight: 30,
     textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
+  },
+  logoTitle: {
+    width: 200,
+    height: 80,
+    marginBottom: 15,
+    alignSelf: "flex-start",
   },
   overview: {
     fontSize: 14,

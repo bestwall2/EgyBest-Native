@@ -35,7 +35,7 @@ export function SkeletonLoader({
     shimmerPosition.value = withRepeat(
       withTiming(1, { duration: 1500, easing: Easing.linear }),
       -1,
-      false
+      false,
     );
   }, [shimmerPosition]);
 
@@ -76,7 +76,10 @@ interface MediaCardSkeletonProps {
   size?: "small" | "medium" | "large";
 }
 
-export function MediaCardSkeleton({ style, size = "medium" }: MediaCardSkeletonProps) {
+export function MediaCardSkeleton({
+  style,
+  size = "medium",
+}: MediaCardSkeletonProps) {
   const dimensions = {
     small: { width: 100, height: 150 },
     medium: { width: 140, height: 210 },
@@ -87,9 +90,17 @@ export function MediaCardSkeleton({ style, size = "medium" }: MediaCardSkeletonP
 
   return (
     <View style={[{ width }, style]}>
-      <SkeletonLoader width={width} height={height} borderRadius={BorderRadius.lg} />
+      <SkeletonLoader
+        width={width}
+        height={height}
+        borderRadius={BorderRadius.lg}
+      />
       <View style={styles.mediaCardInfo}>
-        <SkeletonLoader width={width * 0.85} height={14} borderRadius={BorderRadius.xs} />
+        <SkeletonLoader
+          width={width * 0.85}
+          height={14}
+          borderRadius={BorderRadius.xs}
+        />
         <SkeletonLoader
           width={width * 0.6}
           height={12}
