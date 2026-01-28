@@ -47,9 +47,7 @@ export default function RootStackNavigator() {
         name="Watch"
         component={WatchScreen}
         options={{
-          headerTransparent: true,
-          headerTitle: "",
-          headerBackTitle: "Back",
+          headerShown: false,
         }}
       />
       <Stack.Screen
