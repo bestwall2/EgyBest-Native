@@ -276,6 +276,18 @@ export default function DetailScreen() {
               ]}
             />
           )}
+
+          {/* Top navbar gradient shadow */}
+          <LinearGradient
+            colors={[
+              "rgba(0, 0, 0, 0.8)",
+              "rgba(0, 0, 0, 0.4)",
+              "transparent",
+            ]}
+            style={styles.topGradient}
+          />
+
+          {/* Bottom gradient shadow */}
           <LinearGradient
             colors={[
               "transparent",
@@ -284,6 +296,16 @@ export default function DetailScreen() {
             ]}
             style={styles.backdropGradient}
           />
+        </View>
+
+        {/* Transparent navbar */}
+        <View style={[styles.navbar, { paddingTop: insets.top }]}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.navButton}
+          >
+            <Feather name="arrow-left" size={24} color="#FFFFFF" />
+          </Pressable>
         </View>
 
         <Animated.View
@@ -576,12 +598,38 @@ const styles = StyleSheet.create({
   retryButton: { paddingHorizontal: Spacing["3xl"] },
   backdropContainer: { height: 280, position: "relative" },
   backdrop: { width: "100%", height: "100%" },
+  topGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    top: 0,
+    height: 140,
+  },
   backdropGradient: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     height: 160,
+  },
+  navbar: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 10,
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    paddingBottom: Spacing.md,
+  },
+  navButton: {
+    width: 40,
+    height: 40,
+    borderRadius: BorderRadius.full,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   content: { paddingHorizontal: Spacing.lg },
   posterRow: { flexDirection: "row", marginBottom: Spacing.xl },

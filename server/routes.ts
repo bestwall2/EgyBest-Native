@@ -3,7 +3,7 @@ import { createServer, type Server } from "node:http";
 import axios from "axios";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const TMDB_API_KEY = process.env.TMDB_API_KEY;
+const TMDB_API_KEY = "90a823390bd37b5c1ba175bef7e2d5a8";
 
 const tmdbApi = axios.create({
   baseURL: TMDB_BASE_URL,
