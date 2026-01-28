@@ -3,7 +3,7 @@ import { createServer, type Server } from "node:http";
 import axios from "axios";
 
 const TMDB_BASE_URL = "https://api.themoviedb.org/3";
-const TMDB_API_KEY = "90a823390bd37b5c1ba175bef7e2d5a8";
+const TMDB_API_KEY = process.env.TMDB_API_KEY;
 
 const tmdbApi = axios.create({
   baseURL: TMDB_BASE_URL,
@@ -247,25 +247,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
     },
   );
-
-  // Proxy for TMDB images to avoid CORS issues
-  app.get("/api/tmdb/image/:size/:file", async (req, res) => {
-    try {
-      const imagePath = `${req.params.size}/${req.params.file}`;
-      const imageUrl = `https://image.tmdb.org/t/p/${imagePath}`;
-      const response = await axios.get(imageUrl, {
-        responseType: "stream",
-        timeout: 10000,
-      });
-      if (response.headers["content-type"]) {
-        res.setHeader("Content-Type", response.headers["content-type"]);
-      }
-      res.setHeader("Cache-Control", "public, max-age=31536000");
-      response.data.pipe(res);
-    } catch (_error: any) {
-      res.status(404).send("Image not found");
-    }
-  });
 
   const httpServer = createServer(app);
 

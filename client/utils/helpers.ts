@@ -9,13 +9,7 @@ export function getImageUrl(
 ): string | null {
   if (!path) return null;
   const sizeValue = TMDBImageSizes[type][size];
-
-  try {
-    const baseUrl = getApiUrl();
-    return `${baseUrl}api/tmdb/image/${sizeValue}${path}`;
-  } catch (error) {
-    return `${TMDB_IMAGE_BASE}/${sizeValue}${path}`;
-  }
+  return `${TMDB_IMAGE_BASE}/${sizeValue}${path}`;
 }
 
 export function formatDate(dateString: string): string {
