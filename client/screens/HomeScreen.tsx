@@ -142,7 +142,7 @@ export default function HomeScreen() {
       {isError && !loadingTrendingAll ? (
         <View style={styles.errorContainer}>
           <EmptyState
-            image={require("@/assets/images/icon.png")}
+            image={require("../../assets/images/icon.png")}
             title={t("unable_load")}
             message={
               (error as any)?.message ||
