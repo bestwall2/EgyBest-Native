@@ -18,6 +18,7 @@ import Animated, { FadeIn, FadeInUp } from "react-native-reanimated";
 import { ThemedText } from "@/components/ThemedText";
 import { MediaCard } from "@/components/MediaCard";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { PersonDetails, Movie, MediaType } from "@/types/tmdb";
@@ -31,6 +32,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export default function PersonScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<PersonRouteProp>();
   const { id } = route.params;
@@ -161,7 +163,7 @@ export default function PersonScreen() {
                   <ThemedText
                     style={[styles.statLabel, { color: theme.textSecondary }]}
                   >
-                    Born
+                    {t("born")}
                   </ThemedText>
                   <ThemedText style={styles.statValue}>
                     {formatDate(person.birthday)}
@@ -185,7 +187,7 @@ export default function PersonScreen() {
                   <ThemedText
                     style={[styles.statLabel, { color: theme.textSecondary }]}
                   >
-                    From
+                    {t("from")}
                   </ThemedText>
                   <ThemedText style={styles.statValue} numberOfLines={2}>
                     {person.place_of_birth}
@@ -198,7 +200,9 @@ export default function PersonScreen() {
 
         {person.biography ? (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Biography</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              {t("biography")}
+            </ThemedText>
             <ThemedText
               style={[styles.biography, { color: theme.textSecondary }]}
             >
@@ -209,7 +213,9 @@ export default function PersonScreen() {
 
         {knownForMovies.length > 0 ? (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>Movies</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              {t("trending_movies")}
+            </ThemedText>
             <FlatList
               horizontal
               data={knownForMovies}
@@ -234,7 +240,9 @@ export default function PersonScreen() {
 
         {knownForTV.length > 0 ? (
           <View style={styles.section}>
-            <ThemedText style={styles.sectionTitle}>TV Shows</ThemedText>
+            <ThemedText style={styles.sectionTitle}>
+              {t("trending_tv")}
+            </ThemedText>
             <FlatList
               horizontal
               data={knownForTV}

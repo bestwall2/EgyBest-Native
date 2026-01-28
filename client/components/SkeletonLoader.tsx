@@ -1,5 +1,11 @@
 import React, { useEffect } from "react";
-import { View, StyleSheet, ViewStyle, Dimensions } from "react-native";
+import {
+  View,
+  StyleSheet,
+  ViewStyle,
+  Dimensions,
+  DimensionValue,
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -16,7 +22,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / 2;
 
 interface SkeletonLoaderProps {
-  width: number | string;
+  width: DimensionValue;
   height: number;
   borderRadius?: number;
   style?: ViewStyle;

@@ -32,6 +32,7 @@ import { CastCard } from "@/components/CastCard";
 import { MediaCard } from "@/components/MediaCard";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import {
@@ -39,6 +40,7 @@ import {
   TVShowDetails,
   MediaType,
   MediaItem,
+  TMDBImages,
 } from "@/types/tmdb";
 import {
   getImageUrl,
@@ -64,6 +66,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export default function DetailScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<DetailRouteProp>();
   const { id, mediaType } = route.params;
@@ -85,6 +88,16 @@ export default function DetailScreen() {
     retry: 2,
     retryDelay: 1000,
   });
+
+  const { data: images } = useQuery<TMDBImages>({
+    queryKey: [`/api/tmdb/${mediaType}/${id}/images`],
+  });
+
+  const logo =
+    images?.logos?.find((l) => l.iso_639_1 === "en") || images?.logos?.[0];
+  const logoUrl = logo
+    ? getImageUrl(logo.file_path, "poster", "original")
+    : null;
 
   useEffect(() => {
     const checkStatus = async () => {
@@ -210,7 +223,6 @@ export default function DetailScreen() {
       >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
-          <ThemedText style={styles.loadingText}>Loading details...</ThemedText>
         </View>
       </View>
     );
@@ -223,16 +235,14 @@ export default function DetailScreen() {
       >
         <View style={styles.errorContainer}>
           <Feather name="alert-circle" size={48} color={theme.primary} />
-          <ThemedText style={styles.errorTitle}>
-            Failed to load details
-          </ThemedText>
+          <ThemedText style={styles.errorTitle}>{t("unable_load")}</ThemedText>
           <ThemedText
             style={[styles.errorMessage, { color: theme.textSecondary }]}
           >
             {error?.message || "Something went wrong. Please try again."}
           </ThemedText>
           <Button onPress={() => refetch()} style={styles.retryButton}>
-            Try Again
+            {t("try_again")}
           </Button>
         </View>
       </View>
@@ -247,14 +257,53 @@ export default function DetailScreen() {
   const backdropUrl = getImageUrl(details.backdrop_path, "backdrop", "large");
   const posterUrl = getImageUrl(details.poster_path, "poster", "large");
   const cast = details.credits?.cast?.slice(0, 10) || [];
+  const crew = details.credits?.crew || [];
+  const directors = crew
+    .filter((member) => member.job === "Director")
+    .map((m) => m.name)
+    .join(", ");
+  const writers = crew
+    .filter(
+      (member) =>
+        member.job === "Writer" ||
+        member.job === "Screenplay" ||
+        member.job === "Author",
+    )
+    .map((m) => m.name)
+    .join(", ");
+
   const trailer = details.videos?.results?.find(
     (v) => v.type === "Trailer" && v.site === "YouTube",
   );
   const similar = details.similar?.results?.slice(0, 10) || [];
   const genres = details.genres?.map((g) => g.name).join(", ");
 
+  const formatCurrency = (amount: number) => {
+    if (!amount) return null;
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <Pressable
+        onPress={() => navigation.goBack()}
+        style={[
+          styles.backButton,
+          { top: insets.top + 10 },
+          isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+        ]}
+      >
+        <Feather
+          name={isRTL ? "chevron-right" : "chevron-left"}
+          size={24}
+          color="#FFFFFF"
+        />
+      </Pressable>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: insets.bottom + 100 }}
@@ -309,9 +358,17 @@ export default function DetailScreen() {
               )}
             </View>
             <View style={styles.metaContainer}>
-              <ThemedText style={styles.title} numberOfLines={3}>
-                {title}
-              </ThemedText>
+              {logoUrl ? (
+                <Image
+                  source={{ uri: logoUrl }}
+                  style={styles.titleLogo}
+                  contentFit="contain"
+                />
+              ) : (
+                <ThemedText style={styles.title} numberOfLines={3}>
+                  {title}
+                </ThemedText>
+              )}
               <View style={styles.metaRow}>
                 <RatingBadge rating={details.vote_average} size="medium" />
                 <ThemedText
@@ -343,8 +400,14 @@ export default function DetailScreen() {
               onPress={handlePlay}
               style={[styles.playButton, { backgroundColor: theme.primary }]}
             >
-              <Feather name="play" size={20} color="#FFFFFF" />
-              <ThemedText style={styles.playButtonText}>Watch Now</ThemedText>
+              <Feather
+                name={isRTL ? "play-circle" : "play"}
+                size={20}
+                color="#FFFFFF"
+              />
+              <ThemedText style={styles.playButtonText}>
+                {t("watch_now")}
+              </ThemedText>
             </Pressable>
             <Pressable
               onPress={handleWatchlistToggle}
@@ -362,7 +425,7 @@ export default function DetailScreen() {
                 color="#FFFFFF"
               />
               <ThemedText style={styles.infoButtonText}>
-                {inWatchlist ? "Added" : "My List"}
+                {inWatchlist ? t("added") : t("my_list")}
               </ThemedText>
             </Pressable>
           </View>
@@ -370,21 +433,21 @@ export default function DetailScreen() {
           <View style={styles.actionsRow}>
             <ActionButton
               icon={inFavorites ? "heart" : "heart"}
-              label="Favorite"
+              label={t("favorite")}
               onPress={handleFavoriteToggle}
               isActive={inFavorites}
             />
             {trailer ? (
               <ActionButton
                 icon="youtube"
-                label="Trailer"
+                label={t("trailer")}
                 onPress={handleTrailer}
                 isActive={false}
               />
             ) : null}
             <ActionButton
               icon="share"
-              label="Share"
+              label={t("share")}
               onPress={handleShare}
               isActive={false}
             />
@@ -395,7 +458,9 @@ export default function DetailScreen() {
               entering={FadeInUp.delay(100).duration(300)}
               style={styles.section}
             >
-              <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
+              <ThemedText style={styles.sectionTitle}>
+                {t("overview")}
+              </ThemedText>
               <Pressable onPress={() => setShowFullOverview(!showFullOverview)}>
                 <ThemedText
                   style={[styles.overview, { color: theme.textSecondary }]}
@@ -414,16 +479,76 @@ export default function DetailScreen() {
             </Animated.View>
           ) : null}
 
+          <Animated.View
+            entering={FadeInUp.delay(150).duration(300)}
+            style={styles.section}
+          >
+            <ThemedText style={styles.sectionTitle}>
+              {t("information")}
+            </ThemedText>
+            <View style={styles.infoGrid}>
+              {directors ? (
+                <InfoRow label={t("director")} value={directors} />
+              ) : null}
+              {writers ? (
+                <InfoRow label={t("writers")} value={writers} />
+              ) : null}
+              {details.status ? (
+                <InfoRow label={t("status")} value={details.status} />
+              ) : null}
+              {details.original_language ? (
+                <InfoRow
+                  label={t("language")}
+                  value={details.original_language.toUpperCase()}
+                />
+              ) : null}
+              {isMovie(details) && details.budget > 0 ? (
+                <InfoRow
+                  label={t("budget")}
+                  value={formatCurrency(details.budget)}
+                />
+              ) : null}
+              {isMovie(details) && details.revenue > 0 ? (
+                <InfoRow
+                  label={t("revenue")}
+                  value={formatCurrency(details.revenue)}
+                />
+              ) : null}
+              {"number_of_seasons" in details ? (
+                <InfoRow
+                  label={t("seasons")}
+                  value={details.number_of_seasons.toString()}
+                />
+              ) : null}
+              {"number_of_episodes" in details ? (
+                <InfoRow
+                  label={t("episodes")}
+                  value={details.number_of_episodes.toString()}
+                />
+              ) : null}
+              {"production_companies" in details &&
+              details.production_companies &&
+              details.production_companies.length > 0 ? (
+                <InfoRow
+                  label={t("production")}
+                  value={details.production_companies
+                    .map((c: any) => c.name)
+                    .join(", ")}
+                />
+              ) : null}
+            </View>
+          </Animated.View>
+
           {cast.length > 0 ? (
             <Animated.View
               entering={FadeInUp.delay(200).duration(300)}
               style={styles.section}
             >
-              <ThemedText style={styles.sectionTitle}>Cast</ThemedText>
+              <ThemedText style={styles.sectionTitle}>{t("cast")}</ThemedText>
               <FlatList
                 horizontal
-                data={cast}
-                keyExtractor={(item) => item.id.toString()}
+                data={cast as any}
+                keyExtractor={(item: any) => item.id.toString()}
                 renderItem={({ item }) => (
                   <CastCard
                     cast={item}
@@ -441,11 +566,13 @@ export default function DetailScreen() {
               entering={FadeInUp.delay(300).duration(300)}
               style={styles.section}
             >
-              <ThemedText style={styles.sectionTitle}>Similar</ThemedText>
+              <ThemedText style={styles.sectionTitle}>
+                {t("similar")}
+              </ThemedText>
               <FlatList
                 horizontal
-                data={similar}
-                keyExtractor={(item) => item.id.toString()}
+                data={similar as any}
+                keyExtractor={(item: any) => item.id.toString()}
                 renderItem={({ item }) => {
                   const itemTitle = isMovie(item)
                     ? item.title
@@ -490,8 +617,14 @@ export default function DetailScreen() {
             { opacity: pressed ? 0.8 : 1 },
           ]}
         >
-          <Feather name="play" size={20} color="#FFFFFF" />
-          <ThemedText style={styles.floatingButtonText}>Watch Now</ThemedText>
+          <Feather
+            name={isRTL ? "play-circle" : "play"}
+            size={20}
+            color="#FFFFFF"
+          />
+          <ThemedText style={styles.floatingButtonText}>
+            {t("watch_now")}
+          </ThemedText>
         </Pressable>
       </View>
     </View>
@@ -669,4 +802,47 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   floatingButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  backButton: {
+    position: "absolute",
+    zIndex: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  titleLogo: {
+    width: "100%",
+    height: 60,
+    marginBottom: Spacing.sm,
+  },
+  infoGrid: {
+    gap: Spacing.sm,
+  },
+  infoRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+  infoLabel: {
+    width: 100,
+    fontSize: 14,
+    fontWeight: "600",
+  },
+  infoValue: {
+    flex: 1,
+    fontSize: 14,
+  },
 });
+
+function InfoRow({ label, value }: { label: string; value: any }) {
+  const { theme } = useTheme();
+  return (
+    <View style={styles.infoRow}>
+      <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+        {label}
+      </ThemedText>
+      <ThemedText style={styles.infoValue}>{value}</ThemedText>
+    </View>
+  );
+}

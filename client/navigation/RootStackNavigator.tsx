@@ -5,6 +5,7 @@ import DetailScreen from "@/screens/DetailScreen";
 import WatchScreen from "@/screens/WatchScreen";
 import PersonScreen from "@/screens/PersonScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
+import ExploreAllScreen from "@/screens/ExploreAllScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { MediaType } from "@/types/tmdb";
 
@@ -20,6 +21,7 @@ export type RootStackParamList = {
   };
   Person: { id: number };
   Settings: undefined;
+  ExploreAll: { title: string; endpoint: string; mediaType: MediaType };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -28,7 +30,13 @@ export default function RootStackNavigator() {
   const screenOptions = useScreenOptions();
 
   return (
-    <Stack.Navigator screenOptions={screenOptions}>
+    <Stack.Navigator
+      screenOptions={{
+        ...screenOptions,
+        animation: "slide_from_right",
+        gestureEnabled: true,
+      }}
+    >
       <Stack.Screen
         name="Main"
         component={MainTabNavigator}
@@ -38,9 +46,7 @@ export default function RootStackNavigator() {
         name="Detail"
         component={DetailScreen}
         options={{
-          headerTransparent: true,
-          headerTitle: "",
-          headerBackTitle: "Back",
+          headerShown: false,
         }}
       />
       <Stack.Screen
@@ -62,6 +68,13 @@ export default function RootStackNavigator() {
       <Stack.Screen
         name="Settings"
         component={SettingsScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="ExploreAll"
+        component={ExploreAllScreen}
         options={{
           headerShown: false,
         }}

@@ -17,6 +17,7 @@ import { HorizontalList } from "@/components/HorizontalList";
 import { SectionSkeleton } from "@/components/SkeletonLoader";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { Movie, TVShow, MediaType, TMDBResponse } from "@/types/tmdb";
@@ -27,6 +28,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const queryClient = useQueryClient();
   const scrollY = useSharedValue(0);
@@ -115,6 +117,13 @@ export default function HomeScreen() {
     navigation.navigate("Settings");
   }, [navigation]);
 
+  const handleExploreAll = useCallback(
+    (title: string, endpoint: string, mediaType: MediaType) => {
+      navigation.navigate("ExploreAll", { title, endpoint, mediaType });
+    },
+    [navigation],
+  );
+
   const heroData = trendingAll?.results?.slice(0, 5) || [];
 
   const handleRetry = useCallback(() => {
@@ -134,12 +143,12 @@ export default function HomeScreen() {
         <View style={styles.errorContainer}>
           <EmptyState
             image={require("@/assets/images/icon.png")}
-            title="Unable to load content"
+            title={t("unable_load")}
             message={
               (error as any)?.message ||
               "Something went wrong while fetching data from the server."
             }
-            actionLabel="Try Again"
+            actionLabel={t("try_again")}
             onAction={handleRetry}
           />
         </View>
@@ -176,11 +185,19 @@ export default function HomeScreen() {
               <SectionSkeleton />
             ) : (
               <HorizontalList
-                title="Trending Movies"
+                title={t("trending_movies")}
                 data={trendingMovies?.results?.slice(0, 10) || []}
                 mediaType="movie"
                 isLoading={loadingTrending}
                 onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("trending_movies"),
+                    "/api/tmdb/trending/movie/day",
+                    "movie",
+                  )
+                }
               />
             )}
 
@@ -188,11 +205,19 @@ export default function HomeScreen() {
               <SectionSkeleton />
             ) : (
               <HorizontalList
-                title="Popular Movies"
+                title={t("popular_movies")}
                 data={popularMovies?.results?.slice(0, 10) || []}
                 mediaType="movie"
                 isLoading={loadingPopular}
                 onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("popular_movies"),
+                    "/api/tmdb/movie/popular",
+                    "movie",
+                  )
+                }
               />
             )}
 
@@ -200,11 +225,19 @@ export default function HomeScreen() {
               <SectionSkeleton />
             ) : (
               <HorizontalList
-                title="Top Rated"
+                title={t("top_rated")}
                 data={topRatedMovies?.results?.slice(0, 10) || []}
                 mediaType="movie"
                 isLoading={loadingTopRated}
                 onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("top_rated"),
+                    "/api/tmdb/movie/top_rated",
+                    "movie",
+                  )
+                }
               />
             )}
 
@@ -212,11 +245,19 @@ export default function HomeScreen() {
               <SectionSkeleton />
             ) : (
               <HorizontalList
-                title="Trending TV Shows"
+                title={t("trending_tv")}
                 data={trendingTV?.results?.slice(0, 10) || []}
                 mediaType="tv"
                 isLoading={loadingTrendingTV}
                 onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("trending_tv"),
+                    "/api/tmdb/trending/tv/day",
+                    "tv",
+                  )
+                }
               />
             )}
 
@@ -224,11 +265,19 @@ export default function HomeScreen() {
               <SectionSkeleton />
             ) : (
               <HorizontalList
-                title="Popular TV Shows"
+                title={t("popular_tv")}
                 data={popularTV?.results?.slice(0, 10) || []}
                 mediaType="tv"
                 isLoading={loadingPopularTV}
                 onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("popular_tv"),
+                    "/api/tmdb/tv/popular",
+                    "tv",
+                  )
+                }
               />
             )}
           </View>

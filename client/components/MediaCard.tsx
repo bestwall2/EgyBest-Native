@@ -6,11 +6,13 @@ import Animated, {
   useAnimatedStyle,
   withSpring,
   WithSpringConfig,
+  FadeInDown,
 } from "react-native-reanimated";
 import { LinearGradient } from "expo-linear-gradient";
 import { ThemedText } from "@/components/ThemedText";
 import { RatingBadge } from "@/components/RatingBadge";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { BorderRadius, Spacing } from "@/constants/theme";
 import { getImageUrl, formatYear } from "@/utils/helpers";
 import { MediaType } from "@/types/tmdb";
@@ -54,6 +56,7 @@ export function MediaCard({
   size = "medium",
 }: MediaCardProps) {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const scale = useSharedValue(1);
   const { width, height } = CARD_SIZES[size];
 
@@ -73,6 +76,7 @@ export function MediaCard({
 
   return (
     <AnimatedPressable
+      entering={FadeInDown.duration(400)}
       testID={`media-card-${mediaType}-${id}`}
       onPress={onPress}
       onPressIn={handlePressIn}
@@ -99,7 +103,9 @@ export function MediaCard({
               { backgroundColor: theme.backgroundSecondary },
             ]}
           >
-            <ThemedText style={styles.placeholderText}>No Image</ThemedText>
+            <ThemedText style={styles.placeholderText}>
+              {t("no_description").split(" ")[0]}
+            </ThemedText>
           </View>
         )}
         {voteAverage > 0 ? (

@@ -5,7 +5,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { MediaCard } from "@/components/MediaCard";
 import { MediaCardSkeleton } from "@/components/SkeletonLoader";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, Typography } from "@/constants/theme";
+import { Spacing, Typography, BorderRadius } from "@/constants/theme";
 import { Movie, TVShow, MediaType } from "@/types/tmdb";
 import { isMovie } from "@/utils/helpers";
 
@@ -55,7 +55,12 @@ export function HorizontalList({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <ThemedText style={styles.title}>{title}</ThemedText>
+        <View style={styles.titleContainer}>
+          <View
+            style={[styles.indicator, { backgroundColor: theme.primary }]}
+          />
+          <ThemedText style={styles.title}>{title}</ThemedText>
+        </View>
         {showSeeAll ? (
           <Pressable
             onPress={onSeeAllPress}
@@ -65,7 +70,7 @@ export function HorizontalList({
             ]}
           >
             <ThemedText style={[styles.seeAllText, { color: theme.primary }]}>
-              See All
+              Explore All
             </ThemedText>
             <Feather name="chevron-right" size={16} color={theme.primary} />
           </Pressable>
@@ -114,9 +119,19 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.md,
     paddingHorizontal: Spacing.lg,
   },
+  titleContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+  },
+  indicator: {
+    width: 4,
+    height: 20,
+    borderRadius: BorderRadius.full,
+  },
   title: {
     ...Typography.h2,
-    fontWeight: "600",
+    fontWeight: "700",
   },
   seeAllButton: {
     flexDirection: "row",

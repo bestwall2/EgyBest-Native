@@ -1,4 +1,5 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 /**
  * Gets the base URL for the Express API server (e.g., "http://localhost:3000")
@@ -69,9 +70,26 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey }) => {
+  async ({ queryKey, pageParam }) => {
     const baseUrl = getApiUrl();
-    const url = new URL(queryKey.join("/") as string, baseUrl);
+    let joinedKey = queryKey.join("/") as string;
+
+    // Inject language into path if it's a TMDB API call and not already there
+    if (joinedKey.startsWith("/api/tmdb/")) {
+      const currentLang = (await AsyncStorage.getItem("user-language")) || "en";
+      if (!joinedKey.match(/\/api\/tmdb\/[a-z]{2}\//)) {
+        joinedKey = joinedKey.replace(
+          "/api/tmdb/",
+          `/api/tmdb/${currentLang}/`,
+        );
+      }
+    }
+
+    const url = new URL(joinedKey, baseUrl);
+
+    if (pageParam) {
+      url.searchParams.append("page", String(pageParam));
+    }
 
     const res = await fetch(url, {
       credentials: "include",
