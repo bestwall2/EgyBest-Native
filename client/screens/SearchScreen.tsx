@@ -155,7 +155,7 @@ export default function SearchScreen() {
     if (debouncedQuery.length > 0) {
       return (
         <EmptyState
-          image={require("../../assets/images/empty-search.png")}
+          image={require("../../assets/images/icon.png")}
           title={t("no_results")}
           message={t("try_different_search").replace("{query}", debouncedQuery)}
         />
@@ -215,7 +215,7 @@ export default function SearchScreen() {
         </>
       ) : (
         <EmptyState
-          image={require("../../assets/images/empty-search.png")}
+          image={require("../../assets/images/icon.png")}
           title={t("search_placeholder")}
           message={t("search_message")}
         />

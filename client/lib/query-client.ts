@@ -34,7 +34,11 @@ export function getApiUrl(): string {
 
   // Ensure host doesn't have protocol
   const cleanHost = host.replace(/^https?:\/\//, "");
-  let url = new URL(`https://${cleanHost}`);
+  const protocol =
+    cleanHost.includes("localhost") || cleanHost.includes("127.0.0.1")
+      ? "http"
+      : "https";
+  const url = new URL(`${protocol}://${cleanHost}`);
 
   return url.href;
 }
@@ -58,7 +62,6 @@ export async function apiRequest(
     method,
     headers: data ? { "Content-Type": "application/json" } : {},
     body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
   });
 
   await throwIfResNotOk(res);
@@ -86,7 +89,7 @@ export const getQueryFn: <T>(options: {
     }
 
     const res = await fetch(url, {
-      credentials: "include",
+      // Credentials not needed for proxy
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
