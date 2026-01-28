@@ -72,20 +72,14 @@ export const getQueryFn: <T>(options: {
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey, pageParam }) => {
     const baseUrl = getApiUrl();
-    let joinedKey = queryKey.join("/") as string;
-
-    // Inject language into path if it's a TMDB API call and not already there
-    if (joinedKey.startsWith("/api/tmdb/")) {
-      const currentLang = (await AsyncStorage.getItem("user-language")) || "en";
-      if (!joinedKey.match(/\/api\/tmdb\/[a-z]{2}\//)) {
-        joinedKey = joinedKey.replace(
-          "/api/tmdb/",
-          `/api/tmdb/${currentLang}/`,
-        );
-      }
-    }
-
+    const joinedKey = queryKey.join("/") as string;
     const url = new URL(joinedKey, baseUrl);
+
+    // Add language as query parameter for TMDB API calls
+    if (joinedKey.includes("/api/tmdb/")) {
+      const currentLang = (await AsyncStorage.getItem("user-language")) || "en";
+      url.searchParams.append("language", currentLang);
+    }
 
     if (pageParam) {
       url.searchParams.append("page", String(pageParam));

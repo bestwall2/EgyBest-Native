@@ -13,36 +13,6 @@ declare module "http" {
   }
 }
 
-function setupCors(app: express.Application) {
-  app.use((req, res, next) => {
-    const origin = req.header("origin");
-
-    if (origin) {
-      // For development, allow the current origin
-      res.header("Access-Control-Allow-Origin", origin);
-      res.header("Access-Control-Allow-Credentials", "true");
-    } else {
-      // For non-browser requests, allow all
-      res.header("Access-Control-Allow-Origin", "*");
-    }
-
-    res.header(
-      "Access-Control-Allow-Methods",
-      "GET, POST, PUT, DELETE, OPTIONS",
-    );
-    res.header(
-      "Access-Control-Allow-Headers",
-      "Content-Type, Authorization, X-Requested-With, Range, expo-platform",
-    );
-
-    if (req.method === "OPTIONS") {
-      return res.sendStatus(200);
-    }
-
-    next();
-  });
-}
-
 function setupBodyParsing(app: express.Application) {
   app.use(
     express.json({
@@ -222,7 +192,6 @@ function setupErrorHandler(app: express.Application) {
     res.json({ status: "ok", timestamp: new Date().toISOString() });
   });
 
-  setupCors(app);
   setupBodyParsing(app);
   setupRequestLogging(app);
 
