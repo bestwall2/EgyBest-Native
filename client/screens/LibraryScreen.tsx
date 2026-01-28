@@ -18,6 +18,7 @@ import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
 import { HorizontalList } from "@/components/HorizontalList";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import {
@@ -42,6 +43,7 @@ export default function LibraryScreen() {
   const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
 
   const [selectedTab, setSelectedTab] = useState(0);
@@ -105,27 +107,25 @@ export default function LibraryScreen() {
     const emptyStates = [
       {
         image: require("../../assets/images/empty-library.png"),
-        title: "Your Watchlist is Empty",
-        message:
-          "Start adding movies and shows to your watchlist to keep track of what you want to watch.",
+        title: t("empty_watchlist_title"),
+        message: t("empty_watchlist_msg"),
       },
       {
         image: require("../../assets/images/empty-library.png"),
-        title: "No Favorites Yet",
-        message:
-          "Mark your favorite movies and shows to easily find them here.",
+        title: t("empty_favorites_title"),
+        message: t("empty_favorites_msg"),
       },
       {
         image: require("../../assets/images/empty-library.png"),
-        title: "No Watch History",
-        message: "Movies and shows you view will appear here.",
+        title: t("empty_history_title"),
+        message: t("empty_history_msg"),
       },
     ];
 
     const { image, title, message } = emptyStates[selectedTab];
 
     return <EmptyState image={image} title={title} message={message} />;
-  }, [selectedTab]);
+  }, [selectedTab, t]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
@@ -133,7 +133,7 @@ export default function LibraryScreen() {
         style={[styles.tabContainer, { paddingTop: headerHeight + Spacing.md }]}
       >
         <TabSwitch
-          tabs={["Watchlist", "Favorites", "History"]}
+          tabs={[t("watchlist"), t("favorites"), t("history")]}
           selectedIndex={selectedTab}
           onSelectTab={setSelectedTab}
         />

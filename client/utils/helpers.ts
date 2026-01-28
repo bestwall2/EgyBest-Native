@@ -1,5 +1,6 @@
 import { TMDB_IMAGE_BASE, TMDBImageSizes } from "@/constants/theme";
 import { Movie, TVShow, MediaItem, MediaType } from "@/types/tmdb";
+import { getApiUrl } from "@/lib/query-client";
 
 export function getImageUrl(
   path: string | null,
@@ -8,7 +9,13 @@ export function getImageUrl(
 ): string | null {
   if (!path) return null;
   const sizeValue = TMDBImageSizes[type][size];
-  return `${TMDB_IMAGE_BASE}/${sizeValue}${path}`;
+
+  try {
+    const baseUrl = getApiUrl();
+    return `${baseUrl}api/tmdb/image/${sizeValue}${path}`;
+  } catch (error) {
+    return `${TMDB_IMAGE_BASE}/${sizeValue}${path}`;
+  }
 }
 
 export function formatDate(dateString: string): string {
@@ -86,7 +93,7 @@ export function truncateText(text: string, maxLength: number): string {
   return text.slice(0, maxLength).trim() + "...";
 }
 
-export function debounce<T extends (...args: unknown[]) => void>(
+export function debounce<T extends (...args: any[]) => void>(
   func: T,
   wait: number,
 ): (...args: Parameters<T>) => void {

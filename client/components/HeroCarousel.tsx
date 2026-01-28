@@ -23,6 +23,7 @@ import Animated, {
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { getImageUrl } from "@/utils/helpers";
 import { Movie, TVShow, MediaType, TMDBImages } from "@/types/tmdb";
@@ -48,6 +49,7 @@ function HeroSlide({
   onInfo: (id: number, mediaType: MediaType) => void;
 }) {
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const isMovie = "title" in item;
   const title = isMovie ? item.title : item.name;
   const mediaType = isMovie ? "movie" : "tv";
@@ -97,7 +99,7 @@ function HeroSlide({
         <View style={styles.badgeRow}>
           <View style={[styles.badge, { backgroundColor: theme.primary }]}>
             <ThemedText style={styles.badgeText}>
-              {mediaType === "movie" ? "MOVIE" : "SERIES"}
+              {mediaType === "movie" ? t("movie") : t("series")}
             </ThemedText>
           </View>
           {year ? (
@@ -135,7 +137,7 @@ function HeroSlide({
         <View style={styles.buttonRow}>
           <HeroButton
             icon="play"
-            label="PLAY"
+            label={t("play")}
             variant="primary"
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
@@ -144,7 +146,7 @@ function HeroSlide({
           />
           <HeroButton
             icon="info"
-            label="INFO"
+            label={t("info")}
             variant="secondary"
             onPress={() => {
               Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);

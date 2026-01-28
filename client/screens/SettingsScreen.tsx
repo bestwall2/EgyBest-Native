@@ -4,61 +4,36 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
-const LANGUAGE_KEY = "@egybest_language";
-
-interface Language {
-  code: string;
+interface LanguageOption {
+  code: "en" | "ar" | "fr";
   name: string;
   nativeName: string;
 }
 
-const languages: Language[] = [
-  { code: "en-US", name: "English", nativeName: "English" },
-  { code: "ar-SA", name: "Arabic", nativeName: "العربية" },
-  { code: "fr-FR", name: "French", nativeName: "Français" },
-  { code: "es-ES", name: "Spanish", nativeName: "Español" },
-  { code: "pt-BR", name: "Portuguese", nativeName: "Português" },
+const languages: LanguageOption[] = [
+  { code: "en", name: "English", nativeName: "English" },
+  { code: "ar", name: "Arabic", nativeName: "العربية" },
+  { code: "fr", name: "French", nativeName: "Français" },
 ];
 
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const navigation = useNavigation();
+  const { language, setLanguage, t } = useLanguage();
 
-  const [selectedLanguage, setSelectedLanguage] = useState("en-US");
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
 
-  useEffect(() => {
-    loadSettings();
-  }, []);
-
-  const loadSettings = async () => {
-    try {
-      const savedLanguage = await AsyncStorage.getItem(LANGUAGE_KEY);
-      if (savedLanguage) {
-        setSelectedLanguage(savedLanguage);
-      }
-    } catch (error) {
-      console.error("Failed to load settings:", error);
-    }
-  };
-
-  const handleLanguageSelect = async (code: string) => {
+  const handleLanguageSelect = async (code: "en" | "ar" | "fr") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    setSelectedLanguage(code);
-    try {
-      await AsyncStorage.setItem(LANGUAGE_KEY, code);
-    } catch (error) {
-      console.error("Failed to save language:", error);
-    }
+    await setLanguage(code);
   };
 
   const renderSettingItem = (
@@ -109,12 +84,12 @@ export default function SettingsScreen() {
           paddingHorizontal: Spacing.lg,
         }}
       >
-        <ThemedText style={styles.screenTitle}>Settings</ThemedText>
+        <ThemedText style={styles.screenTitle}>{t("settings")}</ThemedText>
 
         <ThemedText
           style={[styles.sectionTitle, { color: theme.textSecondary }]}
         >
-          Language
+          {t("language_settings")}
         </ThemedText>
         <View
           style={[
@@ -122,7 +97,7 @@ export default function SettingsScreen() {
             { backgroundColor: theme.backgroundSecondary },
           ]}
         >
-          {languages.map((lang, index) => (
+          {languages.map((lang) => (
             <Pressable
               key={lang.code}
               onPress={() => handleLanguageSelect(lang.code)}
@@ -130,11 +105,9 @@ export default function SettingsScreen() {
                 styles.languageItem,
                 {
                   backgroundColor:
-                    selectedLanguage === lang.code
-                      ? theme.primary
-                      : "transparent",
+                    language === lang.code ? theme.primary : "transparent",
                   borderColor:
-                    selectedLanguage === lang.code
+                    language === lang.code
                       ? theme.primary
                       : theme.backgroundRoot,
                 },
@@ -144,8 +117,7 @@ export default function SettingsScreen() {
                 style={[
                   styles.languageName,
                   {
-                    color:
-                      selectedLanguage === lang.code ? "#FFFFFF" : theme.text,
+                    color: language === lang.code ? "#FFFFFF" : theme.text,
                   },
                 ]}
               >
@@ -156,7 +128,7 @@ export default function SettingsScreen() {
                   styles.languageNative,
                   {
                     color:
-                      selectedLanguage === lang.code
+                      language === lang.code
                         ? "rgba(255,255,255,0.7)"
                         : theme.textSecondary,
                   },
@@ -164,7 +136,7 @@ export default function SettingsScreen() {
               >
                 {lang.nativeName}
               </ThemedText>
-              {selectedLanguage === lang.code ? (
+              {language === lang.code ? (
                 <View style={styles.checkIcon}>
                   <Feather name="check" size={16} color="#FFFFFF" />
                 </View>
@@ -179,16 +151,16 @@ export default function SettingsScreen() {
             { color: theme.textSecondary, marginTop: Spacing.xl },
           ]}
         >
-          Preferences
+          {t("appearance")}
         </ThemedText>
         <View style={styles.settingsGroup}>
           {renderSettingItem(
-            "bell",
-            "Notifications",
-            "Get notified about new releases",
+            "moon",
+            t("dark_mode"),
+            "Cinematic dark theme always active",
             <Switch
-              value={notificationsEnabled}
-              onValueChange={setNotificationsEnabled}
+              value={true}
+              disabled
               trackColor={{ false: theme.backgroundRoot, true: theme.primary }}
               thumbColor="#FFFFFF"
             />,
@@ -214,13 +186,13 @@ export default function SettingsScreen() {
             { color: theme.textSecondary, marginTop: Spacing.xl },
           ]}
         >
-          About
+          {t("about")}
         </ThemedText>
         <View style={styles.settingsGroup}>
           {renderSettingItem(
             "info",
-            "Version",
-            "1.0.0",
+            t("version"),
+            "1.1.0",
             <Feather
               name="chevron-right"
               size={20}

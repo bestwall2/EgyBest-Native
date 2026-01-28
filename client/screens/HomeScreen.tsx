@@ -15,7 +15,9 @@ import { NavHeader } from "@/components/NavHeader";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { HorizontalList } from "@/components/HorizontalList";
 import { SectionSkeleton } from "@/components/SkeletonLoader";
+import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { Movie, TVShow, MediaType, TMDBResponse } from "@/types/tmdb";
@@ -26,6 +28,7 @@ export default function HomeScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const queryClient = useQueryClient();
   const scrollY = useSharedValue(0);
@@ -36,9 +39,13 @@ export default function HomeScreen() {
     },
   });
 
-  const { data: trendingAll, isLoading: loadingTrendingAll } = useQuery<
-    TMDBResponse<Movie | TVShow>
-  >({
+  const {
+    data: trendingAll,
+    isLoading: loadingTrendingAll,
+    isError,
+    error,
+    refetch: refetchTrending,
+  } = useQuery<TMDBResponse<Movie | TVShow>>({
     queryKey: ["/api/tmdb/trending/all/week"],
   });
 
@@ -110,7 +117,19 @@ export default function HomeScreen() {
     navigation.navigate("Settings");
   }, [navigation]);
 
+  const handleExploreAll = useCallback(
+    (title: string, endpoint: string, mediaType: MediaType) => {
+      navigation.navigate("ExploreAll", { title, endpoint, mediaType });
+    },
+    [navigation],
+  );
+
   const heroData = trendingAll?.results?.slice(0, 5) || [];
+
+  const handleRetry = useCallback(() => {
+    queryClient.invalidateQueries();
+    refetchTrending();
+  }, [queryClient, refetchTrending]);
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
@@ -120,95 +139,150 @@ export default function HomeScreen() {
         onSettingsPress={handleSettingsPress}
       />
 
-      <Animated.ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={{
-          paddingBottom: tabBarHeight + Spacing.xl,
-        }}
-        scrollIndicatorInsets={{ bottom: insets.bottom }}
-        onScroll={scrollHandler}
-        scrollEventThrottle={16}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.primary}
-            progressViewOffset={insets.top + 56}
+      {isError && !loadingTrendingAll ? (
+        <View style={styles.errorContainer}>
+          <EmptyState
+            image={require("@/assets/images/icon.png")}
+            title={t("unable_load")}
+            message={
+              (error as any)?.message ||
+              "Something went wrong while fetching data from the server."
+            }
+            actionLabel={t("try_again")}
+            onAction={handleRetry}
           />
-        }
-      >
-        {loadingTrendingAll ? (
-          <View style={styles.heroPlaceholder} />
-        ) : heroData.length > 0 ? (
-          <HeroCarousel
-            data={heroData}
-            onPlay={handlePlay}
-            onInfo={handleInfo}
-          />
-        ) : null}
-
-        <View style={styles.sectionsContainer}>
-          {loadingTrending ? (
-            <SectionSkeleton />
-          ) : (
-            <HorizontalList
-              title="Trending Movies"
-              data={trendingMovies?.results?.slice(0, 10) || []}
-              mediaType="movie"
-              isLoading={loadingTrending}
-              onItemPress={handleItemPress}
-            />
-          )}
-
-          {loadingPopular ? (
-            <SectionSkeleton />
-          ) : (
-            <HorizontalList
-              title="Popular Movies"
-              data={popularMovies?.results?.slice(0, 10) || []}
-              mediaType="movie"
-              isLoading={loadingPopular}
-              onItemPress={handleItemPress}
-            />
-          )}
-
-          {loadingTopRated ? (
-            <SectionSkeleton />
-          ) : (
-            <HorizontalList
-              title="Top Rated"
-              data={topRatedMovies?.results?.slice(0, 10) || []}
-              mediaType="movie"
-              isLoading={loadingTopRated}
-              onItemPress={handleItemPress}
-            />
-          )}
-
-          {loadingTrendingTV ? (
-            <SectionSkeleton />
-          ) : (
-            <HorizontalList
-              title="Trending TV Shows"
-              data={trendingTV?.results?.slice(0, 10) || []}
-              mediaType="tv"
-              isLoading={loadingTrendingTV}
-              onItemPress={handleItemPress}
-            />
-          )}
-
-          {loadingPopularTV ? (
-            <SectionSkeleton />
-          ) : (
-            <HorizontalList
-              title="Popular TV Shows"
-              data={popularTV?.results?.slice(0, 10) || []}
-              mediaType="tv"
-              isLoading={loadingPopularTV}
-              onItemPress={handleItemPress}
-            />
-          )}
         </View>
-      </Animated.ScrollView>
+      ) : (
+        <Animated.ScrollView
+          style={styles.scrollView}
+          contentContainerStyle={{
+            paddingBottom: tabBarHeight + Spacing.xl,
+          }}
+          scrollIndicatorInsets={{ bottom: insets.bottom }}
+          onScroll={scrollHandler}
+          scrollEventThrottle={16}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={onRefresh}
+              tintColor={theme.primary}
+              progressViewOffset={insets.top + 56}
+            />
+          }
+        >
+          {loadingTrendingAll ? (
+            <View style={styles.heroPlaceholder} />
+          ) : heroData.length > 0 ? (
+            <HeroCarousel
+              data={heroData}
+              onPlay={handlePlay}
+              onInfo={handleInfo}
+            />
+          ) : null}
+
+          <View style={styles.sectionsContainer}>
+            {loadingTrending ? (
+              <SectionSkeleton />
+            ) : (
+              <HorizontalList
+                title={t("trending_movies")}
+                data={trendingMovies?.results?.slice(0, 10) || []}
+                mediaType="movie"
+                isLoading={loadingTrending}
+                onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("trending_movies"),
+                    "/api/tmdb/trending/movie/day",
+                    "movie",
+                  )
+                }
+              />
+            )}
+
+            {loadingPopular ? (
+              <SectionSkeleton />
+            ) : (
+              <HorizontalList
+                title={t("popular_movies")}
+                data={popularMovies?.results?.slice(0, 10) || []}
+                mediaType="movie"
+                isLoading={loadingPopular}
+                onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("popular_movies"),
+                    "/api/tmdb/movie/popular",
+                    "movie",
+                  )
+                }
+              />
+            )}
+
+            {loadingTopRated ? (
+              <SectionSkeleton />
+            ) : (
+              <HorizontalList
+                title={t("top_rated")}
+                data={topRatedMovies?.results?.slice(0, 10) || []}
+                mediaType="movie"
+                isLoading={loadingTopRated}
+                onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("top_rated"),
+                    "/api/tmdb/movie/top_rated",
+                    "movie",
+                  )
+                }
+              />
+            )}
+
+            {loadingTrendingTV ? (
+              <SectionSkeleton />
+            ) : (
+              <HorizontalList
+                title={t("trending_tv")}
+                data={trendingTV?.results?.slice(0, 10) || []}
+                mediaType="tv"
+                isLoading={loadingTrendingTV}
+                onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("trending_tv"),
+                    "/api/tmdb/trending/tv/day",
+                    "tv",
+                  )
+                }
+              />
+            )}
+
+            {loadingPopularTV ? (
+              <SectionSkeleton />
+            ) : (
+              <HorizontalList
+                title={t("popular_tv")}
+                data={popularTV?.results?.slice(0, 10) || []}
+                mediaType="tv"
+                isLoading={loadingPopularTV}
+                onItemPress={handleItemPress}
+                showSeeAll
+                onSeeAllPress={() =>
+                  handleExploreAll(
+                    t("popular_tv"),
+                    "/api/tmdb/tv/popular",
+                    "tv",
+                  )
+                }
+              />
+            )}
+          </View>
+        </Animated.ScrollView>
+      )}
     </View>
   );
 }
@@ -225,5 +299,11 @@ const styles = StyleSheet.create({
   },
   sectionsContainer: {
     marginTop: Spacing.lg,
+  },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingTop: 100,
   },
 });

@@ -8,14 +8,16 @@ import Animated, {
   withSpring,
   interpolate,
   Extrapolation,
+  type SharedValue,
 } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing } from "@/constants/theme";
 
 interface NavHeaderProps {
-  scrollY?: Animated.SharedValue<number>;
+  scrollY?: SharedValue<number>;
   onSettingsPress?: () => void;
   onSearchPress?: () => void;
 }
@@ -26,6 +28,7 @@ export function NavHeader({
   onSearchPress,
 }: NavHeaderProps) {
   const { theme } = useTheme();
+  const { isRTL } = useLanguage();
   const insets = useSafeAreaInsets();
 
   const animatedStyle = useAnimatedStyle(() => {
@@ -51,7 +54,7 @@ export function NavHeader({
         ]}
       />
 
-      <View style={styles.content}>
+      <View style={[styles.content, isRTL && { flexDirection: "row-reverse" }]}>
         <NavButton icon="settings" onPress={onSettingsPress} />
 
         <View style={styles.logoContainer}>

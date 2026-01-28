@@ -19,6 +19,7 @@ import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { TVShowDetails, SeasonDetails, Episode } from "@/types/tmdb";
@@ -27,7 +28,7 @@ import { getImageUrl } from "@/utils/helpers";
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WatchRouteProp = RouteProp<RootStackParamList, "Watch">;
 
-const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const VIDEO_HEIGHT = SCREEN_WIDTH * (9 / 16);
 
 const serverLinks: Record<
@@ -95,6 +96,7 @@ const adBlockScript = `
 export default function WatchScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<WatchRouteProp>();
   const {
@@ -182,7 +184,7 @@ export default function WatchScreen() {
               )}
               <View style={styles.episodeNumberBadge}>
                 <ThemedText style={styles.episodeNumberText}>
-                  Episode {item.episode_number}
+                  {t("episodes")} {item.episode_number}
                 </ThemedText>
               </View>
               {isSelected && (
@@ -193,7 +195,7 @@ export default function WatchScreen() {
                   ]}
                 >
                   <ThemedText style={styles.playingText}>
-                    NOW PLAYING
+                    {t("now_playing")}
                   </ThemedText>
                 </View>
               )}
@@ -206,7 +208,7 @@ export default function WatchScreen() {
                 style={[styles.episodeOverview, { color: theme.textSecondary }]}
                 numberOfLines={3}
               >
-                {item.overview || "No description available."}
+                {item.overview || t("no_description")}
               </ThemedText>
               <View style={styles.episodeMeta}>
                 {item.runtime ? (
@@ -235,7 +237,7 @@ export default function WatchScreen() {
         </Animated.View>
       );
     },
-    [selectedEpisode, theme, handleEpisodePress],
+    [selectedEpisode, theme, t, handleEpisodePress],
   );
 
   return (
@@ -248,9 +250,17 @@ export default function WatchScreen() {
       >
         <Pressable
           onPress={() => navigation.goBack()}
-          style={[styles.backButton, { top: insets.top + 10 }]}
+          style={[
+            styles.backButton,
+            { top: insets.top + 10 },
+            isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+          ]}
         >
-          <Feather name="chevron-left" size={24} color="#FFFFFF" />
+          <Feather
+            name={isRTL ? "chevron-right" : "chevron-left"}
+            size={24}
+            color="#FFFFFF"
+          />
         </Pressable>
         {isLoading ? (
           <View style={styles.loadingOverlay}>
@@ -292,13 +302,15 @@ export default function WatchScreen() {
             <ThemedText
               style={[styles.episodeLabel, { color: theme.textSecondary }]}
             >
-              Season {selectedSeason}, Episode {selectedEpisode}
+              {t("seasons")} {selectedSeason}, {t("episodes")} {selectedEpisode}
             </ThemedText>
           ) : null}
         </View>
 
         <View style={styles.serversSection}>
-          <ThemedText style={styles.sectionTitle}>Select Server</ThemedText>
+          <ThemedText style={styles.sectionTitle}>
+            {t("select_server")}
+          </ThemedText>
           <View style={styles.gridRow}>
             {Object.keys(serverLinks).map((server, index) => (
               <Pressable
@@ -333,7 +345,9 @@ export default function WatchScreen() {
         {mediaType === "tv" ? (
           <>
             <View style={styles.seasonsSection}>
-              <ThemedText style={styles.sectionTitle}>Seasons</ThemedText>
+              <ThemedText style={styles.sectionTitle}>
+                {t("seasons")}
+              </ThemedText>
               <View style={styles.gridRow}>
                 {Array.from(
                   { length: tvShow?.number_of_seasons || selectedSeason },
@@ -374,7 +388,7 @@ export default function WatchScreen() {
 
             <View style={styles.episodesSection}>
               <ThemedText style={styles.sectionTitle}>
-                Episodes{" "}
+                {t("episodes")}{" "}
                 {seasonDetails?.episodes?.length
                   ? `(${seasonDetails.episodes.length})`
                   : ""}
@@ -413,7 +427,6 @@ const styles = StyleSheet.create({
   },
   backButton: {
     position: "absolute",
-    left: Spacing.lg,
     zIndex: 20,
     width: 40,
     height: 40,

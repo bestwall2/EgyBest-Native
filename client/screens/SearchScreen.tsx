@@ -21,6 +21,7 @@ import { MediaCardSkeleton } from "@/components/SkeletonLoader";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { Movie, TVShow, MediaType } from "@/types/tmdb";
@@ -41,11 +42,11 @@ export default function SearchScreen() {
   const insets = useSafeAreaInsets();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
+  const { t } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
-  const [selectedTab, setSelectedTab] = useState(0);
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
 
   useEffect(() => {
@@ -93,11 +94,9 @@ export default function SearchScreen() {
     await loadSearchHistory();
   };
 
-  const searchType =
-    selectedTab === 0 ? "movie" : selectedTab === 1 ? "tv" : "multi";
   const searchEndpoint =
     debouncedQuery.length > 0
-      ? `/api/tmdb/search/${searchType}?query=${encodeURIComponent(debouncedQuery)}`
+      ? `/api/tmdb/search/multi?query=${encodeURIComponent(debouncedQuery)}`
       : null;
 
   const { data: searchResults, isLoading } = useQuery<{
@@ -114,19 +113,13 @@ export default function SearchScreen() {
     [navigation],
   );
 
-  const getMediaType = (item: Movie | TVShow): MediaType => {
-    if (selectedTab === 0) return "movie";
-    if (selectedTab === 1) return "tv";
-    return isMovie(item) ? "movie" : "tv";
-  };
-
   const renderItem = useCallback(
     ({ item }: { item: Movie | TVShow }) => {
       const title = isMovie(item) ? item.title : item.name;
       const releaseDate = isMovie(item)
         ? item.release_date
         : item.first_air_date;
-      const mediaType = getMediaType(item);
+      const mediaType = isMovie(item) ? "movie" : "tv";
 
       return (
         <View style={styles.cardWrapper}>
@@ -143,14 +136,14 @@ export default function SearchScreen() {
         </View>
       );
     },
-    [selectedTab, handleItemPress],
+    [handleItemPress],
   );
 
   const renderEmpty = useCallback(() => {
     if (isLoading) {
       return (
         <View style={styles.skeletonGrid}>
-          {[1, 2, 3, 4].map((i) => (
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <View key={i} style={styles.cardWrapper}>
               <MediaCardSkeleton size="large" />
             </View>
@@ -163,8 +156,8 @@ export default function SearchScreen() {
       return (
         <EmptyState
           image={require("../../assets/images/empty-search.png")}
-          title="No Results"
-          message={`We couldn't find anything for "${debouncedQuery}". Try a different search.`}
+          title={t("no_results")}
+          message={t("try_different_search").replace("{query}", debouncedQuery)}
         />
       );
     }
@@ -177,13 +170,15 @@ export default function SearchScreen() {
       {searchHistory.length > 0 ? (
         <>
           <View style={styles.historyHeader}>
-            <ThemedText style={styles.historyTitle}>Recent Searches</ThemedText>
+            <ThemedText style={styles.historyTitle}>
+              {t("recent_searches")}
+            </ThemedText>
             <Pressable
               onPress={handleClearHistory}
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
               <ThemedText style={[styles.clearText, { color: theme.primary }]}>
-                Clear All
+                {t("clear_all")}
               </ThemedText>
             </Pressable>
           </View>
@@ -221,8 +216,8 @@ export default function SearchScreen() {
       ) : (
         <EmptyState
           image={require("../../assets/images/empty-search.png")}
-          title="Search Movies & Shows"
-          message="Find your favorite movies and TV shows by searching above."
+          title={t("search_placeholder")}
+          message={t("search_message")}
         />
       )}
     </View>
@@ -245,14 +240,8 @@ export default function SearchScreen() {
             setDebouncedQuery("");
           }}
           autoFocus={false}
+          placeholder={t("search_placeholder")}
         />
-        <View style={styles.tabContainer}>
-          <TabSwitch
-            tabs={["Movies", "TV Shows", "All"]}
-            selectedIndex={selectedTab}
-            onSelectTab={setSelectedTab}
-          />
-        </View>
       </View>
 
       {debouncedQuery.length === 0 ? (
@@ -281,10 +270,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   searchContainer: {
-    paddingBottom: Spacing.md,
-  },
-  tabContainer: {
-    marginTop: Spacing.md,
+    paddingBottom: Spacing.xs,
   },
   listContent: {
     paddingHorizontal: Spacing.lg,
