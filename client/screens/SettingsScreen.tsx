@@ -1,11 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  View,
-  StyleSheet,
-  Pressable,
-  ScrollView,
-  Switch,
-} from "react-native";
+import { View, StyleSheet, Pressable, ScrollView, Switch } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
@@ -72,19 +66,31 @@ export default function SettingsScreen() {
     title: string,
     subtitle: string,
     rightElement: React.ReactNode,
-    index: number
+    index: number,
   ) => (
     <Animated.View
       key={title}
       entering={FadeInDown.delay(index * 50).duration(300)}
     >
-      <View style={[styles.settingItem, { backgroundColor: theme.backgroundSecondary }]}>
-        <View style={[styles.iconContainer, { backgroundColor: theme.backgroundRoot }]}>
+      <View
+        style={[
+          styles.settingItem,
+          { backgroundColor: theme.backgroundSecondary },
+        ]}
+      >
+        <View
+          style={[
+            styles.iconContainer,
+            { backgroundColor: theme.backgroundRoot },
+          ]}
+        >
           <Feather name={icon as any} size={20} color={theme.primary} />
         </View>
         <View style={styles.settingInfo}>
           <ThemedText style={styles.settingTitle}>{title}</ThemedText>
-          <ThemedText style={[styles.settingSubtitle, { color: theme.textSecondary }]}>
+          <ThemedText
+            style={[styles.settingSubtitle, { color: theme.textSecondary }]}
+          >
             {subtitle}
           </ThemedText>
         </View>
@@ -105,10 +111,17 @@ export default function SettingsScreen() {
       >
         <ThemedText style={styles.screenTitle}>Settings</ThemedText>
 
-        <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary }]}>
+        <ThemedText
+          style={[styles.sectionTitle, { color: theme.textSecondary }]}
+        >
           Language
         </ThemedText>
-        <View style={[styles.languageGrid, { backgroundColor: theme.backgroundSecondary }]}>
+        <View
+          style={[
+            styles.languageGrid,
+            { backgroundColor: theme.backgroundSecondary },
+          ]}
+        >
           {languages.map((lang, index) => (
             <Pressable
               key={lang.code}
@@ -117,16 +130,23 @@ export default function SettingsScreen() {
                 styles.languageItem,
                 {
                   backgroundColor:
-                    selectedLanguage === lang.code ? theme.primary : "transparent",
+                    selectedLanguage === lang.code
+                      ? theme.primary
+                      : "transparent",
                   borderColor:
-                    selectedLanguage === lang.code ? theme.primary : theme.backgroundRoot,
+                    selectedLanguage === lang.code
+                      ? theme.primary
+                      : theme.backgroundRoot,
                 },
               ]}
             >
               <ThemedText
                 style={[
                   styles.languageName,
-                  { color: selectedLanguage === lang.code ? "#FFFFFF" : theme.text },
+                  {
+                    color:
+                      selectedLanguage === lang.code ? "#FFFFFF" : theme.text,
+                  },
                 ]}
               >
                 {lang.name}
@@ -134,7 +154,12 @@ export default function SettingsScreen() {
               <ThemedText
                 style={[
                   styles.languageNative,
-                  { color: selectedLanguage === lang.code ? "rgba(255,255,255,0.7)" : theme.textSecondary },
+                  {
+                    color:
+                      selectedLanguage === lang.code
+                        ? "rgba(255,255,255,0.7)"
+                        : theme.textSecondary,
+                  },
                 ]}
               >
                 {lang.nativeName}
@@ -148,7 +173,12 @@ export default function SettingsScreen() {
           ))}
         </View>
 
-        <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: Spacing.xl }]}>
+        <ThemedText
+          style={[
+            styles.sectionTitle,
+            { color: theme.textSecondary, marginTop: Spacing.xl },
+          ]}
+        >
           Preferences
         </ThemedText>
         <View style={styles.settingsGroup}>
@@ -162,7 +192,7 @@ export default function SettingsScreen() {
               trackColor={{ false: theme.backgroundRoot, true: theme.primary }}
               thumbColor="#FFFFFF"
             />,
-            0
+            0,
           )}
           {renderSettingItem(
             "play-circle",
@@ -174,11 +204,16 @@ export default function SettingsScreen() {
               trackColor={{ false: theme.backgroundRoot, true: theme.primary }}
               thumbColor="#FFFFFF"
             />,
-            1
+            1,
           )}
         </View>
 
-        <ThemedText style={[styles.sectionTitle, { color: theme.textSecondary, marginTop: Spacing.xl }]}>
+        <ThemedText
+          style={[
+            styles.sectionTitle,
+            { color: theme.textSecondary, marginTop: Spacing.xl },
+          ]}
+        >
           About
         </ThemedText>
         <View style={styles.settingsGroup}>
@@ -186,22 +221,34 @@ export default function SettingsScreen() {
             "info",
             "Version",
             "1.0.0",
-            <Feather name="chevron-right" size={20} color={theme.textSecondary} />,
-            2
+            <Feather
+              name="chevron-right"
+              size={20}
+              color={theme.textSecondary}
+            />,
+            2,
           )}
           {renderSettingItem(
             "shield",
             "Privacy Policy",
             "How we protect your data",
-            <Feather name="chevron-right" size={20} color={theme.textSecondary} />,
-            3
+            <Feather
+              name="chevron-right"
+              size={20}
+              color={theme.textSecondary}
+            />,
+            3,
           )}
           {renderSettingItem(
             "file-text",
             "Terms of Service",
             "Usage terms and conditions",
-            <Feather name="chevron-right" size={20} color={theme.textSecondary} />,
-            4
+            <Feather
+              name="chevron-right"
+              size={20}
+              color={theme.textSecondary}
+            />,
+            4,
           )}
         </View>
 
@@ -209,7 +256,9 @@ export default function SettingsScreen() {
           <ThemedText style={[styles.brandingLogo, { color: theme.primary }]}>
             EGYBEST
           </ThemedText>
-          <ThemedText style={[styles.brandingTagline, { color: theme.textSecondary }]}>
+          <ThemedText
+            style={[styles.brandingTagline, { color: theme.textSecondary }]}
+          >
             Stream Unlimited Entertainment
           </ThemedText>
         </View>

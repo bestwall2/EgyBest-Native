@@ -79,7 +79,9 @@ export default function DetailScreen() {
     error,
     refetch,
   } = useQuery<MovieDetails | TVShowDetails>({
-    queryKey: [`/api/tmdb/${mediaType}/${id}?append_to_response=credits,videos,similar,recommendations`],
+    queryKey: [
+      `/api/tmdb/${mediaType}/${id}?append_to_response=credits,videos,similar,recommendations`,
+    ],
     retry: 2,
     retryDelay: 1000,
   });
@@ -183,7 +185,7 @@ export default function DetailScreen() {
   const handleTrailer = () => {
     if (!details) return;
     const trailer = details.videos?.results?.find(
-      (v) => v.type === "Trailer" && v.site === "YouTube"
+      (v) => v.type === "Trailer" && v.site === "YouTube",
     );
     if (trailer) {
       Linking.openURL(`https://www.youtube.com/watch?v=${trailer.key}`);
@@ -198,12 +200,14 @@ export default function DetailScreen() {
     (itemId: number, type: MediaType) => {
       navigation.push("Detail", { id: itemId, mediaType: type });
     },
-    [navigation]
+    [navigation],
   );
 
   if (isLoading) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+      >
         <View style={styles.loadingContainer}>
           <ActivityIndicator size="large" color={theme.primary} />
           <ThemedText style={styles.loadingText}>Loading details...</ThemedText>
@@ -214,11 +218,17 @@ export default function DetailScreen() {
 
   if (isError || !details) {
     return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      <View
+        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+      >
         <View style={styles.errorContainer}>
           <Feather name="alert-circle" size={48} color={theme.primary} />
-          <ThemedText style={styles.errorTitle}>Failed to load details</ThemedText>
-          <ThemedText style={[styles.errorMessage, { color: theme.textSecondary }]}>
+          <ThemedText style={styles.errorTitle}>
+            Failed to load details
+          </ThemedText>
+          <ThemedText
+            style={[styles.errorMessage, { color: theme.textSecondary }]}
+          >
             {error?.message || "Something went wrong. Please try again."}
           </ThemedText>
           <Button onPress={() => refetch()} style={styles.retryButton}>
@@ -230,12 +240,16 @@ export default function DetailScreen() {
   }
 
   const title = "title" in details ? details.title : details.name;
-  const releaseDate = "release_date" in details ? details.release_date : details.first_air_date;
-  const runtime = "runtime" in details ? details.runtime : details.episode_run_time?.[0] || 0;
+  const releaseDate =
+    "release_date" in details ? details.release_date : details.first_air_date;
+  const runtime =
+    "runtime" in details ? details.runtime : details.episode_run_time?.[0] || 0;
   const backdropUrl = getImageUrl(details.backdrop_path, "backdrop", "large");
   const posterUrl = getImageUrl(details.poster_path, "poster", "large");
   const cast = details.credits?.cast?.slice(0, 10) || [];
-  const trailer = details.videos?.results?.find((v) => v.type === "Trailer" && v.site === "YouTube");
+  const trailer = details.videos?.results?.find(
+    (v) => v.type === "Trailer" && v.site === "YouTube",
+  );
   const similar = details.similar?.results?.slice(0, 10) || [];
   const genres = details.genres?.map((g) => g.name).join(", ");
 
@@ -255,21 +269,43 @@ export default function DetailScreen() {
               transition={300}
             />
           ) : (
-            <View style={[styles.backdrop, { backgroundColor: theme.backgroundSecondary }]} />
+            <View
+              style={[
+                styles.backdrop,
+                { backgroundColor: theme.backgroundSecondary },
+              ]}
+            />
           )}
           <LinearGradient
-            colors={["transparent", `${theme.backgroundRoot}99`, theme.backgroundRoot]}
+            colors={[
+              "transparent",
+              `${theme.backgroundRoot}99`,
+              theme.backgroundRoot,
+            ]}
             style={styles.backdropGradient}
           />
         </View>
 
-        <Animated.View entering={FadeIn.duration(400)} style={[styles.content, { marginTop: -80 }]}>
+        <Animated.View
+          entering={FadeIn.duration(400)}
+          style={[styles.content, { marginTop: -80 }]}
+        >
           <View style={styles.posterRow}>
             <View style={styles.posterContainer}>
               {posterUrl ? (
-                <Image source={{ uri: posterUrl }} style={styles.poster} contentFit="cover" transition={300} />
+                <Image
+                  source={{ uri: posterUrl }}
+                  style={styles.poster}
+                  contentFit="cover"
+                  transition={300}
+                />
               ) : (
-                <View style={[styles.poster, { backgroundColor: theme.backgroundSecondary }]} />
+                <View
+                  style={[
+                    styles.poster,
+                    { backgroundColor: theme.backgroundSecondary },
+                  ]}
+                />
               )}
             </View>
             <View style={styles.metaContainer}>
@@ -278,17 +314,24 @@ export default function DetailScreen() {
               </ThemedText>
               <View style={styles.metaRow}>
                 <RatingBadge rating={details.vote_average} size="medium" />
-                <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
+                <ThemedText
+                  style={[styles.metaText, { color: theme.textSecondary }]}
+                >
                   {formatYear(releaseDate)}
                 </ThemedText>
                 {runtime > 0 ? (
-                  <ThemedText style={[styles.metaText, { color: theme.textSecondary }]}>
+                  <ThemedText
+                    style={[styles.metaText, { color: theme.textSecondary }]}
+                  >
                     {formatRuntime(runtime)}
                   </ThemedText>
                 ) : null}
               </View>
               {genres ? (
-                <ThemedText style={[styles.genres, { color: theme.textSecondary }]} numberOfLines={2}>
+                <ThemedText
+                  style={[styles.genres, { color: theme.textSecondary }]}
+                  numberOfLines={2}
+                >
                   {genres}
                 </ThemedText>
               ) : null}
@@ -296,16 +339,31 @@ export default function DetailScreen() {
           </View>
 
           <View style={styles.playButtonsRow}>
-            <Pressable onPress={handlePlay} style={[styles.playButton, { backgroundColor: theme.primary }]}>
+            <Pressable
+              onPress={handlePlay}
+              style={[styles.playButton, { backgroundColor: theme.primary }]}
+            >
               <Feather name="play" size={20} color="#FFFFFF" />
               <ThemedText style={styles.playButtonText}>Watch Now</ThemedText>
             </Pressable>
             <Pressable
               onPress={handleWatchlistToggle}
-              style={[styles.infoButton, { backgroundColor: "rgba(255,255,255,0.1)", borderColor: "#FFFFFF" }]}
+              style={[
+                styles.infoButton,
+                {
+                  backgroundColor: "rgba(255,255,255,0.1)",
+                  borderColor: "#FFFFFF",
+                },
+              ]}
             >
-              <Feather name={inWatchlist ? "check" : "plus"} size={20} color="#FFFFFF" />
-              <ThemedText style={styles.infoButtonText}>{inWatchlist ? "Added" : "My List"}</ThemedText>
+              <Feather
+                name={inWatchlist ? "check" : "plus"}
+                size={20}
+                color="#FFFFFF"
+              />
+              <ThemedText style={styles.infoButtonText}>
+                {inWatchlist ? "Added" : "My List"}
+              </ThemedText>
             </Pressable>
           </View>
 
@@ -317,13 +375,26 @@ export default function DetailScreen() {
               isActive={inFavorites}
             />
             {trailer ? (
-              <ActionButton icon="youtube" label="Trailer" onPress={handleTrailer} isActive={false} />
+              <ActionButton
+                icon="youtube"
+                label="Trailer"
+                onPress={handleTrailer}
+                isActive={false}
+              />
             ) : null}
-            <ActionButton icon="share" label="Share" onPress={handleShare} isActive={false} />
+            <ActionButton
+              icon="share"
+              label="Share"
+              onPress={handleShare}
+              isActive={false}
+            />
           </View>
 
           {details.overview ? (
-            <Animated.View entering={FadeInUp.delay(100).duration(300)} style={styles.section}>
+            <Animated.View
+              entering={FadeInUp.delay(100).duration(300)}
+              style={styles.section}
+            >
               <ThemedText style={styles.sectionTitle}>Overview</ThemedText>
               <Pressable onPress={() => setShowFullOverview(!showFullOverview)}>
                 <ThemedText
@@ -333,7 +404,9 @@ export default function DetailScreen() {
                   {details.overview}
                 </ThemedText>
                 {details.overview.length > 200 ? (
-                  <ThemedText style={[styles.readMore, { color: theme.primary }]}>
+                  <ThemedText
+                    style={[styles.readMore, { color: theme.primary }]}
+                  >
                     {showFullOverview ? "Show less" : "Read more"}
                   </ThemedText>
                 ) : null}
@@ -342,14 +415,20 @@ export default function DetailScreen() {
           ) : null}
 
           {cast.length > 0 ? (
-            <Animated.View entering={FadeInUp.delay(200).duration(300)} style={styles.section}>
+            <Animated.View
+              entering={FadeInUp.delay(200).duration(300)}
+              style={styles.section}
+            >
               <ThemedText style={styles.sectionTitle}>Cast</ThemedText>
               <FlatList
                 horizontal
                 data={cast}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => (
-                  <CastCard cast={item} onPress={() => handlePersonPress(item.id)} />
+                  <CastCard
+                    cast={item}
+                    onPress={() => handlePersonPress(item.id)}
+                  />
                 )}
                 showsHorizontalScrollIndicator={false}
                 contentContainerStyle={styles.castList}
@@ -358,15 +437,22 @@ export default function DetailScreen() {
           ) : null}
 
           {similar.length > 0 ? (
-            <Animated.View entering={FadeInUp.delay(300).duration(300)} style={styles.section}>
+            <Animated.View
+              entering={FadeInUp.delay(300).duration(300)}
+              style={styles.section}
+            >
               <ThemedText style={styles.sectionTitle}>Similar</ThemedText>
               <FlatList
                 horizontal
                 data={similar}
                 keyExtractor={(item) => item.id.toString()}
                 renderItem={({ item }) => {
-                  const itemTitle = isMovie(item) ? item.title : (item as any).name;
-                  const itemDate = isMovie(item) ? item.release_date : (item as any).first_air_date;
+                  const itemTitle = isMovie(item)
+                    ? item.title
+                    : (item as any).name;
+                  const itemDate = isMovie(item)
+                    ? item.release_date
+                    : (item as any).first_air_date;
                   return (
                     <MediaCard
                       id={item.id}
@@ -399,7 +485,10 @@ export default function DetailScreen() {
       >
         <Pressable
           onPress={handlePlay}
-          style={({ pressed }) => [styles.floatingButtonInner, { opacity: pressed ? 0.8 : 1 }]}
+          style={({ pressed }) => [
+            styles.floatingButtonInner,
+            { opacity: pressed ? 0.8 : 1 },
+          ]}
         >
           <Feather name="play" size={20} color="#FFFFFF" />
           <ThemedText style={styles.floatingButtonText}>Watch Now</ThemedText>
@@ -434,16 +523,33 @@ function ActionButton({ icon, label, onPress, isActive }: ActionButtonProps) {
 
   return (
     <Animated.View style={animatedStyle}>
-      <Pressable onPress={onPress} onPressIn={handlePressIn} onPressOut={handlePressOut} style={styles.actionButton}>
+      <Pressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
+        style={styles.actionButton}
+      >
         <View
           style={[
             styles.actionIconContainer,
-            { backgroundColor: isActive ? theme.primary : theme.backgroundSecondary },
+            {
+              backgroundColor: isActive
+                ? theme.primary
+                : theme.backgroundSecondary,
+            },
           ]}
         >
-          <Feather name={icon as any} size={20} color={isActive ? "#FFFFFF" : theme.text} />
+          <Feather
+            name={icon as any}
+            size={20}
+            color={isActive ? "#FFFFFF" : theme.text}
+          />
         </View>
-        <ThemedText style={[styles.actionLabel, { color: theme.textSecondary }]}>{label}</ThemedText>
+        <ThemedText
+          style={[styles.actionLabel, { color: theme.textSecondary }]}
+        >
+          {label}
+        </ThemedText>
       </Pressable>
     </Animated.View>
   );
@@ -454,23 +560,58 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   loadingContainer: { flex: 1, justifyContent: "center", alignItems: "center" },
   loadingText: { marginTop: Spacing.md, fontSize: 14 },
-  errorContainer: { flex: 1, justifyContent: "center", alignItems: "center", padding: Spacing["3xl"] },
-  errorTitle: { fontSize: 18, fontWeight: "600", marginTop: Spacing.lg, marginBottom: Spacing.sm },
+  errorContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: Spacing["3xl"],
+  },
+  errorTitle: {
+    fontSize: 18,
+    fontWeight: "600",
+    marginTop: Spacing.lg,
+    marginBottom: Spacing.sm,
+  },
   errorMessage: { fontSize: 14, textAlign: "center", marginBottom: Spacing.xl },
   retryButton: { paddingHorizontal: Spacing["3xl"] },
   backdropContainer: { height: 280, position: "relative" },
   backdrop: { width: "100%", height: "100%" },
-  backdropGradient: { position: "absolute", left: 0, right: 0, bottom: 0, height: 160 },
+  backdropGradient: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 160,
+  },
   content: { paddingHorizontal: Spacing.lg },
   posterRow: { flexDirection: "row", marginBottom: Spacing.xl },
-  posterContainer: { width: 120, height: 180, borderRadius: BorderRadius.lg, overflow: "hidden", ...Shadows.card },
+  posterContainer: {
+    width: 120,
+    height: 180,
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+    ...Shadows.card,
+  },
   poster: { width: "100%", height: "100%" },
-  metaContainer: { flex: 1, marginLeft: Spacing.lg, justifyContent: "flex-end" },
+  metaContainer: {
+    flex: 1,
+    marginLeft: Spacing.lg,
+    justifyContent: "flex-end",
+  },
   title: { fontSize: 22, fontWeight: "700", marginBottom: Spacing.sm },
-  metaRow: { flexDirection: "row", alignItems: "center", gap: Spacing.sm, marginBottom: Spacing.xs },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: Spacing.sm,
+    marginBottom: Spacing.xs,
+  },
   metaText: { fontSize: 14 },
   genres: { fontSize: 13, marginTop: Spacing.xs },
-  playButtonsRow: { flexDirection: "row", gap: Spacing.md, marginBottom: Spacing.lg },
+  playButtonsRow: {
+    flexDirection: "row",
+    gap: Spacing.md,
+    marginBottom: Spacing.lg,
+  },
   playButton: {
     flex: 1,
     flexDirection: "row",
@@ -492,7 +633,12 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   infoButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
-  actionsRow: { flexDirection: "row", justifyContent: "space-around", marginBottom: Spacing.xl, paddingVertical: Spacing.md },
+  actionsRow: {
+    flexDirection: "row",
+    justifyContent: "space-around",
+    marginBottom: Spacing.xl,
+    paddingVertical: Spacing.md,
+  },
   actionButton: { alignItems: "center" },
   actionIconContainer: {
     width: 50,
@@ -508,7 +654,19 @@ const styles = StyleSheet.create({
   overview: { fontSize: 15, lineHeight: 24 },
   readMore: { fontSize: 14, fontWeight: "500", marginTop: Spacing.xs },
   castList: { paddingRight: Spacing.lg },
-  floatingButton: { position: "absolute", left: Spacing.lg, right: Spacing.lg, borderRadius: BorderRadius.lg, overflow: "hidden" },
-  floatingButtonInner: { flexDirection: "row", alignItems: "center", justifyContent: "center", paddingVertical: Spacing.md, gap: Spacing.sm },
+  floatingButton: {
+    position: "absolute",
+    left: Spacing.lg,
+    right: Spacing.lg,
+    borderRadius: BorderRadius.lg,
+    overflow: "hidden",
+  },
+  floatingButtonInner: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: Spacing.md,
+    gap: Spacing.sm,
+  },
   floatingButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
 });

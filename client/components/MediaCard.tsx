@@ -93,7 +93,12 @@ export function MediaCard({
             transition={300}
           />
         ) : (
-          <View style={[styles.placeholder, { backgroundColor: theme.backgroundSecondary }]}>
+          <View
+            style={[
+              styles.placeholder,
+              { backgroundColor: theme.backgroundSecondary },
+            ]}
+          >
             <ThemedText style={styles.placeholderText}>No Image</ThemedText>
           </View>
         )}
@@ -108,9 +113,7 @@ export function MediaCard({
           {title}
         </ThemedText>
         {releaseDate ? (
-          <ThemedText
-            style={[styles.year, { color: theme.textSecondary }]}
-          >
+          <ThemedText style={[styles.year, { color: theme.textSecondary }]}>
             {formatYear(releaseDate)}
           </ThemedText>
         ) : null}
@@ -163,7 +166,12 @@ export function HeroCard({
       onPressOut={handlePressOut}
       style={[styles.heroContainer, animatedStyle]}
     >
-      <View style={[styles.heroImageContainer, { backgroundColor: theme.backgroundSecondary }]}>
+      <View
+        style={[
+          styles.heroImageContainer,
+          { backgroundColor: theme.backgroundSecondary },
+        ]}
+      >
         {imageUrl ? (
           <Image
             source={{ uri: imageUrl }}

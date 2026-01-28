@@ -18,7 +18,7 @@ const api = axios.create({
 
 // Movies
 export async function getTrendingMovies(
-  timeWindow: "day" | "week" = "day"
+  timeWindow: "day" | "week" = "day",
 ): Promise<TMDBResponse<Movie>> {
   const response = await api.get(`/api/tmdb/trending/movie/${timeWindow}`);
   return response.data;
@@ -32,7 +32,7 @@ export async function getPopularMovies(page = 1): Promise<TMDBResponse<Movie>> {
 }
 
 export async function getTopRatedMovies(
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<Movie>> {
   const response = await api.get(`/api/tmdb/movie/top_rated`, {
     params: { page },
@@ -41,7 +41,7 @@ export async function getTopRatedMovies(
 }
 
 export async function getUpcomingMovies(
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<Movie>> {
   const response = await api.get(`/api/tmdb/movie/upcoming`, {
     params: { page },
@@ -50,7 +50,7 @@ export async function getUpcomingMovies(
 }
 
 export async function getNowPlayingMovies(
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<Movie>> {
   const response = await api.get(`/api/tmdb/movie/now_playing`, {
     params: { page },
@@ -67,7 +67,7 @@ export async function getMovieDetails(id: number): Promise<MovieDetails> {
 
 export async function getMoviesByGenre(
   genreId: number,
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<Movie>> {
   const response = await api.get(`/api/tmdb/discover/movie`, {
     params: { with_genres: genreId, page },
@@ -77,21 +77,21 @@ export async function getMoviesByGenre(
 
 // TV Shows
 export async function getTrendingTVShows(
-  timeWindow: "day" | "week" = "day"
+  timeWindow: "day" | "week" = "day",
 ): Promise<TMDBResponse<TVShow>> {
   const response = await api.get(`/api/tmdb/trending/tv/${timeWindow}`);
   return response.data;
 }
 
 export async function getPopularTVShows(
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<TVShow>> {
   const response = await api.get(`/api/tmdb/tv/popular`, { params: { page } });
   return response.data;
 }
 
 export async function getTopRatedTVShows(
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<TVShow>> {
   const response = await api.get(`/api/tmdb/tv/top_rated`, {
     params: { page },
@@ -100,7 +100,7 @@ export async function getTopRatedTVShows(
 }
 
 export async function getOnTheAirTVShows(
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<TVShow>> {
   const response = await api.get(`/api/tmdb/tv/on_the_air`, {
     params: { page },
@@ -117,17 +117,15 @@ export async function getTVShowDetails(id: number): Promise<TVShowDetails> {
 
 export async function getTVSeasonDetails(
   tvId: number,
-  seasonNumber: number
+  seasonNumber: number,
 ): Promise<SeasonDetails> {
-  const response = await api.get(
-    `/api/tmdb/tv/${tvId}/season/${seasonNumber}`
-  );
+  const response = await api.get(`/api/tmdb/tv/${tvId}/season/${seasonNumber}`);
   return response.data;
 }
 
 export async function getTVShowsByGenre(
   genreId: number,
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<TVShow>> {
   const response = await api.get(`/api/tmdb/discover/tv`, {
     params: { with_genres: genreId, page },
@@ -149,7 +147,7 @@ export async function getTVGenres(): Promise<{ genres: Genre[] }> {
 // Search
 export async function searchMovies(
   query: string,
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<Movie>> {
   const response = await api.get(`/api/tmdb/search/movie`, {
     params: { query, page },
@@ -159,7 +157,7 @@ export async function searchMovies(
 
 export async function searchTVShows(
   query: string,
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<TVShow>> {
   const response = await api.get(`/api/tmdb/search/tv`, {
     params: { query, page },
@@ -169,7 +167,7 @@ export async function searchTVShows(
 
 export async function searchMulti(
   query: string,
-  page = 1
+  page = 1,
 ): Promise<TMDBResponse<Movie | TVShow>> {
   const response = await api.get(`/api/tmdb/search/multi`, {
     params: { query, page },

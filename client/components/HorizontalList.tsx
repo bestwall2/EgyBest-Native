@@ -74,7 +74,9 @@ export function HorizontalList({
       <FlatList
         horizontal
         data={data}
-        keyExtractor={(item) => `${mediaType || (isMovie(item) ? "movie" : "tv")}-${item.id}`}
+        keyExtractor={(item) =>
+          `${mediaType || (isMovie(item) ? "movie" : "tv")}-${item.id}`
+        }
         renderItem={({ item }) => {
           const type = mediaType || (isMovie(item) ? "movie" : "tv");
           const itemTitle = isMovie(item) ? item.title : item.name;

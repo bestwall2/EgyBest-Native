@@ -61,7 +61,7 @@ export default function SearchScreen() {
     debounce((query: string) => {
       setDebouncedQuery(query);
     }, 400),
-    []
+    [],
   );
 
   const handleSearchChange = (text: string) => {
@@ -93,10 +93,12 @@ export default function SearchScreen() {
     await loadSearchHistory();
   };
 
-  const searchType = selectedTab === 0 ? "movie" : selectedTab === 1 ? "tv" : "multi";
-  const searchEndpoint = debouncedQuery.length > 0
-    ? `/api/tmdb/search/${searchType}?query=${encodeURIComponent(debouncedQuery)}`
-    : null;
+  const searchType =
+    selectedTab === 0 ? "movie" : selectedTab === 1 ? "tv" : "multi";
+  const searchEndpoint =
+    debouncedQuery.length > 0
+      ? `/api/tmdb/search/${searchType}?query=${encodeURIComponent(debouncedQuery)}`
+      : null;
 
   const { data: searchResults, isLoading } = useQuery<{
     results: (Movie | TVShow)[];
@@ -109,7 +111,7 @@ export default function SearchScreen() {
     (id: number, mediaType: MediaType) => {
       navigation.navigate("Detail", { id, mediaType });
     },
-    [navigation]
+    [navigation],
   );
 
   const getMediaType = (item: Movie | TVShow): MediaType => {
@@ -141,7 +143,7 @@ export default function SearchScreen() {
         </View>
       );
     },
-    [selectedTab, handleItemPress]
+    [selectedTab, handleItemPress],
   );
 
   const renderEmpty = useCallback(() => {
@@ -228,7 +230,12 @@ export default function SearchScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <View style={[styles.searchContainer, { paddingTop: insets.top + Spacing.md }]}>
+      <View
+        style={[
+          styles.searchContainer,
+          { paddingTop: insets.top + Spacing.md },
+        ]}
+      >
         <SearchBar
           value={searchQuery}
           onChangeText={handleSearchChange}

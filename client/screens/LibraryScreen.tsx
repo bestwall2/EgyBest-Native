@@ -64,7 +64,7 @@ export default function LibraryScreen() {
   useFocusEffect(
     useCallback(() => {
       loadData();
-    }, [])
+    }, []),
   );
 
   const onRefresh = useCallback(async () => {
@@ -77,7 +77,7 @@ export default function LibraryScreen() {
     (id: number, mediaType: MediaType) => {
       navigation.navigate("Detail", { id, mediaType });
     },
-    [navigation]
+    [navigation],
   );
 
   const currentData =
@@ -98,7 +98,7 @@ export default function LibraryScreen() {
         />
       </View>
     ),
-    [handleItemPress]
+    [handleItemPress],
   );
 
   const renderEmpty = useCallback(() => {
@@ -130,10 +130,7 @@ export default function LibraryScreen() {
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
       <View
-        style={[
-          styles.tabContainer,
-          { paddingTop: headerHeight + Spacing.md },
-        ]}
+        style={[styles.tabContainer, { paddingTop: headerHeight + Spacing.md }]}
       >
         <TabSwitch
           tabs={["Watchlist", "Favorites", "History"]}
