@@ -15,33 +15,35 @@ declare module "http" {
 
 function setupCors(app: express.Application) {
   app.use((req, res, next) => {
-    const origins = new Set<string>();
-
-    if (process.env.REPLIT_DEV_DOMAIN) {
-      origins.add(`https://${process.env.REPLIT_DEV_DOMAIN}`);
-    }
-
-    if (process.env.REPLIT_DOMAINS) {
-      process.env.REPLIT_DOMAINS.split(",").forEach((d) => {
-        origins.add(`https://${d.trim()}`);
-      });
-    }
-
     const origin = req.header("origin");
 
-    // Allow localhost origins for Expo web development (any port)
-    const isLocalhost =
-      origin?.startsWith("http://localhost:") ||
-      origin?.startsWith("http://127.0.0.1:");
+    if (origin) {
+      const isReplit =
+        origin.endsWith(".repl.co") ||
+        origin.endsWith(".replit.app") ||
+        origin.endsWith(".replit.dev") ||
+        (process.env.REPLIT_DEV_DOMAIN &&
+          origin.includes(process.env.REPLIT_DEV_DOMAIN));
 
-    if (origin && (origins.has(origin) || isLocalhost)) {
-      res.header("Access-Control-Allow-Origin", origin);
-      res.header(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS",
-      );
-      res.header("Access-Control-Allow-Headers", "Content-Type");
-      res.header("Access-Control-Allow-Credentials", "true");
+      const isLocalhost =
+        origin.startsWith("http://localhost:") ||
+        origin.startsWith("http://127.0.0.1:");
+
+      if (isReplit || isLocalhost) {
+        res.header("Access-Control-Allow-Origin", origin);
+        res.header(
+          "Access-Control-Allow-Methods",
+          "GET, POST, PUT, DELETE, OPTIONS",
+        );
+        res.header(
+          "Access-Control-Allow-Headers",
+          "Content-Type, Authorization, X-Requested-With",
+        );
+        res.header("Access-Control-Allow-Credentials", "true");
+      }
+    } else {
+      // For non-browser requests or missing origin, allow all for development
+      res.header("Access-Control-Allow-Origin", "*");
     }
 
     if (req.method === "OPTIONS") {

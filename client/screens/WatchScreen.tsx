@@ -1,10 +1,9 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import {
   View,
   StyleSheet,
   Dimensions,
   Pressable,
-  FlatList,
   ScrollView,
   ActivityIndicator,
 } from "react-native";
@@ -16,13 +15,13 @@ import { Image } from "expo-image";
 import { WebView } from "react-native-webview";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeIn, FadeInRight } from "react-native-reanimated";
+import Animated, { FadeInUp } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
-import { SeasonDetails, Episode } from "@/types/tmdb";
+import { TVShowDetails, SeasonDetails, Episode } from "@/types/tmdb";
 import { getImageUrl } from "@/utils/helpers";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
@@ -112,6 +111,11 @@ export default function WatchScreen() {
   const [isLoading, setIsLoading] = useState(true);
   const webViewRef = useRef<WebView>(null);
 
+  const { data: tvShow } = useQuery<TVShowDetails>({
+    queryKey: [`/api/tmdb/tv/${id}`],
+    enabled: mediaType === "tv",
+  });
+
   const { data: seasonDetails } = useQuery<SeasonDetails>({
     queryKey: [`/api/tmdb/tv/${id}/season/${selectedSeason}`],
     enabled: mediaType === "tv",
@@ -143,25 +147,23 @@ export default function WatchScreen() {
   }, []);
 
   const renderEpisodeItem = useCallback(
-    ({ item }: { item: Episode }) => {
+    ({ item, index }: { item: Episode; index: number }) => {
       const isSelected = item.episode_number === selectedEpisode;
-      const stillUrl = getImageUrl(item.still_path, "backdrop", "small");
+      const stillUrl = getImageUrl(item.still_path, "backdrop", "medium");
 
       return (
-        <Animated.View entering={FadeInRight.delay(item.episode_number * 50)}>
+        <Animated.View entering={FadeInUp.delay(index * 50)}>
           <Pressable
             onPress={() => handleEpisodePress(item.episode_number)}
             style={[
-              styles.episodeCard,
+              styles.episodeGridCard,
               {
-                backgroundColor: isSelected
-                  ? theme.primary
-                  : theme.backgroundSecondary,
+                backgroundColor: theme.backgroundSecondary,
                 borderColor: isSelected ? theme.primary : "transparent",
               },
             ]}
           >
-            <View style={styles.episodeThumbnail}>
+            <View style={styles.episodeGridThumbnail}>
               {stillUrl ? (
                 <Image
                   source={{ uri: stillUrl }}
@@ -180,34 +182,54 @@ export default function WatchScreen() {
               )}
               <View style={styles.episodeNumberBadge}>
                 <ThemedText style={styles.episodeNumberText}>
-                  E{item.episode_number}
+                  Episode {item.episode_number}
                 </ThemedText>
               </View>
-            </View>
-            <View style={styles.episodeInfo}>
-              <ThemedText
-                style={[
-                  styles.episodeTitle,
-                  { color: isSelected ? "#FFFFFF" : theme.text },
-                ]}
-                numberOfLines={2}
-              >
-                {item.name}
-              </ThemedText>
-              {item.runtime ? (
-                <ThemedText
+              {isSelected && (
+                <View
                   style={[
-                    styles.episodeRuntime,
-                    {
-                      color: isSelected
-                        ? "rgba(255,255,255,0.7)"
-                        : theme.textSecondary,
-                    },
+                    styles.playingBadge,
+                    { backgroundColor: theme.primary },
                   ]}
                 >
-                  {item.runtime} min
-                </ThemedText>
-              ) : null}
+                  <ThemedText style={styles.playingText}>
+                    NOW PLAYING
+                  </ThemedText>
+                </View>
+              )}
+            </View>
+            <View style={styles.episodeGridInfo}>
+              <ThemedText style={styles.episodeGridTitle} numberOfLines={1}>
+                {item.name}
+              </ThemedText>
+              <ThemedText
+                style={[styles.episodeOverview, { color: theme.textSecondary }]}
+                numberOfLines={3}
+              >
+                {item.overview || "No description available."}
+              </ThemedText>
+              <View style={styles.episodeMeta}>
+                {item.runtime ? (
+                  <ThemedText
+                    style={[
+                      styles.episodeRuntime,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
+                    {item.runtime} min
+                  </ThemedText>
+                ) : null}
+                {item.air_date ? (
+                  <ThemedText
+                    style={[
+                      styles.episodeRuntime,
+                      { color: theme.textSecondary },
+                    ]}
+                  >
+                    • {new Date(item.air_date).getFullYear()}
+                  </ThemedText>
+                ) : null}
+              </View>
             </View>
           </Pressable>
         </Animated.View>
@@ -218,7 +240,18 @@ export default function WatchScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <View style={[styles.videoContainer, { marginTop: insets.top }]}>
+      <View
+        style={[
+          styles.videoContainer,
+          { height: VIDEO_HEIGHT + insets.top, paddingTop: insets.top },
+        ]}
+      >
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={[styles.backButton, { top: insets.top + 10 }]}
+        >
+          <Feather name="chevron-left" size={24} color="#FFFFFF" />
+        </Pressable>
         {isLoading ? (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={theme.primary} />
@@ -265,87 +298,78 @@ export default function WatchScreen() {
         </View>
 
         <View style={styles.serversSection}>
-          <ThemedText style={styles.sectionTitle}>Servers</ThemedText>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.serversList}
-          >
+          <ThemedText style={styles.sectionTitle}>Select Server</ThemedText>
+          <View style={styles.gridRow}>
             {Object.keys(serverLinks).map((server, index) => (
               <Pressable
                 key={server}
                 onPress={() => handleServerPress(server)}
                 style={[
-                  styles.serverChip,
+                  styles.serverGridItem,
                   {
                     backgroundColor:
                       selectedServer === server
                         ? theme.primary
                         : theme.backgroundSecondary,
+                    width: (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 3) / 4,
                   },
                 ]}
               >
-                <Feather
-                  name="server"
-                  size={14}
-                  color={selectedServer === server ? "#FFFFFF" : theme.text}
-                />
                 <ThemedText
                   style={[
-                    styles.serverText,
+                    styles.serverGridText,
                     {
                       color: selectedServer === server ? "#FFFFFF" : theme.text,
                     },
                   ]}
                 >
-                  Server {index + 1}
+                  #{index + 1}
                 </ThemedText>
               </Pressable>
             ))}
-          </ScrollView>
+          </View>
         </View>
 
         {mediaType === "tv" ? (
           <>
             <View style={styles.seasonsSection}>
               <ThemedText style={styles.sectionTitle}>Seasons</ThemedText>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.seasonsList}
-              >
-                {Array.from({ length: 20 }, (_, i) => i + 1).map(
-                  (seasonNum) => (
-                    <Pressable
-                      key={seasonNum}
-                      onPress={() => handleSeasonPress(seasonNum)}
+              <View style={styles.gridRow}>
+                {Array.from(
+                  { length: tvShow?.number_of_seasons || selectedSeason },
+                  (_, i) => i + 1,
+                ).map((seasonNum) => (
+                  <Pressable
+                    key={seasonNum}
+                    onPress={() => handleSeasonPress(seasonNum)}
+                    style={[
+                      styles.seasonGridItem,
+                      {
+                        backgroundColor:
+                          selectedSeason === seasonNum
+                            ? theme.primary
+                            : theme.backgroundSecondary,
+                        width:
+                          (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 4) / 5,
+                      },
+                    ]}
+                  >
+                    <ThemedText
                       style={[
-                        styles.seasonChip,
+                        styles.seasonGridText,
                         {
-                          backgroundColor:
+                          color:
                             selectedSeason === seasonNum
-                              ? theme.primary
-                              : theme.backgroundSecondary,
+                              ? "#FFFFFF"
+                              : theme.text,
                         },
                       ]}
                     >
-                      <ThemedText
-                        style={[
-                          styles.seasonText,
-                          {
-                            color:
-                              selectedSeason === seasonNum
-                                ? "#FFFFFF"
-                                : theme.text,
-                          },
-                        ]}
-                      >
-                        S{seasonNum}
-                      </ThemedText>
-                    </Pressable>
-                  ),
-                )}
-              </ScrollView>
+                      S{seasonNum}
+                    </ThemedText>
+                  </Pressable>
+                ))}
+              </View>
             </View>
 
             <View style={styles.episodesSection}>
@@ -356,16 +380,15 @@ export default function WatchScreen() {
                   : ""}
               </ThemedText>
               {seasonDetails?.episodes ? (
-                <FlatList
-                  data={seasonDetails.episodes}
-                  keyExtractor={(item) => item.id.toString()}
-                  renderItem={renderEpisodeItem}
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  contentContainerStyle={styles.episodesList}
-                />
+                <View style={styles.episodesGridList}>
+                  {seasonDetails.episodes.map((item, index) =>
+                    renderEpisodeItem({ item, index }),
+                  )}
+                </View>
               ) : (
-                <ActivityIndicator color={theme.primary} />
+                <View style={styles.episodesLoading}>
+                  <ActivityIndicator color={theme.primary} />
+                </View>
               )}
             </View>
           </>
@@ -381,12 +404,23 @@ const styles = StyleSheet.create({
   },
   videoContainer: {
     width: SCREEN_WIDTH,
-    height: VIDEO_HEIGHT,
     backgroundColor: "#000000",
+    position: "relative",
   },
   webView: {
     flex: 1,
     backgroundColor: "#000000",
+  },
+  backButton: {
+    position: "absolute",
+    left: Spacing.lg,
+    zIndex: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -418,51 +452,55 @@ const styles = StyleSheet.create({
     fontWeight: "600",
     marginBottom: Spacing.md,
   },
-  serversList: {
+  gridRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
     gap: Spacing.sm,
   },
-  serverChip: {
-    flexDirection: "row",
+  serverGridItem: {
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    justifyContent: "center",
     alignItems: "center",
-    paddingHorizontal: Spacing.md,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-    gap: Spacing.xs,
   },
-  serverText: {
-    fontSize: 13,
-    fontWeight: "500",
+  serverGridText: {
+    fontSize: 14,
+    fontWeight: "700",
   },
   seasonsSection: {
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.lg,
   },
-  seasonsList: {
-    gap: Spacing.sm,
+  seasonGridItem: {
+    height: 40,
+    borderRadius: BorderRadius.sm,
+    justifyContent: "center",
+    alignItems: "center",
   },
-  seasonChip: {
-    paddingHorizontal: Spacing.lg,
-    paddingVertical: Spacing.sm,
-    borderRadius: BorderRadius.md,
-  },
-  seasonText: {
-    fontSize: 14,
+  seasonGridText: {
+    fontSize: 13,
     fontWeight: "600",
   },
   episodesSection: {
     paddingHorizontal: Spacing.lg,
   },
-  episodesList: {
-    gap: Spacing.md,
+  episodesGridList: {
+    gap: Spacing.lg,
   },
-  episodeCard: {
-    width: 200,
+  episodesLoading: {
+    padding: Spacing.xl,
+    alignItems: "center",
+  },
+  episodeGridCard: {
+    flexDirection: "row",
     borderRadius: BorderRadius.md,
     overflow: "hidden",
-    borderWidth: 2,
+    borderWidth: 1,
+    height: 120,
   },
-  episodeThumbnail: {
-    height: 110,
+  episodeGridThumbnail: {
+    width: 160,
+    height: "100%",
     position: "relative",
   },
   episodeImage: {
@@ -485,15 +523,39 @@ const styles = StyleSheet.create({
     fontSize: 11,
     fontWeight: "600",
   },
-  episodeInfo: {
+  episodeGridInfo: {
+    flex: 1,
     padding: Spacing.sm,
+    justifyContent: "space-between",
   },
-  episodeTitle: {
-    fontSize: 13,
-    fontWeight: "500",
+  episodeGridTitle: {
+    fontSize: 14,
+    fontWeight: "700",
+  },
+  episodeOverview: {
+    fontSize: 12,
+    lineHeight: 16,
+    opacity: 0.8,
+  },
+  episodeMeta: {
+    flexDirection: "row",
+    gap: Spacing.sm,
   },
   episodeRuntime: {
     fontSize: 11,
-    marginTop: 2,
+  },
+  playingBadge: {
+    position: "absolute",
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingVertical: 2,
+    alignItems: "center",
+  },
+  playingText: {
+    color: "#FFFFFF",
+    fontSize: 9,
+    fontWeight: "800",
+    letterSpacing: 1,
   },
 });

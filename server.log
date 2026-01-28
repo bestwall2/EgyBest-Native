@@ -1,0 +1,7 @@
+
+> my-app@1.0.0 npm
+> NODE_ENV=development tsx server/index.ts
+
+Serving static Expo files with dynamic manifest routing
+Expo routing: Checking expo-platform header on / and /manifest
+express server serving on port 5000
