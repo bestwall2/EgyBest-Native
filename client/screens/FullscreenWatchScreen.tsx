@@ -8,19 +8,20 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar, setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
+
 const injectedJavaScript = `
-  (function() {
-  // Prevent popups
+(function() {
+  // prevent popups
   window.open = () => null;
   window.alert = () => null;
 
-  // Intercept XHR and fetch for video links
+  // XHR interception
   const open = XMLHttpRequest.prototype.open;
   XMLHttpRequest.prototype.open = function() {
     this.addEventListener('load', function() {
       if (this.responseURL && window.ReactNativeWebView) {
         const url = this.responseURL;
-        if (url.match(/\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
+        if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
           window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
         }
       }
@@ -28,54 +29,91 @@ const injectedJavaScript = `
     open.apply(this, arguments);
   };
 
+  // fetch interception
   const originalFetch = window.fetch;
   window.fetch = function(...args) {
     return originalFetch.apply(this, args).then(response => {
-      if (response.url && window.ReactNativeWebView) {
-        const url = response.url;
-        if (url.match(/\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
+      try {
+        if (response && response.url && window.ReactNativeWebView) {
+          const url = response.url;
+          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
+          }
         }
-      }
+      } catch(e) {}
       return response;
     });
   };
 
-  // Only run for legacy.aether.mom
-  if (window.location.hostname === 'legacy.aether.mom') {
-    const hideElements = () => {
-      // Hide all top bars
-      document.querySelectorAll('div').forEach(el => {
-        const className = el.className || '';
-        if (className.includes('pointer-events-auto') && className.includes('top-0')) {
-          el.style.display = 'none';
-        }
-      });
+  // Flexible hide logic for aether/legacy.aether
+  const shouldRun = () => {
+    try {
+      return window.location.hostname && (window.location.hostname.includes('aether.mom') );
+    } catch (e) { return false; }
+  };
 
-      // Hide back to home buttons by class or text
-      document.querySelectorAll('a').forEach(el => {
-        const text = el.innerText || '';
-        const className = el.className || '';
-        if (className.includes('bg-buttons-cancel') || text.toLowerCase().includes('back to home')) {
-          el.style.display = 'none';
-        }
-      });
+  if (shouldRun()) {
+    // inject persistent CSS as a first line of defense
+    const css = \`
+      /* hide top bar / back button fallback */
+      .pointer-events-auto, [class*="pointer-events-auto"] { display: none !important; visibility: hidden !important; height: 0 !important; pointer-events: none !important; }
+      a[class*="bg-buttons-cancel"], a[class*="tabbable"] { display: none !important; visibility: hidden !important; pointer-events: none !important; }
+    \`;
+    const styleEl = document.createElement('style');
+    styleEl.innerHTML = css;
+    document.documentElement.appendChild(styleEl);
+
+    // flexible DOM removal function
+    const hideTask = () => {
+      try {
+        // remove elements that look like the top bar by partial class match
+        document.querySelectorAll('div').forEach(el => {
+          const cls = el.className || '';
+          if (typeof cls === 'string' && cls.includes('pointer-events-auto') && cls.includes('top-0')) {
+            el.remove();
+            return;
+          }
+          // also match by role/height heuristics if needed
+          const rect = el.getBoundingClientRect && el.getBoundingClientRect();
+          if (rect && rect.top === 0 && rect.width > 200 && el.children.length > 0) {
+            // heuristic: top-level header-like element
+            // remove only if class or innerText suggests it's the header
+            const text = (el.innerText || '').toLowerCase();
+            if (cls.includes('top') || text.includes('back') || text.includes('home')) {
+              el.remove();
+            }
+          }
+        });
+
+        // remove any anchor whose text contains "back to home" or similar
+        document.querySelectorAll('a').forEach(a => {
+          const txt = (a.innerText || '').toLowerCase();
+          const cls = a.className || '';
+          if (txt.includes('back to home') || cls.includes('bg-buttons-cancel') || cls.includes('tabbable')) {
+            a.remove();
+          }
+        });
+      } catch (e) {}
     };
 
-    // Run after page load
-    window.addEventListener('load', hideElements);
+    // run after load, keep interval and observe mutations
+    window.addEventListener('load', hideTask, { passive: true });
+    hideTask();
+    const intId = setInterval(hideTask, 300);
+    const observer = new MutationObserver(hideTask);
+    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
 
-    // Run continuously every 200ms
-    setInterval(hideElements, 200);
-
-    // Observe DOM mutations for React re-renders
-    const observer = new MutationObserver(hideElements);
-    observer.observe(document.body, { childList: true, subtree: true });
+    // cleanup if page navigates away (rare but safe)
+    window.addEventListener('beforeunload', () => {
+      clearInterval(intId);
+      observer.disconnect();
+    });
   }
 })();
 true;
-
 `;
+
+
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type FullscreenWatchRouteProp = RouteProp<RootStackParamList, "FullscreenWatch">;
@@ -121,6 +159,8 @@ export default function FullscreenWatchScreen() {
         mediaPlaybackRequiresUserAction={false}
         javaScriptEnabled
         domStorageEnabled
+        injectedJavaScriptBeforeContentLoaded={injectedJavaScript} // <-- run early
+        injectedJavaScript={injectedJavaScript} 
         onShouldStartLoadWithRequest={(event) => {
           const requestedUrl = event.url;
           if (typeof requestedUrl !== 'string') {
