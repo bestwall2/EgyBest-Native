@@ -8,6 +8,7 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar, setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
+
 const injectedJavaScript = `
 (function() {
   // prevent popups
