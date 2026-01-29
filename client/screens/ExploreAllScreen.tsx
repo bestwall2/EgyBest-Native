@@ -34,28 +34,20 @@ const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 4) / 3;
 
 export default function ExploreAllScreen() {
   const route = useRoute<ExploreAllRouteProp>();
-
-  // Guard clause to prevent rendering if navigation params are missing
-  if (!route.params?.endpoint) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-        {renderHeader()}
-        <EmptyState
-          image={require("../../assets/images/empty-browse.png")}
-          title={t("exploreAllScreen.noEndpointTitle")}
-          message={t("exploreAllScreen.noEndpointMessage")}
-          actionLabel={t("common.goBack")}
-          onAction={() => navigation.goBack()}
-        />
-      </View>
-    );
-  }
-
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { t, isRTL } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
-  const { title, endpoint, mediaType } = route.params;
+  const { title, endpoint, mediaType } = route.params || {};
+
+  // Guard clause to prevent rendering if navigation params are missing
+  if (!endpoint) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme?.backgroundRoot || "#000" }]}>
+        <ThemedText>{t("exploreAllScreen.noEndpointMessage")}</ThemedText>
+      </View>
+    );
+  }
 
   const {
     data,
@@ -74,25 +66,13 @@ export default function ExploreAllScreen() {
     initialPageParam: 1,
     queryFn: getQueryFn({ on401: "throw" }),
     getNextPageParam: (lastPage) => {
-      if (!lastPage || typeof lastPage !== 'object') {
-        // Log a warning or return undefined based on desired behavior
-        return undefined;
-      }
-      // Ensure page and total_pages are numbers before comparison
-      if (typeof lastPage.page !== 'number' || typeof lastPage.total_pages !== 'number') {
-        // Log a warning or return undefined
-        return undefined;
-      }
-
-      if (
-        lastPage.page < lastPage.total_pages &&
-        lastPage.page < 500
-      ) {
-        return lastPage.page + 1;
-      }
-      return undefined;
+      if (!lastPage) return undefined;
+      if (typeof lastPage.page !== "number" || typeof lastPage.total_pages !== "number") return undefined;
+      return lastPage.page < lastPage.total_pages && lastPage.page < 500 ? lastPage.page + 1 : undefined;
     },
   });
+
+  const allItems = data?.pages?.flatMap((page) => page?.results || []) || [];
 
   const [refreshing, setRefreshing] = useState(false);
 
@@ -109,14 +89,12 @@ export default function ExploreAllScreen() {
     [navigation],
   );
 
-  const allItems = data?.pages.flatMap((page) => page?.results || []) || [];
-
   const renderItem = useCallback(
     ({ item }: { item: Movie | TVShow }) => {
+      if (!item) return null; // Safety check
+      const itemType = isMovie(item) ? "movie" : "tv";
       const itemTitle = isMovie(item) ? item.title : item.name;
-      const releaseDate = isMovie(item)
-        ? item.release_date
-        : item.first_air_date;
+      const releaseDate = isMovie(item) ? item.release_date : item.first_air_date;
 
       return (
         <View style={styles.cardWrapper}>
@@ -126,101 +104,40 @@ export default function ExploreAllScreen() {
             posterPath={item.poster_path}
             voteAverage={item.vote_average}
             releaseDate={releaseDate}
-            mediaType={mediaType}
-            onPress={() => handleItemPress(item.id, mediaType)}
+            mediaType={itemType}
+            onPress={() => handleItemPress(item.id, itemType)}
             size="small"
           />
         </View>
       );
     },
-    [mediaType, handleItemPress],
+    [handleItemPress],
   );
-
-  const renderFooter = useCallback(() => {
-    if (!isFetchingNextPage) return null;
-    return (
-      <View style={styles.footer}>
-        <ActivityIndicator color={theme.primary} />
-      </View>
-    );
-  }, [isFetchingNextPage, theme.primary]);
-
-  const renderHeader = () => (
-    <View style={[styles.header, { paddingTop: insets.top + Spacing.md }]}>
-      <Pressable onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Feather
-          name={isRTL ? "arrow-right" : "arrow-left"}
-          size={24}
-          color={theme.text}
-        />
-      </Pressable>
-      <ThemedText style={styles.headerTitle}>{title}</ThemedText>
-    </View>
-  );
-
-  if (isLoading && allItems.length === 0) {
-    return (
-      <View
-        style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
-      >
-        {renderHeader()}
-        <View style={styles.skeletonGrid}>
-          {Array.from({ length: 9 }).map((_, i) => (
-            <View key={i} style={styles.cardWrapper}>
-              <MediaCardSkeleton size="small" />
-            </View>
-          ))}
-        </View>
-      </View>
-    );
-  }
-
-  if (isError) {
-    return (
-      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-        {renderHeader()}
-        <EmptyState
-          image={require("../../assets/images/empty-browse.png")} // Reusing the image for now
-          title={t("exploreAllScreen.errorTitle")}
-          message={t("exploreAllScreen.errorMessage")}
-          actionLabel={t("common.retry")}
-          onAction={() => refetch()}
-        />
-      </View>
-    );
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      {renderHeader()}
       <FlatList
         data={allItems}
-        keyExtractor={(item, index) => `${mediaType}-${item.id}-${index}`}
+        keyExtractor={(item, index) => `${item?.id || index}`}
         renderItem={renderItem}
         numColumns={3}
-        contentContainerStyle={[
-          styles.listContent,
-          { paddingBottom: insets.bottom + Spacing.xl },
-        ]}
-        columnWrapperStyle={styles.columnWrapper}
+        contentContainerStyle={{ paddingBottom: insets.bottom + 20 }}
+        columnWrapperStyle={{ justifyContent: "space-between" }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={onRefresh}
-            tintColor={theme.primary}
-          />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={theme.primary} />
         }
         onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
+          if (hasNextPage && !isFetchingNextPage) fetchNextPage();
         }}
         onEndReachedThreshold={0.5}
-        ListFooterComponent={renderFooter}
+        ListFooterComponent={
+          isFetchingNextPage ? <ActivityIndicator style={{ margin: 20 }} color={theme.primary} /> : null
+        }
       />
     </View>
   );
 }
+
 
 const styles = StyleSheet.create({
   container: {
