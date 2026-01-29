@@ -214,17 +214,18 @@ export default function WatchScreen() {
   const [isLinksModalVisible, setIsLinksModalVisible] = useState(false); // New state for modal visibility
   const webViewRef = useRef<WebView>(null);
 
-  const { data: tvShowDetails } = useQuery<TVShowDetails>({
+ const { data: tvShowDetails } = useQuery<TVShowDetails>({
     queryKey: ["tvShowDetails", id],
-    queryFn: () => getTVSeasonDetails(Number(id)),
+    queryFn: () => getTVShowDetails(Number(id)),
     enabled: mediaType === "tv",
   });
-
+  
   const { data: seasonDetails } = useQuery<SeasonDetails>({
     queryKey: ["seasonDetails", id, selectedSeason],
-    queryFn: () => tvShowDetails(Number(id), selectedSeason),
-    enabled: mediaType === "tv",
+    queryFn: () => getTVSeasonDetails(Number(id), selectedSeason),
+    enabled: mediaType === "tv" && !!tvShowDetails,
   });
+
 
   // Extract currentVideoBaseUrlPath: This ensures we stay within the video content path for aether.mom
   const videoUrl = serverLinks[selectedServer](
