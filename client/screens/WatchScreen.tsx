@@ -142,23 +142,17 @@ const injectedJavaScript = `
    // Hide UI elements on legacy.aether.mom
     if (window.location.hostname === 'legacy.aether.mom') {
     
-      // Inject CSS (strong)
       const styleElement = document.createElement('style');
       styleElement.innerHTML = `
-        div.pointer-events-auto.absolute.top-0.w-full {
+        div.pointer-events-auto.absolute.top-0.w-full { /* Correct spelling: pointer-events-auto */
           display: none !important;
           visibility: hidden !important;
           height: 0 !important;
           pointer-events: none !important;
         }
-    
-        a.tabbable.bg-buttons-cancel {
-          display: none !important;
-          visibility: hidden !important;
-          pointer-events: none !important;
-        }
       `;
       document.head.appendChild(styleElement);
+
     
       // Aggressive JS removal (React safe)
       const aggressivelyHideElements = () => {
