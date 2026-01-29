@@ -36,7 +36,6 @@ type WatchRouteProp = RouteProp<RootStackParamList, "Watch">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const VIDEO_HEIGHT = SCREEN_WIDTH * (9 / 16);
-
 const serverLinks: Record<
   string,
   (id: string, s: string, e: string, type: string, title: string) => string
@@ -65,12 +64,13 @@ const serverLinks: Record<
     type === "movie"
       ? `https://godriveplayer.com/player.php?tmdb=${id}`
       : `https://godriveplayer.com/player.php?type=series&tmdb=${id}&season=${s}&episode=${e}`,
-  server7: (tvId, seasonId, episodeId, type, title) => {
+  server7: (id, s, e, type, title) => {
     const slug = slugify(title);
     if (type === "movie") {
-      return `https://legacy.aether.mom/media/tmdb-movie-${tvId}-${slug}`;
+      return `https://legacy.aether.mom/media/tmdb-movie-${id}-${slug}`;
     }
-    return `https://legacy.aether.mom/media/tmdb-tv-${tvId}-${slug}/${seasonId}/${episodeId}`;
+    // s and e should be TMDB season id and episode id for server7
+    return `https://legacy.aether.mom/media/tmdb-tv-${id}-${slug}/${s}/${e}`;
   },
   server8: (id, s, e, type, title) =>
     type === "movie"
@@ -93,7 +93,6 @@ const serverLinks: Record<
       ? `https://mapple.uk/watch/movie/${id}`
       : `https://mapple.uk/watch/tv/${id}-${s}-${e}`,
 };
-
 
 const injectedJavaScript = `
 
@@ -253,14 +252,36 @@ export default function WatchScreen() {
     (ep) => ep.episode_number === selectedEpisode,
   );
 
-  // Extract currentVideoBaseUrlPath: This ensures we stay within the video content path for aether.mom
-  const videoUrl = serverLinks[selectedServer](
-    id.toString(),
-    seasonDetails?.id.toString(), // internal season ID
-    currentEpisode?.id.toString(), // internal episode ID
+  const videoUrl = useMemo(() => {
+  const tmdbId = id.toString();
+
+  if (selectedServer === "server7" && mediaType === "tv") {
+    // server7 uses internal season ID + episode ID
+    const seasonId = seasonDetails?.id ?? selectedSeason;
+    const episodeObj = seasonDetails?.episodes?.find(
+      (ep) => ep.episode_number === selectedEpisode
+    );
+    const episodeId = episodeObj?.id ?? selectedEpisode;
+
+    return serverLinks.server7(
+      tmdbId,
+      seasonId.toString(),
+      episodeId.toString(),
+      mediaType,
+      title
+    );
+  }
+
+  // For all other servers, pass only the numeric season/episode
+  return serverLinks[selectedServer](
+    tmdbId,
+    selectedSeason.toString(),
+    selectedEpisode.toString(),
     mediaType,
     title
   );
+}, [selectedServer, id, selectedSeason, selectedEpisode, seasonDetails, mediaType, title]);
+
 
   // Extract currentVideoBaseUrlPath within useMemo to ensure videoUrl is available
   const currentVideoBaseUrlPath = useMemo(() => {
