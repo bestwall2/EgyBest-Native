@@ -139,88 +139,64 @@ const injectedJavaScript = `
 
 
 
-    // Hide top navigation bar on legacy.aether.mom
-
+   // Hide UI elements on legacy.aether.mom
     if (window.location.hostname === 'legacy.aether.mom') {
-
-      // Inject CSS for persistent hiding
-
+    
+      // Inject CSS (strong)
       const styleElement = document.createElement('style');
-
-      styleElement.innerHTML = \`
-
+      styleElement.innerHTML = `
         div.pointer-events-auto.absolute.top-0.w-full {
-
           display: none !important;
-
           visibility: hidden !important;
-
           height: 0 !important;
-
           pointer-events: none !important;
-
         }
-
-      \`;
-
+    
+        a.tabbable.bg-buttons-cancel {
+          display: none !important;
+          visibility: hidden !important;
+          pointer-events: none !important;
+        }
+      `;
       document.head.appendChild(styleElement);
-
-
-
-      // Also use setInterval for continuous removal/hiding in case CSS is overridden
-
-      const aggressivelyHideElement = () => {
-
+    
+      // Aggressive JS removal (React safe)
+      const aggressivelyHideElements = () => {
+    
+        // Top bar
         const bar = document.querySelector(
-
           'div.pointer-events-auto.absolute.top-0.w-full'
-
         );
-
-        if (bar) {
-
-          bar.style.display = 'none';
-
-          bar.style.visibility = 'hidden';
-
-          bar.style.height = '0';
-
-          bar.style.pointerEvents = 'none';
-
-          // bar.remove(); // Uncomment to try physical removal if hiding fails
-
-        }
-
+        if (bar) bar.remove();
+    
+        // Back to home button
+        const backBtn = document.querySelector(
+          'a.tabbable.bg-buttons-cancel'
+        );
+        if (backBtn) backBtn.remove();
+    
+        // Fallback by text (extra safety)
+        document.querySelectorAll('a').forEach(el => {
+          if (el.innerText && el.innerText.toLowerCase().includes('back to home')) {
+            el.remove();
+          }
+        });
       };
-
-      
-
-      // Run immediately
-
-      aggressivelyHideElement();
-
-
-
-      // Keep forcing (React re-renders)
-
-      setInterval(aggressivelyHideElement, 100); // More frequent check
-
-      
-
-      // Observe DOM updates
-
-      const observer = new MutationObserver(aggressivelyHideElement);
-
+    
+      // Run now
+      aggressivelyHideElements();
+    
+      // Run continuously
+      setInterval(aggressivelyHideElements, 200);
+    
+      // Watch React rerenders
+      const observer = new MutationObserver(aggressivelyHideElements);
       observer.observe(document.documentElement, {
-
         childList: true,
-
         subtree: true
-
       });
-
     }
-
+    
   })();
 
   true;
