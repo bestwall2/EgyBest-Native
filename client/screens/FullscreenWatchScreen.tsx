@@ -46,14 +46,7 @@ const injectedJavaScript = `
     if (window.location.hostname === 'legacy.aether.mom') {
     
       const styleElement = document.createElement('style');
-      styleElement.innerHTML = `
-        div.pointer-events-auto.absolute.top-0.w-full { /* Correct spelling: pointer-events-auto */
-          display: none !important;
-          visibility: hidden !important;
-          height: 0 !important;
-          pointer-events: none !important;
-        }
-      `;
+      styleElement.innerHTML = 'div.pointer-events-auto.absolute.top-0.w-full { display: none !important; visibility: hidden !important; height: 0 !important; pointer-events: none !important; }';
       document.head.appendChild(styleElement);
 
     
