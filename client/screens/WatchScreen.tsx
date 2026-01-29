@@ -76,7 +76,24 @@ const serverLinks: Record<
     type === "movie"
       ? `https://player.vidzee.wtf/embed/movie/${id}`
       : `https://player.vidzee.wtf/embed/tv/${id}/${s}/${e}`,
+  server9: (id, s, e, type, title) =>
+    type === "movie"
+      ? `https://www.nontongo.win/embed/movie/${id}`
+      : `https://www.nontongo.win/embed/tv/${id}/${s}/${e}`,
+  server10: (id, s, e, type, title) =>
+    type === "movie"
+      ? `https://vidfast.pro/movie/${id}`
+      : `https://vidfast.pro/tv/${id}/${s}/${e}`,
+  server11: (id, s, e, type, title) =>
+    type === "movie"
+      ? `https://netplayz.live/watch?type=movie&id=${id}`
+      : `https://netplayz.live/watch?type=tv&id=${id}&s=${s}&e=${e}`,
+  server12: (id, s, e, type, title) =>
+    type === "movie"
+      ? `https://mapple.uk/watch/movie/${id}`
+      : `https://mapple.uk/watch/tv/${id}-${s}-${e}`,
 };
+
 
 const injectedJavaScript = `
 
