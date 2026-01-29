@@ -8,7 +8,6 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { StatusBar, setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
-
 const injectedJavaScript = `
 (function() {
   // prevent popups
@@ -45,74 +44,40 @@ const injectedJavaScript = `
     });
   };
 
-  // Flexible hide logic for aether/legacy.aether
-  const shouldRun = () => {
+  // Function to remove only top navigation / back-to-home
+  const hideNavbarElements = () => {
     try {
-      return window.location.hostname && (window.location.hostname.includes('aether.mom') );
-    } catch (e) { return false; }
+      // Remove top site header (navbar)
+      document.querySelectorAll('div').forEach(el => {
+        const cls = el.className || '';
+        if (typeof cls === 'string' && cls.includes('pointer-events-auto') && cls.includes('top-0') && el.children.length > 0) {
+          // Only remove if it is NOT a video player container (e.g., check if it contains video element)
+          if (!el.querySelector('video')) {
+            el.remove();
+          }
+        }
+      });
+
+      // Remove back-to-home button specifically
+      document.querySelectorAll('a').forEach(a => {
+        const text = (a.innerText || '').toLowerCase();
+        const cls = a.className || '';
+        if (text.includes('back to home') || cls.includes('bg-buttons-cancel') || cls.includes('tabbable')) {
+          a.remove();
+        }
+      });
+    } catch(e) {}
   };
 
-  if (shouldRun()) {
-    // inject persistent CSS as a first line of defense
-    const css = \`
-      /* hide top bar / back button fallback */
-      .pointer-events-auto, [class*="pointer-events-auto"] { display: none !important; visibility: hidden !important; height: 0 !important; pointer-events: none !important; }
-      a[class*="bg-buttons-cancel"], a[class*="tabbable"] { display: none !important; visibility: hidden !important; pointer-events: none !important; }
-    \`;
-    const styleEl = document.createElement('style');
-    styleEl.innerHTML = css;
-    document.documentElement.appendChild(styleEl);
+  // Run immediately and keep observing
+  hideNavbarElements();
+  const observer = new MutationObserver(hideNavbarElements);
+  observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
+  setInterval(hideNavbarElements, 300);
 
-    // flexible DOM removal function
-    const hideTask = () => {
-      try {
-        // remove elements that look like the top bar by partial class match
-        document.querySelectorAll('div').forEach(el => {
-          const cls = el.className || '';
-          if (typeof cls === 'string' && cls.includes('pointer-events-auto') && cls.includes('top-0')) {
-            el.remove();
-            return;
-          }
-          // also match by role/height heuristics if needed
-          const rect = el.getBoundingClientRect && el.getBoundingClientRect();
-          if (rect && rect.top === 0 && rect.width > 200 && el.children.length > 0) {
-            // heuristic: top-level header-like element
-            // remove only if class or innerText suggests it's the header
-            const text = (el.innerText || '').toLowerCase();
-            if (cls.includes('top') || text.includes('back') || text.includes('home')) {
-              el.remove();
-            }
-          }
-        });
-
-        // remove any anchor whose text contains "back to home" or similar
-        document.querySelectorAll('a').forEach(a => {
-          const txt = (a.innerText || '').toLowerCase();
-          const cls = a.className || '';
-          if (txt.includes('back to home') || cls.includes('bg-buttons-cancel') || cls.includes('tabbable')) {
-            a.remove();
-          }
-        });
-      } catch (e) {}
-    };
-
-    // run after load, keep interval and observe mutations
-    window.addEventListener('load', hideTask, { passive: true });
-    hideTask();
-    const intId = setInterval(hideTask, 300);
-    const observer = new MutationObserver(hideTask);
-    observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
-
-    // cleanup if page navigates away (rare but safe)
-    window.addEventListener('beforeunload', () => {
-      clearInterval(intId);
-      observer.disconnect();
-    });
-  }
 })();
 true;
 `;
-
 
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
