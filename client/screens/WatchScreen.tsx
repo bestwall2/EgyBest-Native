@@ -27,8 +27,9 @@ import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { TVShowDetails, SeasonDetails, Episode } from "@/types/tmdb";
 import { getImageUrl, slugify } from "@/utils/helpers";
-import { VideoLinksModal } from "@/components/VideoLinksModal"; // Import the modal
-import { getTVShowDetails, getSeasonDetails } from "@/services/tmdb";
+import { VideoLinkgetTVSeasonDetailssModal } from "@/components/VideoLinksModal"; // Import the modal
+import { getTVShowDetails, getTVSeasonDetails } from "@/services/tmdb";
+
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WatchRouteProp = RouteProp<RootStackParamList, "Watch">;
@@ -215,7 +216,7 @@ export default function WatchScreen() {
 
   const { data: tvShowDetails } = useQuery<TVShowDetails>({
     queryKey: ["tvShowDetails", id],
-    queryFn: () => getTVShowDetails(Number(id)),
+    queryFn: () => getTVSeasonDetails(Number(id)),
     enabled: mediaType === "tv",
   });
 
