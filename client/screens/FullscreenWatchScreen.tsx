@@ -9,87 +9,69 @@ import { StatusBar, setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
 const injectedJavaScript = `
-  (function() {
-    // Override window.open and window.alert to prevent popups
-    window.open = () => null;
-    window.alert = () => null;
+(function() {
+  // Prevent popups
+  window.open = () => null;
+  window.alert = () => null;
 
-    // XHR interception logic
-    const open = XMLHttpRequest.prototype.open;
-    XMLHttpRequest.prototype.open = function() {
-      this.addEventListener('load', function() {
-        if (this.responseURL && window.ReactNativeWebView) {
-          const url = this.responseURL;
-          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
-          }
+  // XHR interception
+  const open = XMLHttpRequest.prototype.open;
+  XMLHttpRequest.prototype.open = function() {
+    this.addEventListener('load', function() {
+      if (this.responseURL && window.ReactNativeWebView) {
+        const url = this.responseURL;
+        if (url.match(/\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
+        }
+      }
+    });
+    open.apply(this, arguments);
+  };
+
+  const originalFetch = window.fetch;
+  window.fetch = function(...args) {
+    return originalFetch.apply(this, args).then(response => {
+      if (response.url && window.ReactNativeWebView) {
+        const url = response.url;
+        if (url.match(/\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
+          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
+        }
+      }
+      return response;
+    });
+  };
+
+  // Only run for legacy.aether.mom
+  if (window.location.hostname === 'legacy.aether.mom') {
+    const hideElements = () => {
+      // Top bars
+      document.querySelectorAll('div').forEach(el => {
+        if (el.className && el.className.includes('pointer-events-auto') && el.className.includes('top-0')) {
+          el.remove();
         }
       });
-      open.apply(this, arguments);
-    };
 
-    // Listen for fetch requests (if any)
-    const originalFetch = window.fetch;
-    window.fetch = function(...args) {
-      return originalFetch.apply(this, args).then(response => {
-        if (response.url && window.ReactNativeWebView) {
-          const url = response.url;
-          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
-          }
+      // Any link that says "back to home"
+      document.querySelectorAll('a').forEach(el => {
+        if (el.innerText && el.innerText.toLowerCase().includes('back to home')) {
+          el.remove();
         }
-        return response;
       });
     };
 
-      // Hide UI elements on legacy.aether.mom
-    if (window.location.hostname === 'legacy.aether.mom') {
-    
-      const styleElement = document.createElement('style');
-      styleElement.innerHTML = 'div.pointer-events-auto.absolute.top-0.w-full { display: none !important; visibility: hidden !important; height: 0 !important; pointer-events: none !important; }';
-      document.head.appendChild(styleElement);
+    // Run after page load
+    window.addEventListener('load', hideElements);
 
-    
-      // Aggressive JS removal (React safe)
-      const aggressivelyHideElements = () => {
-    
-        // Top bar
-        const bar = document.querySelector(
-          'div.pointer-events-auto.absolute.top-0.w-full'
-        );
-        if (bar) bar.remove();
-    
-        // Back to home button
-        const backBtn = document.querySelector(
-          'a.tabbable.bg-buttons-cancel'
-        );
-        if (backBtn) backBtn.remove();
-    
-        // Fallback by text (extra safety)
-        document.querySelectorAll('a').forEach(el => {
-          if (el.innerText && el.innerText.toLowerCase().includes('back to home')) {
-            el.remove();
-          }
-        });
-      };
-    
-      // Run now
-      aggressivelyHideElements();
-    
-      // Run continuously
-      setInterval(aggressivelyHideElements, 200);
-    
-      // Watch React rerenders
-      const observer = new MutationObserver(aggressivelyHideElements);
-      observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true
-      });
-    }
- 
-  
-  })();
-  true;
+    // Continuous removal every 200ms
+    setInterval(hideElements, 200);
+
+    // Observe DOM changes
+    const observer = new MutationObserver(hideElements);
+    observer.observe(document.body, { childList: true, subtree: true });
+  }
+})();
+true;
+
 `;
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
