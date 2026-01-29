@@ -65,8 +65,13 @@ const serverLinks: Record<
     type === "movie"
       ? `https://godriveplayer.com/player.php?tmdb=${id}`
       : `https://godriveplayer.com/player.php?type=series&tmdb=${id}&season=${s}&episode=${e}`,
-  server7: (id, s, e, type, title) =>
-    `https://legacy.aether.mom/media/tmdb-movie-${id}-${slugify(title)}`,
+  server7: (tvId, seasonId, episodeId, type, title) => {
+    const slug = slugify(title);
+    if (type === "movie") {
+      return `https://legacy.aether.mom/media/tmdb-movie-${tvId}-${slug}`;
+    }
+    return `https://legacy.aether.mom/media/tmdb-tv-${tvId}-${slug}/${seasonId}/${episodeId}`;
+  },
   server8: (id, s, e, type, title) =>
     type === "movie"
       ? `https://player.vidzee.wtf/embed/movie/${id}`
@@ -227,11 +232,15 @@ export default function WatchScreen() {
   });
 
 
+  const currentEpisode = seasonDetails?.episodes?.find(
+    (ep) => ep.episode_number === selectedEpisode,
+  );
+
   // Extract currentVideoBaseUrlPath: This ensures we stay within the video content path for aether.mom
   const videoUrl = serverLinks[selectedServer](
     id.toString(),
-    selectedSeason.toString(),
-    selectedEpisode.toString(),
+    seasonDetails?.id.toString(), // internal season ID
+    currentEpisode?.id.toString(), // internal episode ID
     mediaType,
     title
   );
