@@ -16,7 +16,9 @@ import { Feather } from "@expo/vector-icons";
 
 import { MediaCard } from "@/components/MediaCard";
 import { MediaCardSkeleton } from "@/components/SkeletonLoader";
+import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
+import { getQueryFn } from "@/lib/query-client";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
 import { Spacing } from "@/constants/theme";
@@ -31,11 +33,28 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 4) / 3;
 
 export default function ExploreAllScreen() {
+  const route = useRoute<ExploreAllRouteProp>();
+
+  // Guard clause to prevent rendering if navigation params are missing
+  if (!route.params?.endpoint) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+        {renderHeader()}
+        <EmptyState
+          image={require("../../assets/images/empty-browse.png")}
+          title={t("exploreAllScreen.noEndpointTitle")}
+          message={t("exploreAllScreen.noEndpointMessage")}
+          actionLabel={t("common.goBack")}
+          onAction={() => navigation.goBack()}
+        />
+      </View>
+    );
+  }
+
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
   const { t, isRTL } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
-  const route = useRoute<ExploreAllRouteProp>();
   const { title, endpoint, mediaType } = route.params;
 
   const {
@@ -45,6 +64,7 @@ export default function ExploreAllScreen() {
     hasNextPage,
     fetchNextPage,
     refetch,
+    isError,
   } = useInfiniteQuery<{
     results: (Movie | TVShow)[];
     page: number;
@@ -52,8 +72,22 @@ export default function ExploreAllScreen() {
   }>({
     queryKey: [endpoint],
     initialPageParam: 1,
+    queryFn: getQueryFn({ on401: "throw" }),
     getNextPageParam: (lastPage) => {
-      if (lastPage.page < lastPage.total_pages && lastPage.page < 500) {
+      if (!lastPage || typeof lastPage !== 'object') {
+        // Log a warning or return undefined based on desired behavior
+        return undefined;
+      }
+      // Ensure page and total_pages are numbers before comparison
+      if (typeof lastPage.page !== 'number' || typeof lastPage.total_pages !== 'number') {
+        // Log a warning or return undefined
+        return undefined;
+      }
+
+      if (
+        lastPage.page < lastPage.total_pages &&
+        lastPage.page < 500
+      ) {
         return lastPage.page + 1;
       }
       return undefined;
@@ -75,7 +109,7 @@ export default function ExploreAllScreen() {
     [navigation],
   );
 
-  const allItems = data?.pages.flatMap((page) => page.results) || [];
+  const allItems = data?.pages.flatMap((page) => page?.results || []) || [];
 
   const renderItem = useCallback(
     ({ item }: { item: Movie | TVShow }) => {
@@ -137,6 +171,21 @@ export default function ExploreAllScreen() {
             </View>
           ))}
         </View>
+      </View>
+    );
+  }
+
+  if (isError) {
+    return (
+      <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+        {renderHeader()}
+        <EmptyState
+          image={require("../../assets/images/empty-browse.png")} // Reusing the image for now
+          title={t("exploreAllScreen.errorTitle")}
+          message={t("exploreAllScreen.errorMessage")}
+          actionLabel={t("common.retry")}
+          onAction={() => refetch()}
+        />
       </View>
     );
   }

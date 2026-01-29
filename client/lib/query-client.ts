@@ -7,7 +7,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
  */
 export function getApiUrl(): string {
   // On web, use relative URL if we are running from the backend port
-  if (typeof window !== "undefined") {
+  if (typeof window !== "undefined" && window.location) {
     const hostname = window.location.hostname;
     const isReplit =
       hostname.includes("replit.dev") || hostname.includes("repl.co");
@@ -26,7 +26,7 @@ export function getApiUrl(): string {
 
   if (!host) {
     // Fallback for web if EXPO_PUBLIC_DOMAIN is missing
-    if (typeof window !== "undefined") {
+    if (typeof window !== "undefined" && window.location) {
       return `${window.location.origin}/`;
     }
     throw new Error("EXPO_PUBLIC_DOMAIN is not set");
@@ -34,10 +34,7 @@ export function getApiUrl(): string {
 
   // Ensure host doesn't have protocol
   const cleanHost = host.replace(/^https?:\/\//, "");
-  const protocol =
-    cleanHost.includes("localhost") || cleanHost.includes("127.0.0.1")
-      ? "http"
-      : "https";
+  const protocol = "http";
   const url = new URL(`${protocol}://${cleanHost}`);
 
   return url.href;

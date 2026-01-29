@@ -6,6 +6,7 @@ import WatchScreen from "@/screens/WatchScreen";
 import PersonScreen from "@/screens/PersonScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import ExploreAllScreen from "@/screens/ExploreAllScreen";
+import FullscreenWatchScreen from "@/screens/FullscreenWatchScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { MediaType } from "@/types/tmdb";
 
@@ -18,10 +19,12 @@ export type RootStackParamList = {
     title: string;
     season?: number;
     episode?: number;
+    selectedServer?: string;
   };
   Person: { id: number };
   Settings: undefined;
   ExploreAll: { title: string; endpoint: string; mediaType: MediaType };
+  FullscreenWatch: { videoUrl: string };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -75,6 +78,13 @@ export default function RootStackNavigator() {
       <Stack.Screen
         name="ExploreAll"
         component={ExploreAllScreen}
+        options={{
+          headerShown: false,
+        }}
+      />
+      <Stack.Screen
+        name="FullscreenWatch"
+        component={FullscreenWatchScreen}
         options={{
           headerShown: false,
         }}

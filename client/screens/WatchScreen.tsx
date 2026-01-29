@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useMemo } from "react";
 import {
   View,
   StyleSheet,
@@ -16,6 +16,8 @@ import { WebView } from "react-native-webview";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeInUp } from "react-native-reanimated";
+import * as ScreenOrientation from 'expo-screen-orientation';
+import { StatusBar } from 'expo-status-bar';
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -23,7 +25,9 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { TVShowDetails, SeasonDetails, Episode } from "@/types/tmdb";
-import { getImageUrl } from "@/utils/helpers";
+import { getImageUrl, slugify } from "@/utils/helpers";
+import { VideoLinksModal } from "@/components/VideoLinksModal"; // Import the modal
+import { getTVShowDetails, getSeasonDetails } from "@/services/tmdb";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WatchRouteProp = RouteProp<RootStackParamList, "Watch">;
@@ -33,64 +37,194 @@ const VIDEO_HEIGHT = SCREEN_WIDTH * (9 / 16);
 
 const serverLinks: Record<
   string,
-  (id: string, s: string, e: string, type: string) => string
+  (id: string, s: string, e: string, type: string, title: string) => string
 > = {
-  server1: (id, s, e, type) =>
+  server1: (id, s, e, type, title) =>
     type === "movie"
       ? `https://vidlink.pro/movie/${id}`
       : `https://vidlink.pro/tv/${id}/${s}/${e}`,
-  server2: (id, s, e, type) =>
+  server2: (id, s, e, type, title) =>
     type === "movie"
       ? `https://vidsrcme.ru/embed/movie?tmdb=${id}`
       : `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
-  server3: (id, s, e, type) =>
+  server3: (id, s, e, type, title) =>
     type === "movie"
       ? `https://vidsrc.cc/v2/embed/movie/${id}`
       : `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`,
-  server4: (id, s, e, type) =>
+  server4: (id, s, e, type, title) =>
     type === "movie"
       ? `https://player.videasy.net/movie/${id}`
       : `https://player.videasy.net/tv/${id}/${s}/${e}`,
-  server5: (id, s, e, type) =>
+  server5: (id, s, e, type, title) =>
     type === "movie"
       ? `https://111movies.com/movie/${id}`
       : `https://111movies.com/tv/${id}/${s}/${e}`,
-  server6: (id, s, e, type) =>
+  server6: (id, s, e, type, title) =>
     type === "movie"
       ? `https://godriveplayer.com/player.php?tmdb=${id}`
       : `https://godriveplayer.com/player.php?type=series&tmdb=${id}&season=${s}&episode=${e}`,
-  server7: (id, s, e, type) =>
-    type === "movie"
-      ? `https://vidsrc.cx/embed/movie/${id}`
-      : `https://vidsrc.cx/embed/tv/${id}/${s}/${e}`,
-  server8: (id, s, e, type) =>
+  server7: (id, s, e, type, title) =>
+    `https://legacy.aether.mom/media/tmdb-movie-${id}-${slugify(title)}`,
+  server8: (id, s, e, type, title) =>
     type === "movie"
       ? `https://player.vidzee.wtf/embed/movie/${id}`
       : `https://player.vidzee.wtf/embed/tv/${id}/${s}/${e}`,
 };
 
-const adBlockScript = `
+const injectedJavaScript = `
+
   (function() {
-    const blockAds = () => {
-      const selectors = [
-        '[class*="ad"]', '[id*="ad"]', '[class*="popup"]', '[id*="popup"]',
-        '[class*="banner"]', '[class*="overlay"]', 'iframe[src*="ads"]',
-        '[onclick*="window.open"]', '[target="_blank"]'
-      ];
-      selectors.forEach(sel => {
-        document.querySelectorAll(sel).forEach(el => {
-          if (!el.closest('video') && !el.querySelector('video')) {
-            el.style.display = 'none';
-          }
-        });
-      });
-    };
+
+    // Override window.open and window.alert to prevent popups
+
     window.open = () => null;
+
     window.alert = () => null;
-    setInterval(blockAds, 1000);
-    blockAds();
+
+
+
+    // XHR interception logic
+
+    const open = XMLHttpRequest.prototype.open;
+
+    XMLHttpRequest.prototype.open = function() {
+
+      this.addEventListener('load', function() {
+
+        if (this.responseURL && window.ReactNativeWebView) {
+
+          const url = this.responseURL;
+
+          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
+
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
+
+          }
+
+        }
+
+      });
+
+      open.apply(this, arguments);
+
+    };
+
+
+
+    // Listen for fetch requests (if any)
+
+    const originalFetch = window.fetch;
+
+    window.fetch = function(...args) {
+
+      return originalFetch.apply(this, args).then(response => {
+
+        if (response.url && window.ReactNativeWebView) {
+
+          const url = response.url;
+
+          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
+
+            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
+
+          }
+
+        }
+
+        return response;
+
+      });
+
+    };
+
+
+
+    // Hide top navigation bar on legacy.aether.mom
+
+    if (window.location.hostname === 'legacy.aether.mom') {
+
+      // Inject CSS for persistent hiding
+
+      const styleElement = document.createElement('style');
+
+      styleElement.innerHTML = \`
+
+        div.pointer-events-auto.absolute.top-0.w-full {
+
+          display: none !important;
+
+          visibility: hidden !important;
+
+          height: 0 !important;
+
+          pointer-events: none !important;
+
+        }
+
+      \`;
+
+      document.head.appendChild(styleElement);
+
+
+
+      // Also use setInterval for continuous removal/hiding in case CSS is overridden
+
+      const aggressivelyHideElement = () => {
+
+        const bar = document.querySelector(
+
+          'div.pointer-events-auto.absolute.top-0.w-full'
+
+        );
+
+        if (bar) {
+
+          bar.style.display = 'none';
+
+          bar.style.visibility = 'hidden';
+
+          bar.style.height = '0';
+
+          bar.style.pointerEvents = 'none';
+
+          // bar.remove(); // Uncomment to try physical removal if hiding fails
+
+        }
+
+      };
+
+      
+
+      // Run immediately
+
+      aggressivelyHideElement();
+
+
+
+      // Keep forcing (React re-renders)
+
+      setInterval(aggressivelyHideElement, 100); // More frequent check
+
+      
+
+      // Observe DOM updates
+
+      const observer = new MutationObserver(aggressivelyHideElement);
+
+      observer.observe(document.documentElement, {
+
+        childList: true,
+
+        subtree: true
+
+      });
+
+    }
+
   })();
+
   true;
+
 `;
 
 export default function WatchScreen() {
@@ -111,41 +245,73 @@ export default function WatchScreen() {
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
   const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
   const [isLoading, setIsLoading] = useState(true);
+  const [capturedLinks, setCapturedLinks] = useState<string[]>([]);
+  const [isLinksModalVisible, setIsLinksModalVisible] = useState(false); // New state for modal visibility
   const webViewRef = useRef<WebView>(null);
 
-  const { data: tvShow } = useQuery<TVShowDetails>({
-    queryKey: [`/api/tmdb/tv/${id}`],
+  const { data: tvShowDetails } = useQuery<TVShowDetails>({
+    queryKey: ["tvShowDetails", id],
+    queryFn: () => getTVShowDetails(Number(id)),
     enabled: mediaType === "tv",
   });
 
   const { data: seasonDetails } = useQuery<SeasonDetails>({
-    queryKey: [`/api/tmdb/tv/${id}/season/${selectedSeason}`],
+    queryKey: ["seasonDetails", id, selectedSeason],
+    queryFn: () => getSeasonDetails(Number(id), selectedSeason),
     enabled: mediaType === "tv",
   });
 
+  // Extract currentVideoBaseUrlPath: This ensures we stay within the video content path for aether.mom
   const videoUrl = serverLinks[selectedServer](
     id.toString(),
     selectedSeason.toString(),
     selectedEpisode.toString(),
     mediaType,
+    title
   );
+
+  // Extract currentVideoBaseUrlPath within useMemo to ensure videoUrl is available
+  const currentVideoBaseUrlPath = useMemo(() => {
+    if (typeof videoUrl !== 'string') return videoUrl; // Handle case where videoUrl might not be a string
+    return videoUrl.includes('/media/') ? videoUrl.substring(0, videoUrl.indexOf('/media/') + 7) : videoUrl;
+  }, [videoUrl]);
+
+  const handleWebViewMessage = useCallback((event: any) => {
+    try {
+      const message = JSON.parse(event.nativeEvent.data);
+      if (message.type === 'VIDEO_LINK' && message.payload) {
+        setCapturedLinks((prevLinks) => {
+          if (!prevLinks.includes(message.payload)) {
+            return [...prevLinks, message.payload];
+          }
+          return prevLinks;
+        });
+      }
+    } catch (error) {
+      console.error("Failed to parse webview message:", error);
+    }
+  }, []);
 
   const handleEpisodePress = useCallback((episodeNumber: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedEpisode(episodeNumber);
     setIsLoading(true);
+    setCapturedLinks([]); // Clear captured links on episode change
   }, []);
 
   const handleSeasonPress = useCallback((seasonNumber: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedSeason(seasonNumber);
     setSelectedEpisode(1);
+    setIsLoading(true);
+    setCapturedLinks([]); // Clear captured links on season change
   }, []);
 
   const handleServerPress = useCallback((server: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedServer(server);
     setIsLoading(true);
+    setCapturedLinks([]); // Clear captured links on server change
   }, []);
 
   const renderEpisodeItem = useCallback(
@@ -154,7 +320,7 @@ export default function WatchScreen() {
       const stillUrl = getImageUrl(item.still_path, "backdrop", "medium");
 
       return (
-        <Animated.View entering={FadeInUp.delay(index * 50)}>
+        <Animated.View key={item.id} entering={FadeInUp.delay(index * 50)}>
           <Pressable
             onPress={() => handleEpisodePress(item.episode_number)}
             style={[
@@ -262,6 +428,21 @@ export default function WatchScreen() {
             color="#FFFFFF"
           />
         </Pressable>
+
+        {/* Fullscreen button for all servers */}
+        <Pressable
+          onPress={() =>
+            navigation.navigate("FullscreenWatch", { videoUrl: videoUrl })
+          }
+          style={[
+            styles.fullscreenButton,
+            { top: insets.top + 10 },
+            isRTL ? { left: Spacing.lg } : { right: Spacing.lg }, // Position opposite to back button
+          ]}
+        >
+          <Feather name="maximize" size={24} color="#FFFFFF" />
+        </Pressable>
+
         {isLoading ? (
           <View style={styles.loadingOverlay}>
             <ActivityIndicator size="large" color={theme.primary} />
@@ -276,17 +457,51 @@ export default function WatchScreen() {
           mediaPlaybackRequiresUserAction={false}
           javaScriptEnabled
           domStorageEnabled
-          injectedJavaScript={adBlockScript}
-          onLoadEnd={() => setIsLoading(false)}
-          onShouldStartLoadWithRequest={(request) => {
-            if (
-              request.url !== videoUrl &&
-              !request.url.includes(videoUrl.split("/")[2])
-            ) {
+          onShouldStartLoadWithRequest={(event) => {
+            const requestedUrl = event.url;
+            if (typeof requestedUrl !== 'string') {
               return false;
             }
-            return true;
+
+            const currentHost = new URL(videoUrl).hostname; // This is the host of the selected server
+            let requestHost: string;
+            try {
+              requestHost = new URL(requestedUrl).hostname;
+            } catch (e) {
+              return false; // Invalid URL
+            }
+
+            // Always allow internal navigation (e.g., about:blank, about:srcdoc)
+            if (requestedUrl.startsWith('about:')) {
+              return true;
+            }
+
+            // Special handling for aether.mom and legacy.aether.mom
+            if (requestHost === 'aether.mom' || requestHost === 'legacy.aether.mom') {
+              // Block the root domains without /media/
+              if (requestedUrl === 'https://aether.mom/' || requestedUrl === 'https://legacy.aether.mom/') {
+                return false;
+              }
+              // Allow anything that contains /media/ under these domains
+              if (requestedUrl.includes('aether.mom/media/')) { // This covers both aether.mom/media/ and legacy.aether.mom/media/
+                return true;
+              }
+              // If it's aether.mom or legacy.aether.mom but not /media/, block it
+              return false;
+            }
+
+            // For all other servers, allow navigation if the hostnames are the same as the initial video URL
+            if (currentHost === requestHost) {
+              return true;
+            }
+
+            // Block all other navigations
+            return false;
           }}
+          domStorageEnabled
+          injectedJavaScript={injectedJavaScript}
+          onMessage={handleWebViewMessage} // Add onMessage handler
+          onLoadEnd={() => setIsLoading(false)}
         />
       </View>
 
@@ -350,7 +565,7 @@ export default function WatchScreen() {
               </ThemedText>
               <View style={styles.gridRow}>
                 {Array.from(
-                  { length: tvShow?.number_of_seasons || selectedSeason },
+                  { length: tvShowDetails?.number_of_seasons || selectedSeason },
                   (_, i) => i + 1,
                 ).map((seasonNum) => (
                   <Pressable
@@ -408,6 +623,22 @@ export default function WatchScreen() {
           </>
         ) : null}
       </ScrollView>
+
+      {/* Floating Action Button */}
+      <Pressable
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          setIsLinksModalVisible(true); // Open the modal
+        }}
+        style={[styles.fab, { backgroundColor: theme.primary }]}
+      >
+        <Feather name="link" size={24} color="#FFFFFF" />
+      </Pressable>
+      <VideoLinksModal
+        isVisible={isLinksModalVisible}
+        links={capturedLinks}
+        onClose={() => setIsLinksModalVisible(false)}
+      />
     </View>
   );
 }
@@ -426,6 +657,16 @@ const styles = StyleSheet.create({
     backgroundColor: "#000000",
   },
   backButton: {
+    position: "absolute",
+    zIndex: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  fullscreenButton: {
     position: "absolute",
     zIndex: 20,
     width: 40,
@@ -571,4 +812,21 @@ const styles = StyleSheet.create({
     fontWeight: "800",
     letterSpacing: 1,
   },
+  fab: {
+    position: "absolute",
+    bottom: Spacing.lg,
+    right: Spacing.lg,
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    justifyContent: "center",
+    alignItems: "center",
+    elevation: 8, // For Android shadow
+    shadowColor: "#000", // For iOS shadow
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+  },
 });
+
+
