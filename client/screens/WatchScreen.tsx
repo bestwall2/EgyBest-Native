@@ -1,4 +1,5 @@
-import React, { useState, useRef, useCallback, useMemo } from "react";
+import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
+
 import {
   View,
   StyleSheet,
@@ -255,6 +256,16 @@ export default function WatchScreen() {
     }
   }, []);
 
+  // Ensure selectedEpisode is valid when seasonDetails arrives
+  useEffect(() => {
+    if (seasonDetails?.episodes && seasonDetails.episodes.length > 0) {
+      const maxEp = seasonDetails.episodes.length;
+      if (selectedEpisode > maxEp) {
+        setSelectedEpisode(1);
+      }
+    }
+  }, [seasonDetails, selectedEpisode]);
+      
   const handleEpisodePress = useCallback((episodeNumber: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedEpisode(episodeNumber);
@@ -277,13 +288,18 @@ export default function WatchScreen() {
     setCapturedLinks([]); // Clear captured links on server change
   }, []);
 
+  useEffect(() => {
+    console.log('seasonDetails debug', seasonDetails);
+  }, [seasonDetails]);
+
+
   const renderEpisodeItem = useCallback(
     ({ item, index }: { item: Episode; index: number }) => {
       const isSelected = item.episode_number === selectedEpisode;
       const stillUrl = getImageUrl(item.still_path, "backdrop", "medium");
 
       return (
-        <Animated.View key={item.id} entering={FadeInUp.delay(index * 50)}>
+        <Animated.View key={item.id ?? item.episode_number ?? index} entering={FadeInUp.delay(index * 50)}>
           <Pressable
             onPress={() => handleEpisodePress(item.episode_number)}
             style={[
@@ -571,17 +587,24 @@ export default function WatchScreen() {
                   ? `(${seasonDetails.episodes.length})`
                   : ""}
               </ThemedText>
-              {seasonDetails?.episodes ? (
-                <View style={styles.episodesGridList}>
-                  {seasonDetails.episodes.map((item, index) =>
-                    renderEpisodeItem({ item, index }),
-                  )}
-                </View>
+             {seasonDetails ? (
+                seasonDetails.episodes && seasonDetails.episodes.length > 0 ? (
+                  <View style={styles.episodesGridList}>
+                    {seasonDetails.episodes.map((item, index) =>
+                      renderEpisodeItem({ item, index }),
+                    )}
+                  </View>
+                ) : (
+                  <ThemedText style={{ padding: Spacing.lg }}>
+                    {t('no_episodes_found') ?? 'No episodes found'}
+                  </ThemedText>
+                )
               ) : (
                 <View style={styles.episodesLoading}>
                   <ActivityIndicator color={theme.primary} />
                 </View>
               )}
+
             </View>
           </>
         ) : null}
