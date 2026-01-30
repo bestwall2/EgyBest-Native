@@ -1,10 +1,17 @@
-import React, { useState, useEffect } from "react";
-import { View, StyleSheet, Pressable, ScrollView, Switch } from "react-native";
+import React, { useState } from "react";
+import {
+  View,
+  StyleSheet,
+  Pressable,
+  ScrollView,
+  Switch,
+  Linking,
+} from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
-import Animated, { FadeInDown } from "react-native-reanimated";
+import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -26,14 +33,19 @@ const languages: LanguageOption[] = [
 export default function SettingsScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { language, setLanguage, t } = useLanguage();
-
+  const { language, setLanguage, t, isRTL } = useLanguage();
+  const navigation = useNavigation();
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
 
   const handleLanguageSelect = async (code: "en" | "ar" | "fr") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await setLanguage(code);
+  };
+
+  const openLink = (url: string) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    Linking.openURL(url);
   };
 
   const renderSettingItem = (
@@ -47,10 +59,11 @@ export default function SettingsScreen() {
       key={title}
       entering={FadeInDown.delay(index * 50).duration(300)}
     >
-      <View
-        style={[
+      <Pressable
+        style={({ pressed }) => [
           styles.settingItem,
           { backgroundColor: theme.backgroundSecondary },
+          pressed && { opacity: 0.7 },
         ]}
       >
         <View
@@ -70,22 +83,48 @@ export default function SettingsScreen() {
           </ThemedText>
         </View>
         {rightElement}
-      </View>
+      </Pressable>
     </Animated.View>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+      {/* Back Button */}
+      <View
+        style={[
+          styles.header,
+          {
+            paddingTop: insets.top + Spacing.sm,
+            backgroundColor: theme.backgroundRoot,
+          },
+        ]}
+      >
+        <Pressable
+          onPress={() => navigation.goBack()}
+          style={[
+            styles.backButton,
+            { top: insets.right + Spacing.sm },
+            isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+          ]}
+        >
+          <Feather
+            name={isRTL ? "chevron-right" : "chevron-left"}
+            size={24}
+            color="#FFFFFF"
+          />
+        </Pressable>
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{
-          paddingTop: insets.top + Spacing.xl,
           paddingBottom: insets.bottom + Spacing.xl,
           paddingHorizontal: Spacing.lg,
         }}
       >
         <ThemedText style={styles.screenTitle}>{t("settings")}</ThemedText>
 
+        {/* Language Section */}
         <ThemedText
           style={[styles.sectionTitle, { color: theme.textSecondary }]}
         >
@@ -116,9 +155,7 @@ export default function SettingsScreen() {
               <ThemedText
                 style={[
                   styles.languageName,
-                  {
-                    color: language === lang.code ? "#FFFFFF" : theme.text,
-                  },
+                  { color: language === lang.code ? "#FFFFFF" : theme.text },
                 ]}
               >
                 {lang.name}
@@ -136,15 +173,16 @@ export default function SettingsScreen() {
               >
                 {lang.nativeName}
               </ThemedText>
-              {language === lang.code ? (
+              {language === lang.code && (
                 <View style={styles.checkIcon}>
                   <Feather name="check" size={16} color="#FFFFFF" />
                 </View>
-              ) : null}
+              )}
             </Pressable>
           ))}
         </View>
 
+        {/* Appearance Section */}
         <ThemedText
           style={[
             styles.sectionTitle,
@@ -180,6 +218,41 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Join Us Section */}
+        <ThemedText
+          style={[
+            styles.sectionTitle,
+            { color: theme.textSecondary, marginTop: Spacing.xl },
+          ]}
+        >
+          {t("join_us")}
+        </ThemedText>
+        <View style={styles.settingsGroup}>
+          {renderSettingItem(
+            "message-circle",
+            "WhatsApp Channel",
+            "Join our WhatsApp channel for updates",
+            <AnimatedPressButton
+              color="#25D366"
+              onPress={() =>
+                openLink("https://chat.whatsapp.com/YOUR_CHANNEL_LINK")
+              }
+            />,
+            5,
+          )}
+          {renderSettingItem(
+            "send",
+            "Telegram Group",
+            "Join our Telegram group",
+            <AnimatedPressButton
+              color="#0088cc"
+              onPress={() => openLink("https://t.me/YOUR_GROUP_LINK")}
+            />,
+            6,
+          )}
+        </View>
+
+        {/* About Section */}
         <ThemedText
           style={[
             styles.sectionTitle,
@@ -224,6 +297,7 @@ export default function SettingsScreen() {
           )}
         </View>
 
+        {/* Branding */}
         <View style={styles.brandingContainer}>
           <ThemedText style={[styles.brandingLogo, { color: theme.primary }]}>
             EGYBEST
@@ -239,17 +313,38 @@ export default function SettingsScreen() {
   );
 }
 
+// Animated button for Join Us
+const AnimatedPressButton = ({
+  color,
+  onPress,
+}: {
+  color: string;
+  onPress: () => void;
+}) => {
+  return (
+    <Animated.View entering={ZoomIn.duration(200)}>
+      <Pressable
+        onPress={onPress}
+        style={({ pressed }) => [
+          styles.joinButton,
+          { backgroundColor: color },
+          pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
+        ]}
+      >
+        <ThemedText style={styles.joinButtonText}>Join</ThemedText>
+      </Pressable>
+    </Animated.View>
+  );
+};
+
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  scrollView: {
-    flex: 1,
-  },
+  container: { flex: 1 },
+  scrollView: { flex: 1 },
   screenTitle: {
     fontSize: 28,
     fontWeight: "800",
     marginBottom: Spacing.xl,
+    paddingTop: 10,
   },
   sectionTitle: {
     fontSize: 13,
@@ -258,10 +353,7 @@ const styles = StyleSheet.create({
     letterSpacing: 1,
     marginBottom: Spacing.md,
   },
-  languageGrid: {
-    borderRadius: BorderRadius.lg,
-    padding: Spacing.sm,
-  },
+  languageGrid: { borderRadius: BorderRadius.lg, padding: Spacing.sm },
   languageItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -270,15 +362,8 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
     borderWidth: 1,
   },
-  languageName: {
-    fontSize: 16,
-    fontWeight: "600",
-    flex: 1,
-  },
-  languageNative: {
-    fontSize: 14,
-    marginRight: Spacing.md,
-  },
+  languageName: { fontSize: 16, fontWeight: "600", flex: 1 },
+  languageNative: { fontSize: 14, marginRight: Spacing.md },
   checkIcon: {
     width: 24,
     height: 24,
@@ -287,9 +372,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
   },
-  settingsGroup: {
-    gap: Spacing.sm,
-  },
+  settingsGroup: { gap: Spacing.sm },
   settingItem: {
     flexDirection: "row",
     alignItems: "center",
@@ -304,29 +387,27 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: Spacing.md,
   },
-  settingInfo: {
-    flex: 1,
+  settingInfo: { flex: 1 },
+  settingTitle: { fontSize: 16, fontWeight: "600" },
+  settingSubtitle: { fontSize: 13, marginTop: 2 },
+  joinButton: {
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: BorderRadius.md,
   },
-  settingTitle: {
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  settingSubtitle: {
-    fontSize: 13,
-    marginTop: 2,
-  },
+  joinButtonText: { color: "#FFFFFF", fontWeight: "600", fontSize: 14 },
   brandingContainer: {
     alignItems: "center",
     marginTop: Spacing["3xl"],
     paddingTop: Spacing.xl,
   },
-  brandingLogo: {
-    fontSize: 24,
-    fontWeight: "900",
-    letterSpacing: 2,
+  brandingLogo: { fontSize: 24, fontWeight: "900", letterSpacing: 2 },
+  brandingTagline: { fontSize: 12, marginTop: Spacing.xs },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: Spacing.lg,
+    marginBottom: Spacing.md,
   },
-  brandingTagline: {
-    fontSize: 12,
-    marginTop: Spacing.xs,
-  },
+  backButton: { marginRight: Spacing.md, padding: 4 },
 });

@@ -1,5 +1,10 @@
-import React, { useState, useRef, useCallback, useMemo, useEffect } from "react";
-
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useMemo,
+  useEffect,
+} from "react";
 import {
   View,
   StyleSheet,
@@ -17,8 +22,6 @@ import { WebView } from "react-native-webview";
 import { Feather } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeInUp } from "react-native-reanimated";
-import * as ScreenOrientation from 'expo-screen-orientation';
-import { StatusBar } from 'expo-status-bar';
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
@@ -30,187 +33,311 @@ import { getImageUrl, slugify } from "@/utils/helpers";
 import { VideoLinksModal } from "@/components/VideoLinksModal";
 import { getTVShowDetails, getTVSeasonDetails } from "@/services/tmdb";
 
+// --- Custom hook to load servers dynamically ---
+function useRemoteServers(rawUrl: string) {
+  const [servers, setServers] = useState<Record<string, any> | null>(null);
+  const [password, setPassword] = useState<string | number | null>(null);
+  const [getCode, setGetCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServers = async () => {
+      try {
+        const res = await fetch(rawUrl);
+        const data = await res.json();
+
+        // Convert array to object by server name
+        const serversObj =
+          data.servers?.reduce((acc: any, server: any) => {
+            acc[server.name] = server;
+            return acc;
+          }, {}) || {};
+
+        setServers(serversObj);
+        setPassword(data.password ?? null);
+        setGetCode(data.GETCODE ?? null);
+      } catch (error) {
+        console.error("Failed to fetch remote servers:", error);
+        setServers(null);
+        setPassword(null);
+        setGetCode(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServers();
+  }, [rawUrl]);
+
+  const buildUrl = useCallback(
+    (
+      serverKey: string,
+      mediaType: "movie" | "tv",
+      id: string | number,
+      season?: SeasonDetails | number,
+      episode?: Episode | number,
+      title?: string,
+    ) => {
+      if (!servers || !servers[serverKey]) return null;
+
+      let template =
+        mediaType === "movie"
+          ? servers[serverKey].movie
+          : servers[serverKey].tv;
+
+      template = template.replace("{id}", id.toString());
+
+      // server7 exception
+      if (serverKey === "LEGEND" && mediaType === "tv" && episode && season) {
+        template = template.replace("{season}", season.toString());
+        template = template.replace(
+          "{episode}",
+          (episode as Episode).id.toString(),
+        );
+        if (title) template = template.replace("{title}", slugify(title));
+      } else {
+        if (season) template = template.replace("{season}", season.toString());
+        if (episode)
+          template = template.replace("{episode}", episode.toString());
+        if (title) template = template.replace("{title}", slugify(title));
+      }
+
+      return template;
+    },
+    [servers],
+  );
+
+  return { servers, password, getCode, buildUrl, loading };
+}
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type WatchRouteProp = RouteProp<RootStackParamList, "Watch">;
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 const VIDEO_HEIGHT = SCREEN_WIDTH * (9 / 16);
-const serverLinks: Record<
-  string,
-  (id: string, s: string, e: string, type: string, title: string) => string
-> = {
-  server1: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://vidlink.pro/movie/${id}`
-      : `https://vidlink.pro/tv/${id}/${s}/${e}`,
-  server2: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://vidsrcme.ru/embed/movie?tmdb=${id}`
-      : `https://vidsrcme.ru/embed/tv?tmdb=${id}&season=${s}&episode=${e}`,
-  server3: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://vidsrc.cc/v2/embed/movie/${id}`
-      : `https://vidsrc.cc/v2/embed/tv/${id}/${s}/${e}`,
-  server4: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://player.videasy.net/movie/${id}`
-      : `https://player.videasy.net/tv/${id}/${s}/${e}`,
-  server5: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://111movies.com/movie/${id}`
-      : `https://111movies.com/tv/${id}/${s}/${e}`,
-  server6: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://godriveplayer.com/player.php?tmdb=${id}`
-      : `https://godriveplayer.com/player.php?type=series&tmdb=${id}&season=${s}&episode=${e}`,
-  server7: (id, s, e, type, title) => {
-    const slug = slugify(title);
-    if (type === "movie") {
-      return `https://legacy.aether.mom/media/tmdb-movie-${id}-${slug}`;
+
+// Function to extract hostname from URL
+const getHostname = (url: string): string => {
+  try {
+    const urlObj = new URL(url);
+    return urlObj.hostname;
+  } catch (e) {
+    return "";
+  }
+};
+
+// Function to extract meaningful words from hostname
+const extractHostnameWords = (hostname: string): string[] => {
+  // Remove common TLDs and split by separators
+  const withoutTLD = hostname.replace(
+    /\.(com|net|org|io|ru|tv|me|to|co|app|dev|cc|xyz|live|stream|watch|video|site|online|pro|info|biz)$/i,
+    "",
+  );
+
+  // Split by dots, hyphens, and underscores
+  const parts = withoutTLD.split(/[.\-_]/);
+
+  // Filter out very short parts (less than 3 chars) and numbers-only
+  const words = parts
+    .filter((part) => part.length >= 3 && !/^\d+$/.test(part))
+    .map((w) => w.toLowerCase());
+
+  return words;
+};
+
+// Function to check if two hostnames are related
+const areHostnamesRelated = (hostname1: string, hostname2: string): boolean => {
+  if (hostname1 === hostname2) return true;
+
+  const words1 = extractHostnameWords(hostname1);
+  const words2 = extractHostnameWords(hostname2);
+
+  // Check if they share at least one significant word
+  const commonWords = words1.filter((word) => words2.includes(word));
+
+  // If they share any common word, they're related
+  if (commonWords.length > 0) {
+    return true;
+  }
+
+  // Check for partial matches (e.g., "vidsrc" in both "vidsrcme" and "vidsrc-embed")
+  for (const word1 of words1) {
+    for (const word2 of words2) {
+      // Check if one contains the other (minimum 4 chars to avoid false positives)
+      if (word1.length >= 4 && word2.length >= 4) {
+        if (word1.includes(word2) || word2.includes(word1)) {
+          return true;
+        }
+      }
     }
-    // s and e should be TMDB season id and episode id for server7
-    return `https://legacy.aether.mom/media/tmdb-tv-${id}-${slug}/${s}/${e}`;
-  },
-  server8: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://player.vidzee.wtf/embed/movie/${id}`
-      : `https://player.vidzee.wtf/embed/tv/${id}/${s}/${e}`,
-  server9: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://www.nontongo.win/embed/movie/${id}`
-      : `https://www.nontongo.win/embed/tv/${id}/${s}/${e}`,
-  server10: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://vidfast.pro/movie/${id}`
-      : `https://vidfast.pro/tv/${id}/${s}/${e}`,
-  server11: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://netplayz.live/watch?type=movie&id=${id}`
-      : `https://netplayz.live/watch?type=tv&id=${id}&s=${s}&e=${e}`,
-  server12: (id, s, e, type, title) =>
-    type === "movie"
-      ? `https://mapple.uk/watch/movie/${id}`
-      : `https://mapple.uk/watch/tv/${id}-${s}-${e}`,
+  }
+
+  return false;
+};
+
+// Check if URL is a media file
+const isMediaFile = (url: string): boolean => {
+  const mediaExtensions = [
+    ".mp4",
+    ".ts",
+    ".webm",
+    ".ogg",
+    ".m3u8",
+    ".mpd",
+    ".m4v",
+    ".mov",
+    ".avi",
+    ".mkv",
+    ".flv",
+    ".wmv",
+    ".m4a",
+    ".mp3",
+    ".wav",
+    ".ts",
+    ".m2ts",
+    ".3gp",
+    ".3g2",
+  ];
+  const lowerUrl = url.toLowerCase();
+  return mediaExtensions.some((ext) => lowerUrl.includes(ext));
+};
+
+// Check if URL is a subtitle file
+const isSubtitleFile = (url: string): boolean => {
+  const subtitleExtensions = [
+    ".vtt",
+    ".srt",
+    ".ass",
+    ".ssa",
+    ".sub",
+    ".sbv",
+    ".ttml",
+  ];
+  const lowerUrl = url.toLowerCase();
+  return subtitleExtensions.some((ext) => lowerUrl.includes(ext));
+};
+
+// Check if URL contains worker
+const hasWorkerInUrl = (url: string): boolean => {
+  return url.toLowerCase().includes("worker");
+};
+
+// Check if URL is TMDB request
+const isTMDBRequest = (url: string): boolean => {
+  const lowerUrl = url.toLowerCase();
+  return (
+    lowerUrl.includes("themoviedb.org") ||
+    lowerUrl.includes("tmdb.org") ||
+    lowerUrl.includes("image.tmdb.org")
+  );
+};
+
+// Check if URL is a proxy request (contains workers.dev with destination parameter)
+const isProxyRequest = (url: string): boolean => {
+  const lowerUrl = url.toLowerCase();
+  return lowerUrl.includes("workers.dev") && lowerUrl.includes("destination=");
 };
 
 const injectedJavaScript = `
-
-  (function() {
-
-    // Override window.open and window.alert to prevent popups
-
-    window.open = () => null;
-
-    window.alert = () => null;
+(function() {
 
 
+   
+  // prevent popups
+  window.open = () => null;
+  window.alert = () => null;
 
-    // XHR interception logic
+  // ==========================
+  // Remove only navbar + back button
+  // ==========================
 
-    const open = XMLHttpRequest.prototype.open;
+  const hideNavbarElements = () => {
+    try {
 
-    XMLHttpRequest.prototype.open = function() {
-
-      this.addEventListener('load', function() {
-
-        if (this.responseURL && window.ReactNativeWebView) {
-
-          const url = this.responseURL;
-
-          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
-
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
-
-          }
-
-        }
-
-      });
-
-      open.apply(this, arguments);
-
-    };
-
-
-
-    // Listen for fetch requests (if any)
-
-    const originalFetch = window.fetch;
-
-    window.fetch = function(...args) {
-
-      return originalFetch.apply(this, args).then(response => {
-
-        if (response.url && window.ReactNativeWebView) {
-
-          const url = response.url;
-
-          if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
-
-            window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
-
-          }
-
-        }
-
-        return response;
-
-      });
-
-    };
-
-
-
-   // Hide UI elements on legacy.aether.mom
-    if (window.location.hostname === 'legacy.aether.mom') {
-    
-      const styleElement = document.createElement('style');
-      styleElement.innerHTML = 'div.pointer-events-auto.absolute.top-0.w-full { display: none !important; visibility: hidden !important; height: 0 !important; pointer-events: none !important; }';
-      document.head.appendChild(styleElement);
-
-    
-      // Aggressive JS removal (React safe)
-      const aggressivelyHideElements = () => {
-    
-        // Top bar
-        const bar = document.querySelector(
-          'div.pointer-events-auto.absolute.top-0.w-full'
-        );
-        if (bar) bar.remove();
-    
-        // Back to home button
-        const backBtn = document.querySelector(
-          'a.tabbable.bg-buttons-cancel'
-        );
-        if (backBtn) backBtn.remove();
-    
-        // Fallback by text (extra safety)
-        document.querySelectorAll('a').forEach(el => {
-          if (el.innerText && el.innerText.toLowerCase().includes('back to home')) {
+      // Remove top site header (navbar)
+      document.querySelectorAll('div').forEach(el => {
+        const cls = el.className || '';
+        if (
+          typeof cls === 'string' &&
+          cls.includes('pointer-events-auto') &&
+          cls.includes('top-0') &&
+          el.children.length > 0
+        ) {
+          // Don't touch video containers
+          if (!el.querySelector('video')) {
             el.remove();
           }
-        });
-      };
-    
-      // Run now
-      aggressivelyHideElements();
-    
-      // Run continuously
-      setInterval(aggressivelyHideElements, 200);
-    
-      // Watch React rerenders
-      const observer = new MutationObserver(aggressivelyHideElements);
-      observer.observe(document.documentElement, {
-        childList: true,
-        subtree: true
+        }
       });
+
+      // Remove back-to-home button
+      document.querySelectorAll(".popout-wrapper").forEach(el => el.remove());
+      document.querySelectorAll('a').forEach(a => {
+        const text = (a.innerText || '').toLowerCase();
+        const cls = a.className || '';
+
+        if (
+          text.includes('back to home') ||
+          cls.includes('bg-buttons-cancel') ||
+          cls.includes('tabbable')
+        ) {
+          a.remove();
+        }
+      });
+
+    } catch(e) {}
+  };
+
+  // Run once + observe
+  hideNavbarElements();
+
+  const observer = new MutationObserver(hideNavbarElements);
+  observer.observe(
+    document.body || document.documentElement,
+    { childList: true, subtree: true }
+  );
+
+  setInterval(hideNavbarElements, 300);
+ const block = (fnName) => {
+    const original = window.location[fnName];
+    window.location[fnName] = function(url) {
+      console.log("🚫 Redirect blocked:", url);
+      return null;
+    };
+  };
+
+  block("assign");
+  block("replace");
+
+  // Block direct href changes
+  let lastHref = location.href;
+  Object.defineProperty(window.location, "href", {
+    set: function(url) {
+      console.log("🚫 Redirect blocked:", url);
+      return lastHref;
+    },
+    get: function() {
+      return lastHref;
     }
-    
-  })();
+  });
 
-  true;
+setInterval(() => {
+  document.querySelectorAll("iframe").forEach(frame => {
 
+    const r = frame.getBoundingClientRect();
+
+    if (
+      r.width > window.innerWidth * 0.3 &&
+      r.height > window.innerHeight * 0.3 &&
+      getComputedStyle(frame).position === "fixed"
+    ) {
+      frame.remove();
+    }
+  });
+}, 500);
+
+  
+})();
+true;
 `;
 
 export default function WatchScreen() {
@@ -227,72 +354,84 @@ export default function WatchScreen() {
     episode: initialEpisode = 1,
   } = route.params;
 
-  const [selectedServer, setSelectedServer] = useState("server1");
+  const [selectedServer, setSelectedServer] = useState("LEGEND");
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
   const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
   const [isLoading, setIsLoading] = useState(true);
   const [capturedLinks, setCapturedLinks] = useState<string[]>([]);
-  const [isLinksModalVisible, setIsLinksModalVisible] = useState(false); // New state for modal visibility
+  const [isLinksModalVisible, setIsLinksModalVisible] = useState(false);
   const webViewRef = useRef<WebView>(null);
 
- const { data: tvShowDetails } = useQuery<TVShowDetails>({
+  // --- Load servers from remote JSON ---
+  const {
+    servers,
+    buildUrl,
+    loading: serversLoading,
+  } = useRemoteServers(
+    "https://raw.githubusercontent.com/bestwall2/EgyBest-Native/refs/heads/main/data.json",
+  );
+
+  const { data: tvShowDetails } = useQuery<TVShowDetails>({
     queryKey: ["tvShowDetails", id],
     queryFn: () => getTVShowDetails(Number(id)),
     enabled: mediaType === "tv",
   });
-  
+
   const { data: seasonDetails } = useQuery<SeasonDetails>({
     queryKey: ["seasonDetails", id, selectedSeason],
     queryFn: () => getTVSeasonDetails(Number(id), selectedSeason),
     enabled: mediaType === "tv" && !!tvShowDetails,
   });
 
-
   const currentEpisode = seasonDetails?.episodes?.find(
     (ep) => ep.episode_number === selectedEpisode,
   );
 
   const videoUrl = useMemo(() => {
-  const tmdbId = id.toString();
+    if (!servers) return "";
 
-  if (selectedServer === "server7" && mediaType === "tv") {
-    // server7 uses internal season ID + episode ID
-    const seasonId = seasonDetails?.id ?? selectedSeason;
     const episodeObj = seasonDetails?.episodes?.find(
-      (ep) => ep.episode_number === selectedEpisode
+      (ep) => ep.episode_number === selectedEpisode,
     );
-    const episodeId = episodeObj?.id ?? selectedEpisode;
 
-    return serverLinks.server7(
-      tmdbId,
-      seasonId.toString(),
-      episodeId.toString(),
-      mediaType,
-      title
+    let seasonParam: number | undefined = selectedSeason;
+
+    // If LEGEND, pass the real season ID from TMDB instead of just the season number
+    if (selectedServer === "LEGEND" && seasonDetails) {
+      seasonParam = seasonDetails.id; // <-- important for LEGEND
+    }
+
+    return (
+      buildUrl(
+        selectedServer,
+        mediaType,
+        id,
+        seasonParam,
+        selectedServer === "LEGEND" ? episodeObj : selectedEpisode,
+        title,
+      ) || ""
     );
-  }
-
-  // For all other servers, pass only the numeric season/episode
-  return serverLinks[selectedServer](
-    tmdbId,
-    selectedSeason.toString(),
-    selectedEpisode.toString(),
+  }, [
+    servers,
+    selectedServer,
     mediaType,
-    title
-  );
-}, [selectedServer, id, selectedSeason, selectedEpisode, seasonDetails, mediaType, title]);
+    id,
+    selectedSeason,
+    selectedEpisode,
+    title,
+    seasonDetails,
+    buildUrl,
+  ]);
 
-
-  // Extract currentVideoBaseUrlPath within useMemo to ensure videoUrl is available
-  const currentVideoBaseUrlPath = useMemo(() => {
-    if (typeof videoUrl !== 'string') return videoUrl; // Handle case where videoUrl might not be a string
-    return videoUrl.includes('/media/') ? videoUrl.substring(0, videoUrl.indexOf('/media/') + 7) : videoUrl;
+  // Extract hostname from video URL
+  const allowedHostname = useMemo(() => {
+    return getHostname(videoUrl);
   }, [videoUrl]);
 
   const handleWebViewMessage = useCallback((event: any) => {
     try {
       const message = JSON.parse(event.nativeEvent.data);
-      if (message.type === 'VIDEO_LINK' && message.payload) {
+      if (message.type === "VIDEO_LINK" && message.payload) {
         setCapturedLinks((prevLinks) => {
           if (!prevLinks.includes(message.payload)) {
             return [...prevLinks, message.payload];
@@ -314,33 +453,163 @@ export default function WatchScreen() {
       }
     }
   }, [seasonDetails, selectedEpisode]);
-      
+
   const handleEpisodePress = useCallback((episodeNumber: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedEpisode(episodeNumber);
     setIsLoading(true);
-    setCapturedLinks([]); // Clear captured links on episode change
+    setCapturedLinks([]);
   }, []);
+
+  const pauseMedia = () => {
+    webViewRef.current?.injectJavaScript(`
+    (function() {
+      document.querySelectorAll('video, audio').forEach(m => {
+        m.pause();
+      });
+    })();
+    true;
+  `);
+  };
 
   const handleSeasonPress = useCallback((seasonNumber: number) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     setSelectedSeason(seasonNumber);
     setSelectedEpisode(1);
     setIsLoading(true);
-    setCapturedLinks([]); // Clear captured links on season change
+    setCapturedLinks([]);
   }, []);
 
   const handleServerPress = useCallback((server: string) => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     setSelectedServer(server);
     setIsLoading(true);
-    setCapturedLinks([]); // Clear captured links on server change
+    setCapturedLinks([]);
   }, []);
 
   useEffect(() => {
-    console.log('seasonDetails debug', seasonDetails);
-  }, [seasonDetails]);
+    console.log("Video URL:", videoUrl);
+    console.log("Allowed hostname:", allowedHostname);
+    console.log("Hostname words:", extractHostnameWords(allowedHostname));
+  }, [videoUrl, allowedHostname]);
 
+  // Enhanced hostname-based navigation blocking with media/worker/TMDB/subtitle support
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: any) => {
+      const requestUrl = request.url.toLowerCase();
+      const requestHostname = getHostname(request.url);
+
+      console.log("Navigation request to:", requestHostname);
+
+      // Check if this is aether server
+      const isAether = allowedHostname.includes("aether");
+
+      // Allow proxy requests
+      if (isProxyRequest(request.url)) {
+        console.log("✅ Allowed proxy request:", request.url);
+        return true;
+      }
+
+      // Aether exception: allow same-hostname navigation
+      if (isAether && requestHostname === allowedHostname) {
+        console.log(
+          "✅ Aether: Allowed same-hostname navigation:",
+          requestHostname,
+        );
+        return true;
+      }
+
+      // Allow media files
+      if (isMediaFile(request.url)) {
+        console.log("✅ Allowed media file:", request.url);
+        return true;
+      }
+
+      // Allow subtitle files
+      if (isSubtitleFile(request.url)) {
+        console.log("✅ Allowed subtitle file:", request.url);
+        return true;
+      }
+
+      // Allow worker URLs
+      if (hasWorkerInUrl(request.url)) {
+        console.log("✅ Allowed worker URL:", request.url);
+        return true;
+      }
+
+      // Allow TMDB requests
+      if (isTMDBRequest(request.url)) {
+        console.log("✅ Allowed TMDB request:", request.url);
+        return true;
+      }
+
+      // Check if hostnames are related
+      if (areHostnamesRelated(allowedHostname, requestHostname)) {
+        console.log("✅ Allowed related hostname:", requestHostname);
+        return true;
+      }
+
+      // Allow common CDNs
+      //https://fancy-proxy.addison-r.workers.dev/?destination=https://moviking.neuronix.sbs/geturl
+
+      const allowedCDNs = [
+        "cdnjs.cloudflare.com",
+        "cdn.jsdelivr.net",
+        "cloudnestra.com",
+        "workers.dev",
+        "lordflix.club",
+        "www.gstatic.com",
+        "workers.dev",
+        "unpkg.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "cloudflare.com",
+        "fastly.net",
+
+        "akamaihd.net",
+        "cloudfront.net",
+      ];
+
+      if (allowedCDNs.some((cdn) => requestHostname.includes(cdn))) {
+        console.log("✅ Allowed CDN:", requestHostname);
+        return true;
+      }
+
+      // Block ad domains
+      const adDomains = [
+        "doubleclick",
+        "googleads",
+        "googlesyndication",
+        "adservice",
+        "advertising",
+        "adserver",
+        "adsystem",
+        "betting",
+        "casino",
+        "gamble",
+        "gambling",
+        "poker",
+        "popads",
+        "popcash",
+        "exoclick",
+        "propeller",
+        "mgid",
+        "revcontent",
+        "taboola",
+        "outbrain",
+      ];
+
+      if (adDomains.some((ad) => requestHostname.includes(ad))) {
+        console.log("❌ BLOCKED ad domain:", requestHostname);
+        return false;
+      }
+
+      // Block everything else
+      console.log("❌ BLOCKED unrelated hostname:", requestHostname);
+      return false;
+    },
+    [allowedHostname],
+  );
 
   const renderEpisodeItem = useCallback(
     ({ item, index }: { item: Episode; index: number }) => {
@@ -348,7 +617,10 @@ export default function WatchScreen() {
       const stillUrl = getImageUrl(item.still_path, "backdrop", "medium");
 
       return (
-        <Animated.View key={item.id ?? item.episode_number ?? index} entering={FadeInUp.delay(index * 50)}>
+        <Animated.View
+          key={item.id ?? item.episode_number ?? index}
+          entering={FadeInUp.delay(index * 50)}
+        >
           <Pressable
             onPress={() => handleEpisodePress(item.episode_number)}
             style={[
@@ -457,15 +729,15 @@ export default function WatchScreen() {
           />
         </Pressable>
 
-        {/* Fullscreen button for all servers */}
         <Pressable
-          onPress={() =>
-            navigation.navigate("FullscreenWatch", { videoUrl: videoUrl })
-          }
+          onPress={() => {
+            pauseMedia();
+            navigation.navigate("FullscreenWatch", { videoUrl: videoUrl });
+          }}
           style={[
             styles.fullscreenButton,
             { top: insets.top + 10 },
-            isRTL ? { left: Spacing.lg } : { right: Spacing.lg }, // Position opposite to back button
+            isRTL ? { left: Spacing.lg } : { right: Spacing.lg },
           ]}
         >
           <Feather name="maximize" size={24} color="#FFFFFF" />
@@ -476,6 +748,7 @@ export default function WatchScreen() {
             <ActivityIndicator size="large" color={theme.primary} />
           </View>
         ) : null}
+
         <WebView
           ref={webViewRef}
           source={{ uri: videoUrl }}
@@ -485,51 +758,53 @@ export default function WatchScreen() {
           mediaPlaybackRequiresUserAction={false}
           javaScriptEnabled
           domStorageEnabled
-          onShouldStartLoadWithRequest={(event) => {
-            const requestedUrl = event.url;
-            if (typeof requestedUrl !== 'string') {
-              return false;
-            }
-
-            const currentHost = new URL(videoUrl).hostname; // This is the host of the selected server
-            let requestHost: string;
-            try {
-              requestHost = new URL(requestedUrl).hostname;
-            } catch (e) {
-              return false; // Invalid URL
-            }
-
-            // Always allow internal navigation (e.g., about:blank, about:srcdoc)
-            if (requestedUrl.startsWith('about:')) {
-              return true;
-            }
-
-            // Special handling for aether.mom and legacy.aether.mom
-            if (requestHost === 'aether.mom' || requestHost === 'legacy.aether.mom') {
-              // Block the root domains without /media/
-              if (requestedUrl === 'https://aether.mom/' || requestedUrl === 'https://legacy.aether.mom/') {
-                return false;
-              }
-              // Allow anything that contains /media/ under these domains
-              if (requestedUrl.includes('aether.mom/media/')) { // This covers both aether.mom/media/ and legacy.aether.mom/media/
-                return true;
-              }
-              // If it's aether.mom or legacy.aether.mom but not /media/, block it
-              return false;
-            }
-
-            // For all other servers, allow navigation if the hostnames are the same as the initial video URL
-            if (currentHost === requestHost) {
-              return true;
-            }
-
-            // Block all other navigations
-            return false;
-          }}
-          domStorageEnabled
+          injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
           injectedJavaScript={injectedJavaScript}
-          onMessage={handleWebViewMessage} // Add onMessage handler
+          onMessage={handleWebViewMessage}
           onLoadEnd={() => setIsLoading(false)}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+          originWhitelist={["*"]}
+          mixedContentMode="always"
+          thirdPartyCookiesEnabled={true}
+          sharedCookiesEnabled={true}
+          // incognito={true}
+          onNavigationStateChange={(navState) => {
+            const navHostname = getHostname(navState.url);
+            const isAether = allowedHostname.includes("aether");
+
+            // Allow proxy requests
+            if (isProxyRequest(navState.url)) {
+              console.log("✅ Allowed proxy request navigation");
+              return;
+            }
+
+            // Aether exception: allow same-hostname navigation
+            if (isAether && navHostname === allowedHostname) {
+              console.log("✅ Aether: Allowed same-hostname navigation");
+              return;
+            }
+
+            // Allow media, subtitles, workers, TMDB
+            if (
+              isMediaFile(navState.url) ||
+              isSubtitleFile(navState.url) ||
+              hasWorkerInUrl(navState.url) ||
+              isTMDBRequest(navState.url)
+            ) {
+              return;
+            }
+
+            if (
+              !areHostnamesRelated(allowedHostname, navHostname) &&
+              navHostname !== ""
+            ) {
+              console.log(
+                "⚠️ Detected navigation to unrelated domain:",
+                navHostname,
+              );
+              webViewRef.current?.stopLoading();
+            }
+          }}
         />
       </View>
 
@@ -555,33 +830,36 @@ export default function WatchScreen() {
             {t("select_server")}
           </ThemedText>
           <View style={styles.gridRow}>
-            {Object.keys(serverLinks).map((server, index) => (
-              <Pressable
-                key={server}
-                onPress={() => handleServerPress(server)}
-                style={[
-                  styles.serverGridItem,
-                  {
-                    backgroundColor:
-                      selectedServer === server
-                        ? theme.primary
-                        : theme.backgroundSecondary,
-                    width: (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 3) / 4,
-                  },
-                ]}
-              >
-                <ThemedText
+            {servers &&
+              Object.values(servers).map((server: any, idx) => (
+                <Pressable
+                  key={server.name}
+                  onPress={() => handleServerPress(server.name)}
                   style={[
-                    styles.serverGridText,
+                    styles.serverGridItem,
                     {
-                      color: selectedServer === server ? "#FFFFFF" : theme.text,
+                      backgroundColor:
+                        selectedServer === server.name
+                          ? theme.primary
+                          : theme.backgroundSecondary,
+                      width:
+                        (SCREEN_WIDTH - Spacing.lg * 2 - Spacing.sm * 3) / 4,
                     },
                   ]}
                 >
-                  #{index + 1}
-                </ThemedText>
-              </Pressable>
-            ))}
+                  <ThemedText
+                    style={[
+                      styles.serverGridText,
+                      {
+                        color:
+                          selectedServer === server.name ? "#FFF" : theme.text,
+                      },
+                    ]}
+                  >
+                    {server.name}
+                  </ThemedText>
+                </Pressable>
+              ))}
           </View>
         </View>
 
@@ -593,7 +871,9 @@ export default function WatchScreen() {
               </ThemedText>
               <View style={styles.gridRow}>
                 {Array.from(
-                  { length: tvShowDetails?.number_of_seasons || selectedSeason },
+                  {
+                    length: tvShowDetails?.number_of_seasons || selectedSeason,
+                  },
                   (_, i) => i + 1,
                 ).map((seasonNum) => (
                   <Pressable
@@ -636,7 +916,7 @@ export default function WatchScreen() {
                   ? `(${seasonDetails.episodes.length})`
                   : ""}
               </ThemedText>
-             {seasonDetails ? (
+              {seasonDetails ? (
                 seasonDetails.episodes && seasonDetails.episodes.length > 0 ? (
                   <View style={styles.episodesGridList}>
                     {seasonDetails.episodes.map((item, index) =>
@@ -645,7 +925,7 @@ export default function WatchScreen() {
                   </View>
                 ) : (
                   <ThemedText style={{ padding: Spacing.lg }}>
-                    {t('no_episodes_found') ?? 'No episodes found'}
+                    {t("no_episodes_found") ?? "No episodes found"}
                   </ThemedText>
                 )
               ) : (
@@ -653,22 +933,11 @@ export default function WatchScreen() {
                   <ActivityIndicator color={theme.primary} />
                 </View>
               )}
-
             </View>
           </>
         ) : null}
       </ScrollView>
 
-      {/* Floating Action Button */}
-      <Pressable
-        onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-          setIsLinksModalVisible(true); // Open the modal
-        }}
-        style={[styles.fab, { backgroundColor: theme.primary }]}
-      >
-        <Feather name="link" size={24} color="#FFFFFF" />
-      </Pressable>
       <VideoLinksModal
         isVisible={isLinksModalVisible}
         links={capturedLinks}
@@ -856,12 +1125,10 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    elevation: 8, // For Android shadow
-    shadowColor: "#000", // For iOS shadow
+    elevation: 8,
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
   },
 });
-
-

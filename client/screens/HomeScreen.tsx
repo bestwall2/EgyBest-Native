@@ -87,6 +87,8 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [queryClient]);
 
+  
+
   const handleItemPress = useCallback(
     (id: number, mediaType: MediaType) => {
       navigation.navigate("Detail", { id, mediaType });

@@ -49,7 +49,7 @@ export function NavHeader({
       <Animated.View
         style={[
           styles.background,
-          { backgroundColor: "rgba(10,10,10,0.85)" },
+          { backgroundColor: "rgba(0, 10, 10, 0.11)" },
           animatedStyle,
         ]}
       />

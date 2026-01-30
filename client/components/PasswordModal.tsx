@@ -2,73 +2,142 @@ import React, { useEffect, useState } from "react";
 import {
   View,
   Modal,
-  StyleSheet,
   TextInput,
   Pressable,
-  ActivityIndicator,
   Text,
+  ActivityIndicator,
+  Alert,
+  StyleSheet,
+  AppState,
+  AppStateStatus,
 } from "react-native";
+
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { BlurView } from "expo-blur";
+
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { Spacing, BorderRadius } from "@/constants/theme";
-import { shouldPromptForPassword, verifyAndStore } from "@/services/password";
 
-interface PasswordModalProps {
+import {
+  shouldPromptForPassword,
+  verifyAndStore,
+  fetchRemotePassword,
+} from "@/services/password";
+
+interface Props {
   onReady: () => void;
 }
 
-export const PasswordModal: React.FC<PasswordModalProps> = ({ onReady }) => {
+export const PasswordModal: React.FC<Props> = ({ onReady }) => {
   const { theme } = useTheme();
+
   const [visible, setVisible] = useState(false);
-  const [loading, setLoading] = useState(true);
   const [value, setValue] = useState("");
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [getCodeLink, setGetCodeLink] = useState<string | undefined>();
 
+  // -----------------------------
+  // CHECK REMOTE VS LOCAL ok
+  // -----------------------------
+  const checkPasswordStatus = async () => {
+    try {
+      const remote = await fetchRemotePassword();
+      if (remote?.getCode) setGetCodeLink(remote.getCode);
+
+      const need = await shouldPromptForPassword();
+      console.log("Password required:", remote);
+      if (need) {
+        setVisible(true);
+      } else {
+        setVisible(false);
+        onReady();
+      }
+    } catch (e) {
+      console.warn("Password check failed", e);
+      onReady(); // allow app if error
+    }
+  };
+
+  // Initial check
   useEffect(() => {
-    let mounted = true;
-    (async () => {
-      const should = await shouldPromptForPassword();
-      if (!mounted) return;
-      setVisible(should);
-      setLoading(false);
-      if (!should) onReady();
-    })();
-    return () => {
-      mounted = false;
-    };
-  }, [onReady]);
+    checkPasswordStatus();
+  }, []);
 
+  // Recheck when app returns foreground (detect GitHub change)
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state: AppStateStatus) => {
+      if (state === "active") {
+        checkPasswordStatus();
+      }
+    });
+    return () => sub.remove();
+  }, []);
+
+  // -----------------------------
+  // SUBMIT PASSWORD
+  // -----------------------------
   const submit = async () => {
-    setError(null);
+    if (!value || loading) return;
+
     setLoading(true);
+    setError(null);
+
     const ok = await verifyAndStore(value);
+
     setLoading(false);
+
     if (ok) {
       setVisible(false);
       onReady();
+      setValue("");
     } else {
       setError("Incorrect password");
     }
   };
 
+  // -----------------------------
+  // OPEN GET CODE LINK
+  // -----------------------------
+  const openGetCode = async () => {
+    if (!getCodeLink) {
+      Alert.alert("Info", "No code link available");
+      return;
+    }
+
+    try {
+      await require("react-native").Linking.openURL(getCodeLink);
+    } catch {
+      Alert.alert("Error", "Cannot open link");
+    }
+  };
+
+  // -----------------------------
+  // UI
+  // -----------------------------
   return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={[styles.backdrop, { backgroundColor: "rgba(0,0,0,0.6)" }]}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="none"
+      statusBarTranslucent
+    >
+      <BlurView intensity={40} tint="light" style={styles.backdrop}>
         <Animated.View
-          entering={FadeIn}
-          exiting={FadeOut}
-          style={[styles.container, { backgroundColor: theme.backgroundRoot }]}
+          entering={FadeIn.duration(250)}
+          exiting={FadeOut.duration(200)}
+          style={[
+            styles.container,
+            { backgroundColor: theme.backgroundRoot + "ee" },
+          ]}
         >
-          <ThemedText
-            style={{
-              fontSize: 18,
-              fontWeight: "700",
-              marginBottom: Spacing.md,
-            }}
-          >
-            Enter Password
-          </ThemedText>
+          <ThemedText style={styles.title}>Enter Password</ThemedText>
+
+          <Text style={[styles.desc, { color: theme.textSecondary }]}>
+            If you don't have the password click Get Code
+          </Text>
+
           <TextInput
             value={value}
             onChangeText={setValue}
@@ -77,44 +146,108 @@ export const PasswordModal: React.FC<PasswordModalProps> = ({ onReady }) => {
             secureTextEntry
             style={[
               styles.input,
-              { color: theme.text, backgroundColor: theme.backgroundSecondary },
+              {
+                color: theme.text,
+                borderColor: theme.primary,
+                backgroundColor: theme.backgroundSecondary,
+              },
             ]}
           />
-          {error ? (
-            <Text style={{ color: "#ff6b6b", marginTop: 8 }}>{error}</Text>
-          ) : null}
-          <View style={{ flexDirection: "row", marginTop: Spacing.md }}>
+
+          {error && <Text style={styles.error}>{error}</Text>}
+
+          <View style={styles.row}>
             <Pressable
               onPress={submit}
-              style={[styles.button, { backgroundColor: theme.primary }]}
+              disabled={loading}
+              style={({ pressed }) => [
+                styles.button,
+                {
+                  backgroundColor: theme.primary,
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
             >
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <ThemedText style={{ color: "#fff" }}>Submit</ThemedText>
+                <Text style={styles.btnText}>Enter</Text>
               )}
+            </Pressable>
+
+            <Pressable
+              onPress={openGetCode}
+              style={({ pressed }) => [
+                styles.button,
+                {
+                  backgroundColor: theme.backgroundSecondary,
+                  opacity: pressed ? 0.9 : 1,
+                },
+              ]}
+            >
+              <Text style={{ fontWeight: "700", color: theme.text }}>
+                Get Code
+              </Text>
             </Pressable>
           </View>
         </Animated.View>
-      </View>
+      </BlurView>
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, justifyContent: "center", alignItems: "center" },
+  backdrop: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
   container: {
     width: "86%",
     padding: Spacing.lg,
     borderRadius: BorderRadius.lg,
-    alignItems: "stretch",
   },
-  input: { padding: Spacing.md, borderRadius: BorderRadius.md },
+
+  title: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 6,
+  },
+
+  desc: {
+    fontSize: 12,
+    marginBottom: Spacing.md,
+  },
+
+  input: {
+    height: 48,
+    borderWidth: 1.4,
+    borderRadius: BorderRadius.md,
+    paddingHorizontal: Spacing.md,
+    marginBottom: Spacing.md,
+    fontSize: 16,
+  },
+
+  error: {
+    color: "#ff6b6b",
+    marginBottom: Spacing.sm,
+  },
+
+  row: {
+    flexDirection: "row",
+    gap: Spacing.md,
+  },
+
   button: {
+    flex: 1,
     padding: Spacing.md,
     borderRadius: BorderRadius.md,
     alignItems: "center",
-    justifyContent: "center",
-    flex: 1,
+  },
+
+  btnText: {
+    color: "#fff",
+    fontWeight: "700",
   },
 });

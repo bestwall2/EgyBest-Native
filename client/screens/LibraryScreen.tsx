@@ -106,17 +106,17 @@ export default function LibraryScreen() {
   const renderEmpty = useCallback(() => {
     const emptyStates = [
       {
-        image: require("../../assets/images/empty-library.png"),
+        
         title: t("empty_watchlist_title"),
         message: t("empty_watchlist_msg"),
       },
       {
-        image: require("../../assets/images/empty-library.png"),
-        title: t("empty_favorites_title"),
+        
+       title: t("empty_favorites_title"),
         message: t("empty_favorites_msg"),
       },
       {
-        image: require("../../assets/images/empty-library.png"),
+        
         title: t("empty_history_title"),
         message: t("empty_history_msg"),
       },

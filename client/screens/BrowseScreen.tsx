@@ -247,6 +247,9 @@ const styles = StyleSheet.create({
   skeletonGrid: {
     flexDirection: "row",
     flexWrap: "wrap",
+    gap: Spacing.lg,
     justifyContent: "space-between",
+   
+  
   },
 });

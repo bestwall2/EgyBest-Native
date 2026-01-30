@@ -6,6 +6,7 @@ import {
   Dimensions,
   FlatList,
   ActivityIndicator,
+  Pressable,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
@@ -23,6 +24,7 @@ import { Spacing, BorderRadius } from "@/constants/theme";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 import { PersonDetails, Movie, MediaType } from "@/types/tmdb";
 import { getImageUrl, isMovie } from "@/utils/helpers";
+import { Feather } from "@expo/vector-icons";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type PersonRouteProp = RouteProp<RootStackParamList, "Person">;
@@ -32,11 +34,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export default function PersonScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { t } = useLanguage();
+  const { t , isRTL} = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<PersonRouteProp>();
   const { id } = route.params;
-
+  
   const { data: person, isLoading } = useQuery<PersonDetails>({
     queryKey: [`/api/tmdb/person/${id}?append_to_response=combined_credits`],
   });
@@ -114,6 +116,20 @@ export default function PersonScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
+       <Pressable
+              onPress={() => navigation.goBack()}
+              style={[
+                styles.backButton,
+                { top: insets.top + 10 },
+                isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+              ]}
+            >
+              <Feather
+                name={isRTL ? "chevron-right" : "chevron-left"}
+                size={24}
+                color="#FFFFFF"
+              />
+            </Pressable>
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.xl }}
@@ -308,6 +324,7 @@ const styles = StyleSheet.create({
     fontSize: 28,
     fontWeight: "800",
     marginBottom: Spacing.xs,
+    paddingTop: 10,
   },
   department: {
     fontSize: 16,
@@ -353,5 +370,15 @@ const styles = StyleSheet.create({
   },
   creditsList: {
     paddingRight: Spacing.lg,
+  },
+  backButton: {
+    position: "absolute",
+    zIndex: 20,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: "rgba(0,0,0,0.5)",
+    justifyContent: "center",
+    alignItems: "center",
   },
 });

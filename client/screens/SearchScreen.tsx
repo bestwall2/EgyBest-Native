@@ -155,7 +155,6 @@ export default function SearchScreen() {
     if (debouncedQuery.length > 0) {
       return (
         <EmptyState
-          image={require("../../assets/images/icon.png")}
           title={t("no_results")}
           message={t("try_different_search").replace("{query}", debouncedQuery)}
         />
@@ -218,6 +217,7 @@ export default function SearchScreen() {
           image={require("../../assets/images/icon.png")}
           title={t("search_placeholder")}
           message={t("search_message")}
+           // remove background
         />
       )}
     </View>
@@ -287,8 +287,7 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     flexWrap: "wrap",
     justifyContent: "space-between",
-    paddingHorizontal: Spacing.lg,
-    paddingTop: Spacing.md,
+    gap: Spacing.lg,
   },
   historyContainer: {
     flex: 1,

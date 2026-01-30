@@ -1,101 +1,179 @@
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+/**
+ * services/password.ts
+ * Replaced fetchRemotePassword with cache-busting and safer checks.
+ */
 
-// Correct raw GitHub URL to the data.json on the main branch
 const REMOTE_URL =
   "https://raw.githubusercontent.com/bestwall2/EgyBest-Native/main/data.json";
+const TOKEN_KEY = "__egyb_password_token";
 
 let SecureStore: any = null;
+
 try {
-  // optional dependency; fallback to AsyncStorage if not available
+  // optional encrypted storage
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   SecureStore = require("react-native-encrypted-storage");
 } catch (e) {
   SecureStore = null;
 }
 
-const TOKEN_KEY = "__egyb_password_token";
-
-export async function fetchRemotePassword(): Promise<string | null> {
+/**
+ * Fetch remote JSON with cache-busting so we always get the latest data.
+ * Returns { password, getCode } or null on failure.
+ */
+export async function fetchRemotePassword(): Promise<{
+  password: string;
+  getCode?: string;
+} | null> {
   try {
-    const res = await fetch(REMOTE_URL, { cache: "no-store" });
-    if (!res.ok) return null;
+    // append timestamp to bypass CDN caches
+    const url = `${REMOTE_URL}${REMOTE_URL.includes("?") ? "&" : "?"}t=${Date.now()}`;
+
+    const res = await fetch(url, {
+      method: "GET",
+      // ask intermediate caches / browsers to not serve cached content
+      headers: {
+        "Cache-Control": "no-cache, no-store, must-revalidate",
+        Pragma: "no-cache",
+        Expires: "0",
+      },
+      // React Native fetch supports "cache": "no-store" in some environments — include if available
+      // @ts-ignore
+      cache: "no-store",
+    });
+
+    if (!res.ok) {
+      console.warn("[fetchRemotePassword] non-ok response:", res.status);
+      return null;
+    }
+
     const json = await res.json();
-    // accept string or numeric password values and normalize to string
+    if (!json) return null;
+
+    // Accept numeric or string password, normalize to string
     if (
-      json &&
+      json.password !== undefined &&
       (typeof json.password === "string" || typeof json.password === "number")
-    )
-      return String(json.password);
+    ) {
+      return {
+        password: String(json.password).trim(),
+        getCode: typeof json.GETCODE === "string" ? json.GETCODE : undefined,
+      };
+    }
+
     return null;
-  } catch (e) {
+  } catch (err) {
+    console.warn("[fetchRemotePassword] error:", err);
     return null;
   }
 }
 
-async function secureGet(key: string) {
-  if (SecureStore && SecureStore.getItem) {
-    return await SecureStore.getItem(key);
-  }
-  return await AsyncStorage.getItem(key);
-}
-
-async function secureSet(key: string, value: string) {
-  if (SecureStore && SecureStore.setItem) {
-    return await SecureStore.setItem(key, value);
-  }
-  return await AsyncStorage.setItem(key, value);
-}
-
-async function secureRemove(key: string) {
-  if (SecureStore && SecureStore.removeItem) {
-    return await SecureStore.removeItem(key);
-  }
-  return await AsyncStorage.removeItem(key);
-}
-
-export async function getStoredToken(): Promise<string | null> {
+/* ---------- secure storage helpers (encryptedStorage fallback) ---------- */
+async function secureGet(key: string): Promise<string | null> {
   try {
-    return await secureGet(TOKEN_KEY);
+    if (SecureStore?.getItem) {
+      const v = await SecureStore.getItem(key);
+      return v ? String(v) : null;
+    }
+    const v = await AsyncStorage.getItem(key);
+    return v;
   } catch (e) {
+    console.warn("[secureGet] error", e);
     return null;
   }
+}
+
+async function secureSet(key: string, value: string): Promise<void> {
+  try {
+    if (SecureStore?.setItem) {
+      await SecureStore.setItem(key, value);
+      return;
+    }
+    await AsyncStorage.setItem(key, value);
+  } catch (e) {
+    console.warn("[secureSet] error", e);
+  }
+}
+
+async function secureRemove(key: string): Promise<void> {
+  try {
+    if (SecureStore?.removeItem) {
+      await SecureStore.removeItem(key);
+      return;
+    }
+    await AsyncStorage.removeItem(key);
+  } catch (e) {
+    console.warn("[secureRemove] error", e);
+  }
+}
+
+/* ---------- exported token helpers ---------- */
+export async function getStoredToken(): Promise<string | null> {
+  const v = await secureGet(TOKEN_KEY);
+  return v ? String(v).trim() : null;
 }
 
 export async function setStoredToken(value: string): Promise<void> {
-  try {
-    await secureSet(TOKEN_KEY, value);
-  } catch (e) {
-    // ignore
-  }
+  // store the normalized (trimmed) password
+  await secureSet(TOKEN_KEY, String(value).trim());
 }
 
 export async function clearStoredToken(): Promise<void> {
+  await secureRemove(TOKEN_KEY);
+}
+
+/* ---------- core logic ---------- */
+
+/**
+ * Should we prompt the user for password?
+ * Returns true if remote password exists and stored token doesn't match it.
+ * If fetching remote fails, returns false (do not prompt) — you can change this behavior if you prefer stricter checks.
+ */
+export async function shouldPromptForPassword(): Promise<boolean> {
   try {
-    await secureRemove(TOKEN_KEY);
+    const remote = await fetchRemotePassword();
+    if (!remote) {
+      // couldn't fetch remote; conservative choice: don't prompt (app keeps working).
+      // If you prefer to force prompt when remote unreachable, return true here.
+      return false;
+    }
+
+    const stored = await getStoredToken();
+
+    // compare trimmed strings safely
+    const remotePwd = remote.password ? String(remote.password).trim() : null;
+    const storedPwd = stored ? String(stored).trim() : null;
+
+    return storedPwd !== remotePwd;
   } catch (e) {
-    // ignore
+    console.warn("[shouldPromptForPassword] error", e);
+    return false;
   }
 }
 
-export async function shouldPromptForPassword(): Promise<boolean> {
-  const remote = await fetchRemotePassword();
-  if (!remote) return false;
-  const stored = await getStoredToken();
-  if (!stored) return true;
-  return stored !== remote;
-}
-
+/**
+ * Verify the provided password against the remote password (fresh fetch)
+ * If matches, store the remote password locally and return true.
+ */
 export async function verifyAndStore(
   passwordAttempt: string,
 ): Promise<boolean> {
-  const remote = await fetchRemotePassword();
-  if (!remote) return false;
-  if (passwordAttempt === remote) {
-    await setStoredToken(remote);
-    return true;
-  }
-  return false;
-}
+  try {
+    const remote = await fetchRemotePassword();
+    if (!remote) return false;
 
-clearStoredToken();
+    const remotePwd = remote.password ? String(remote.password).trim() : "";
+    const attempt = passwordAttempt ? String(passwordAttempt).trim() : "";
+
+    if (attempt === remotePwd) {
+      await setStoredToken(remotePwd);
+      return true;
+    }
+    return false;
+  } catch (e) {
+    console.warn("[verifyAndStore] error", e);
+    return false;
+  }
+}

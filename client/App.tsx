@@ -1,17 +1,17 @@
-import React, { useState } from "react";
+import React from "react";
 import { StyleSheet, LogBox, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { StatusBar } from "expo-status-bar";
+import { useFonts } from "expo-font";
 
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
 import { LanguageProvider } from "@/context/LanguageContext";
 
 import RootStackNavigator from "@/navigation/RootStackNavigator";
-import { PasswordModal } from "@/components/PasswordModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 if (Platform.OS === "web") {
@@ -19,7 +19,15 @@ if (Platform.OS === "web") {
 }
 
 export default function App() {
-  const [ready, setReady] = useState(false);
+
+  const [fontsLoaded] = useFonts({
+    Inter: require("./../assets/fonts/Cairo-SemiBold.ttf"), // <-- change to your font
+  });
+
+  if (!fontsLoaded) {
+    return null; // wait until font loads
+  }
+
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -28,9 +36,8 @@ export default function App() {
             <GestureHandlerRootView style={styles.root}>
               <KeyboardProvider>
                 <NavigationContainer>
-                  {ready ? <RootStackNavigator /> : null}
+                  <RootStackNavigator />
                 </NavigationContainer>
-                <PasswordModal onReady={() => setReady(true)} />
                 <StatusBar style="light" />
               </KeyboardProvider>
             </GestureHandlerRootView>
@@ -42,7 +49,5 @@ export default function App() {
 }
 
 const styles = StyleSheet.create({
-  root: {
-    flex: 1,
-  },
+  root: { flex: 1 },
 });

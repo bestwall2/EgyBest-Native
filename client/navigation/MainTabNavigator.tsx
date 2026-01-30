@@ -29,7 +29,7 @@ export default function MainTabNavigator() {
         tabBarInactiveTintColor: theme.tabIconDefault,
         tabBarStyle: {
           position: "absolute",
-          backgroundColor: "transparent",
+          backgroundColor: "black",
           borderTopWidth: 0,
           elevation: 0,
         },

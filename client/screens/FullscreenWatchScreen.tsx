@@ -1,33 +1,20 @@
-import React, { useEffect, useRef } from "react";
-import { View, StyleSheet, Dimensions, Pressable } from "react-native";
+import React, { useEffect, useRef, useCallback, useMemo } from "react";
+import { View, StyleSheet, Pressable, Dimensions } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { WebView } from "react-native-webview";
 import { Feather } from "@expo/vector-icons";
 import * as ScreenOrientation from "expo-screen-orientation";
-import { StatusBar, setStatusBarHidden } from "expo-status-bar";
+import { setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
+const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const injectedJavaScript = `
 (function() {
   // prevent popups
   window.open = () => null;
   window.alert = () => null;
-
-  // XHR interception
-  const open = XMLHttpRequest.prototype.open;
-  XMLHttpRequest.prototype.open = function() {
-    this.addEventListener('load', function() {
-      if (this.responseURL && window.ReactNativeWebView) {
-        const url = this.responseURL;
-        if (url.match(/\\.(m3u8|m3u|mp4|avi|mov|wmv|flv|webm|ogv|mkv)$/i) || url.includes('workers.dev')) {
-          window.ReactNativeWebView.postMessage(JSON.stringify({ type: 'VIDEO_LINK', payload: url }));
-        }
-      }
-    });
-    open.apply(this, arguments);
-  };
 
   // fetch interception
   const originalFetch = window.fetch;
@@ -45,21 +32,15 @@ const injectedJavaScript = `
     });
   };
 
-  // Function to remove only top navigation / back-to-home
+  // Remove navbar + back buttons
   const hideNavbarElements = () => {
     try {
-      // Remove top site header (navbar)
       document.querySelectorAll('div').forEach(el => {
         const cls = el.className || '';
         if (typeof cls === 'string' && cls.includes('pointer-events-auto') && cls.includes('top-0') && el.children.length > 0) {
-          // Only remove if it is NOT a video player container (e.g., check if it contains video element)
-          if (!el.querySelector('video')) {
-            el.remove();
-          }
+          if (!el.querySelector('video')) el.remove();
         }
       });
-
-      // Remove back-to-home button specifically
       document.querySelectorAll('a').forEach(a => {
         const text = (a.innerText || '').toLowerCase();
         const cls = a.className || '';
@@ -69,41 +50,191 @@ const injectedJavaScript = `
       });
     } catch(e) {}
   };
-
-  // Run immediately and keep observing
   hideNavbarElements();
   const observer = new MutationObserver(hideNavbarElements);
   observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
   setInterval(hideNavbarElements, 300);
 
+  // Block redirects
+  const block = (fnName) => {
+    const original = window.location[fnName];
+    window.location[fnName] = function(url) {
+      console.log("🚫 Redirect blocked:", url);
+      return null;
+    };
+  };
+  block("assign");
+  block("replace");
+
+  // Block direct href changes
+  let lastHref = location.href;
+  Object.defineProperty(window.location, "href", {
+    set: function(url) { console.log("🚫 Redirect blocked:", url); return lastHref; },
+    get: function() { return lastHref; }
+  });
+
 })();
 true;
 `;
 
-
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
-type FullscreenWatchRouteProp = RouteProp<RootStackParamList, "FullscreenWatch">;
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
-const VIDEO_HEIGHT = SCREEN_WIDTH * (9 / 16); // This might not be needed for full screen
+type FullscreenWatchRouteProp = RouteProp<
+  RootStackParamList,
+  "FullscreenWatch"
+>;
 
 export default function FullscreenWatchScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<FullscreenWatchRouteProp>();
-  const { videoUrl } = route.params; // Expect videoUrl to be passed
+  const { videoUrl } = route.params;
   const webViewRef = useRef<WebView>(null);
 
-  // Extract baseVideoUrlPath: This ensures we stay within the video content path for aether.mom
-  const baseVideoUrlPath = videoUrl.includes('/media/') ? videoUrl.substring(0, videoUrl.indexOf('/media/') + 7) : videoUrl;
+  const pauseMedia = () => {
+    webViewRef.current?.injectJavaScript(`
+      (function() {
+        document.querySelectorAll('video, audio').forEach(m => m.pause());
+      })();
+      true;
+    `);
+  };
+
+  const getHostname = useCallback((url: string) => {
+    try {
+      return new URL(url).hostname;
+    } catch {
+      return "";
+    }
+  }, []);
+
+  const isMediaFile = useCallback((url: string) => {
+    return /\.(mp4|mkv|webm|avi|mov|wmv|flv|ts|m3u8)$/i.test(url);
+  }, []);
+
+  const isSubtitleFile = useCallback((url: string) => {
+    return /\.(srt|vtt|ass|ssa|sub|sbv|ttml)$/i.test(url);
+  }, []);
+
+  const hasWorkerInUrl = useCallback((url: string) => {
+    return url.toLowerCase().includes("worker");
+  }, []);
+
+  const isTMDBRequest = useCallback((url: string) => {
+    const u = url.toLowerCase();
+    return (
+      u.includes("themoviedb.org") ||
+      u.includes("tmdb.org") ||
+      u.includes("image.tmdb.org")
+    );
+  }, []);
+
+  const isProxyRequest = useCallback((url: string) => {
+    const u = url.toLowerCase();
+    return u.includes("workers.dev") && u.includes("destination=");
+  }, []);
+
+  const areHostnamesRelated = useCallback((host1: string, host2: string) => {
+    if (host1 === host2) return true;
+    const extractWords = (h: string) =>
+      h
+        .replace(
+          /\.(com|net|org|io|ru|tv|me|to|co|app|dev|cc|xyz|live|stream|watch|video|site|online|pro|info|biz)$/i,
+          "",
+        )
+        .split(/[.\-_]/)
+        .filter((p) => p.length >= 3 && !/^\d+$/.test(p));
+    const w1 = extractWords(host1.toLowerCase());
+    const w2 = extractWords(host2.toLowerCase());
+    return (
+      w1.some((w) => w2.includes(w)) ||
+      w1.some((w1w) => w2.some((w2w) => w1w.includes(w2w) || w2w.includes(w1w)))
+    );
+  }, []);
+
+  const handleShouldStartLoadWithRequest = useCallback(
+    (request: any) => {
+      const url = request.url;
+      if (!url) return false;
+      const host = getHostname(url);
+      const initialHost = getHostname(videoUrl);
+
+      // Allow everything needed
+      if (
+        isMediaFile(url) ||
+        isSubtitleFile(url) ||
+        hasWorkerInUrl(url) ||
+        isTMDBRequest(url) ||
+        isProxyRequest(url) ||
+        areHostnamesRelated(initialHost, host)
+      )
+        return true;
+
+      // Allow common CDNs
+      const allowedCDNs = [
+        "cdnjs.cloudflare.com",
+        "cdn.jsdelivr.net",
+        "cloudnestra.com",
+        "workers.dev",
+        "lordflix.club",
+        "www.gstatic.com",
+        "unpkg.com",
+        "fonts.googleapis.com",
+        "fonts.gstatic.com",
+        "cloudflare.com",
+        "fastly.net",
+        "akamaihd.net",
+        "cloudfront.net",
+      ];
+      if (allowedCDNs.some((cdn) => host.includes(cdn))) return true;
+
+      // Block ads
+      const adDomains = [
+        "doubleclick",
+        "googleads",
+        "googlesyndication",
+        "adservice",
+        "advertising",
+        "adserver",
+        "adsystem",
+        "betting",
+        "casino",
+        "gamble",
+        "gambling",
+        "poker",
+        "popads",
+        "popcash",
+        "exoclick",
+        "propeller",
+        "mgid",
+        "revcontent",
+        "taboola",
+        "outbrain",
+      ];
+      if (adDomains.some((ad) => host.includes(ad))) return false;
+
+      console.log("❌ BLOCKED unrelated navigation:", url);
+      return false;
+    },
+    [
+      videoUrl,
+      getHostname,
+      isMediaFile,
+      isSubtitleFile,
+      hasWorkerInUrl,
+      isTMDBRequest,
+      isProxyRequest,
+      areHostnamesRelated,
+    ],
+  );
 
   useEffect(() => {
-    // Set to landscape and hide status bar on mount
-    ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.LANDSCAPE_LEFT);
+    ScreenOrientation.lockAsync(
+      ScreenOrientation.OrientationLock.LANDSCAPE_LEFT,
+    );
     setStatusBarHidden(true, "fade");
-
     return () => {
-      // Revert to portrait and show status bar on unmount
-      ScreenOrientation.lockAsync(ScreenOrientation.OrientationLock.PORTRAIT_UP);
+      ScreenOrientation.lockAsync(
+        ScreenOrientation.OrientationLock.PORTRAIT_UP,
+      );
       setStatusBarHidden(false, "fade");
     };
   }, []);
@@ -111,11 +242,15 @@ export default function FullscreenWatchScreen() {
   return (
     <View style={styles.container}>
       <Pressable
-        onPress={() => navigation.goBack()}
+        onPress={() => {
+          pauseMedia();
+          navigation.goBack();
+        }}
         style={styles.backButton}
       >
-        <Feather name="x" size={24} color="#FFFFFF" />
+        <Feather name="x" size={24} color="#FFF" />
       </Pressable>
+
       <WebView
         ref={webViewRef}
         source={{ uri: videoUrl }}
@@ -125,84 +260,43 @@ export default function FullscreenWatchScreen() {
         mediaPlaybackRequiresUserAction={false}
         javaScriptEnabled
         domStorageEnabled
-        injectedJavaScriptBeforeContentLoaded={injectedJavaScript} // <-- run early
-        injectedJavaScript={injectedJavaScript} 
-        onShouldStartLoadWithRequest={(event) => {
-          const requestedUrl = event.url;
-          if (typeof requestedUrl !== 'string') {
-            return false;
-          }
-
-          // In FullscreenWatchScreen, videoUrl is passed directly, so use its hostname for comparison
-          let initialVideoHostname: string;
-          try {
-            initialVideoHostname = new URL(videoUrl).hostname;
-          } catch (e) {
-            initialVideoHostname = ''; // Fallback for invalid videoUrl
-          }
-
-          let requestHost: string;
-          try {
-            requestHost = new URL(requestedUrl).hostname;
-          } catch (e) {
-            return false; // Invalid URL
-          }
-
-          // Always allow internal navigation (e.g., about:blank, about:srcdoc)
-          if (requestedUrl.startsWith('about:')) {
-            return true;
-          }
-
-          // Special handling for aether.mom and legacy.aether.mom
-          if (requestHost === 'aether.mom' || requestHost === 'legacy.aether.mom') {
-            // Block the root domains without /media/
-            if (requestedUrl === 'https://aether.mom/' || requestedUrl === 'https://legacy.aether.mom/') {
-              return false;
-            }
-            // Allow anything that contains /media/ under these domains
-            if (requestedUrl.includes('aether.mom/media/')) { // This covers both aether.mom/media/ and legacy.aether.mom/media/
-              return true;
-            }
-            // If it's aether.mom or legacy.aether.mom but not /media/, block it
-            return false;
-          }
-
-          // For all other servers, allow navigation if the hostnames are the same as the initial video URL
-          if (initialVideoHostname === requestHost) {
-            return true;
-          }
-
-          // Block all other navigations
-          return false;
-        }}
-        onNavigationStateChange={(navState) => {
-          // Only proceed if navState.url is not the initial videoUrl and not an internal about: scheme
-          if (navState.url !== videoUrl && !navState.url.startsWith('about:')) {
-            if (webViewRef.current) {
-              webViewRef.current.stopLoading();
-            }
-          }
-        }}
+        injectedJavaScriptBeforeContentLoaded={injectedJavaScript}
         injectedJavaScript={injectedJavaScript}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        onNavigationStateChange={(navState) => {
+          const navUrl = navState.url;
+          const host = getHostname(navUrl);
+          const initialHost = getHostname(videoUrl);
+
+          if (
+            !isMediaFile(navUrl) &&
+            !isSubtitleFile(navUrl) &&
+            !hasWorkerInUrl(navUrl) &&
+            !isTMDBRequest(navUrl) &&
+            !areHostnamesRelated(initialHost, host) &&
+            !isProxyRequest(navUrl)
+          ) {
+            console.log("⚠️ STOPPED unrelated navigation:", navUrl);
+            webViewRef.current?.stopLoading();
+          }
+        }}
+        originWhitelist={["*"]}
+        mixedContentMode="always"
+        thirdPartyCookiesEnabled
+        sharedCookiesEnabled
       />
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
-  webView: {
-    flex: 1,
-    backgroundColor: "#000",
-  },
+  container: { flex: 1, backgroundColor: "#000" },
+  webView: { flex: 1, backgroundColor: "#000" },
   backButton: {
     position: "absolute",
-    top: 20, // Adjust as needed for safe area
-    left: 20, // Adjust as needed for safe area
-    zIndex: 1,
+    top: 20,
+    left: 20,
+    zIndex: 10,
     padding: 10,
     backgroundColor: "rgba(0,0,0,0.5)",
     borderRadius: 20,
