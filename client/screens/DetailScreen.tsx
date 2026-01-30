@@ -4,7 +4,6 @@ import {
   ScrollView,
   StyleSheet,
   Pressable,
-  Dimensions,
   Share,
   FlatList,
   ActivityIndicator,
@@ -319,13 +318,6 @@ export default function DetailScreen() {
               color="#FFFFFF"
             />
           </Pressable>
-          <ThemedText
-            type="logo"
-            style={[styles.logo, { color: theme.primary }]}
-          >
-            EGYBEST
-          </ThemedText>
-          <View style={{ width: 40 }} />
         </View>
       </View>
 

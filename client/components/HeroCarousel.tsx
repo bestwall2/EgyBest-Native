@@ -338,7 +338,7 @@ const styles = StyleSheet.create({
     position: "absolute",
     left: 0,
     right: 0,
-    bottom: 50,
+    bottom: 40,
     paddingHorizontal: Spacing.lg,
   },
   badgeRow: {
@@ -367,17 +367,17 @@ const styles = StyleSheet.create({
     fontSize: 11,
   },
   title: {
-    fontSize: 30,
-    marginBottom: 10,
-    lineHeight: 30,
+    fontSize: 24,
+    marginBottom: 8,
+    lineHeight: 28,
     textShadowColor: "rgba(0,0,0,0.5)",
     textShadowOffset: { width: 0, height: 2 },
     textShadowRadius: 4,
   },
   logoTitle: {
-    width: 200,
-    height: 80,
-    marginBottom: 15,
+    width: 160,
+    height: 64,
+    marginBottom: 12,
     alignSelf: "flex-start",
   },
   overview: {
@@ -390,7 +390,7 @@ const styles = StyleSheet.create({
     gap: Spacing.md,
   },
   heroButtonWrapper: {
-    borderRadius: BorderRadius.sm,
+    borderRadius: BorderRadius.full,
     overflow: "hidden",
   },
   heroButton: {
@@ -412,6 +412,7 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 14,
+    fontWeight: "600",
     letterSpacing: 0.5,
   },
   dotsContainer: {

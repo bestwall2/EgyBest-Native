@@ -1,5 +1,5 @@
 import React from "react";
-import { View, StyleSheet, Image } from "react-native";
+import { View, StyleSheet } from "react-native";
 import { ThemedText } from "@/components/ThemedText";
 import { Button } from "@/components/Button";
 import { useTheme } from "@/hooks/useTheme";
@@ -14,7 +14,6 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  image = require("../../assets/images/icon.png"),
   title,
   message,
   actionLabel,
@@ -24,7 +23,6 @@ export function EmptyState({
 
   return (
     <View style={styles.container}>
-      <Image source={image} style={styles.image} resizeMode="contain" />
       <ThemedText style={styles.title}>{title}</ThemedText>
       <ThemedText style={[styles.message, { color: theme.textSecondary }]}>
         {message}
@@ -44,12 +42,6 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     alignItems: "center",
     padding: Spacing["3xl"],
-  },
-  image: {
-    width: 180,
-    height: 180,
-    marginBottom: Spacing.xl,
-    opacity: 0.9,
   },
   title: {
     fontSize: 20,

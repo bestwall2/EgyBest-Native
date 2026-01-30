@@ -1,4 +1,5 @@
 import axios from "axios";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import {
   Movie,
   TVShow,
@@ -14,6 +15,15 @@ import { getApiUrl } from "@/lib/query-client";
 const api = axios.create({
   baseURL: getApiUrl(),
   timeout: 15000,
+});
+
+api.interceptors.request.use(async (config) => {
+  const language = (await AsyncStorage.getItem("user-language")) || "ar";
+  config.params = {
+    ...config.params,
+    language,
+  };
+  return config;
 });
 
 // Movies
