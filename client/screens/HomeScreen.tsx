@@ -118,8 +118,9 @@ export default function HomeScreen() {
   }, [navigation]);
 
   const handleExploreAll = useCallback(
-    (title: string, endpoint: string, mediaType: MediaType) => {
-      navigation.navigate("ExploreAll", { title, endpoint, mediaType });
+    (_title: string, _endpoint: string, _mediaType: MediaType) => {
+      // Open the Browse tab instead of the removed ExploreAll screen
+      navigation.navigate("BrowseTab");
     },
     [navigation],
   );

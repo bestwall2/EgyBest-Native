@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { StyleSheet, LogBox, Platform } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
@@ -11,6 +11,7 @@ import { queryClient } from "@/lib/query-client";
 import { LanguageProvider } from "@/context/LanguageContext";
 
 import RootStackNavigator from "@/navigation/RootStackNavigator";
+import { PasswordModal } from "@/components/PasswordModal";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
 
 if (Platform.OS === "web") {
@@ -18,6 +19,7 @@ if (Platform.OS === "web") {
 }
 
 export default function App() {
+  const [ready, setReady] = useState(false);
   return (
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
@@ -26,8 +28,9 @@ export default function App() {
             <GestureHandlerRootView style={styles.root}>
               <KeyboardProvider>
                 <NavigationContainer>
-                  <RootStackNavigator />
+                  {ready ? <RootStackNavigator /> : null}
                 </NavigationContainer>
+                <PasswordModal onReady={() => setReady(true)} />
                 <StatusBar style="light" />
               </KeyboardProvider>
             </GestureHandlerRootView>

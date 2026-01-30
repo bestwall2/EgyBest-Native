@@ -30,6 +30,8 @@ export function HorizontalList({
 }: HorizontalListProps) {
   const { theme } = useTheme();
 
+  const safeData = Array.isArray(data) ? data : [];
+
   if (isLoading) {
     return (
       <View style={styles.container}>
@@ -48,7 +50,7 @@ export function HorizontalList({
     );
   }
 
-  if (data.length === 0) {
+  if (safeData.length === 0) {
     return null;
   }
 
@@ -78,7 +80,7 @@ export function HorizontalList({
       </View>
       <FlatList
         horizontal
-        data={data}
+        data={safeData}
         keyExtractor={(item) =>
           `${mediaType || (isMovie(item) ? "movie" : "tv")}-${item.id}`
         }

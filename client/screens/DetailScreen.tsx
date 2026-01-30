@@ -256,8 +256,10 @@ export default function DetailScreen() {
     "runtime" in details ? details.runtime : details.episode_run_time?.[0] || 0;
   const backdropUrl = getImageUrl(details.backdrop_path, "backdrop", "large");
   const posterUrl = getImageUrl(details.poster_path, "poster", "large");
-  const cast = details.credits?.cast?.slice(0, 10) || [];
-  const crew = details.credits?.crew || [];
+  const cast = Array.isArray(details.credits?.cast)
+    ? details.credits.cast.slice(0, 10)
+    : [];
+  const crew = Array.isArray(details.credits?.crew) ? details.credits.crew : [];
   const directors = crew
     .filter((member) => member.job === "Director")
     .map((m) => m.name)
@@ -275,7 +277,9 @@ export default function DetailScreen() {
   const trailer = details.videos?.results?.find(
     (v) => v.type === "Trailer" && v.site === "YouTube",
   );
-  const similar = details.similar?.results?.slice(0, 10) || [];
+  const similar = Array.isArray(details.similar?.results)
+    ? details.similar.results.slice(0, 10)
+    : [];
   const genres = details.genres?.map((g) => g.name).join(", ");
 
   const formatCurrency = (amount: number) => {
@@ -468,7 +472,7 @@ export default function DetailScreen() {
                 >
                   {details.overview}
                 </ThemedText>
-                {details.overview.length > 200 ? (
+                {details.overview && details.overview.length > 200 ? (
                   <ThemedText
                     style={[styles.readMore, { color: theme.primary }]}
                   >
@@ -539,7 +543,7 @@ export default function DetailScreen() {
             </View>
           </Animated.View>
 
-          {cast.length > 0 ? (
+          {Array.isArray(cast) && cast.length > 0 ? (
             <Animated.View
               entering={FadeInUp.delay(200).duration(300)}
               style={styles.section}
@@ -561,7 +565,7 @@ export default function DetailScreen() {
             </Animated.View>
           ) : null}
 
-          {similar.length > 0 ? (
+          {Array.isArray(similar) && similar.length > 0 ? (
             <Animated.View
               entering={FadeInUp.delay(300).duration(300)}
               style={styles.section}

@@ -5,7 +5,7 @@ import DetailScreen from "@/screens/DetailScreen";
 import WatchScreen from "@/screens/WatchScreen";
 import PersonScreen from "@/screens/PersonScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
-import ExploreAllScreen from "@/screens/ExploreAllScreen";
+// ExploreAllScreen removed
 import FullscreenWatchScreen from "@/screens/FullscreenWatchScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { MediaType } from "@/types/tmdb";
@@ -23,7 +23,7 @@ export type RootStackParamList = {
   };
   Person: { id: number };
   Settings: undefined;
-  ExploreAll: { title: string; endpoint: string; mediaType: MediaType };
+  // ExploreAll route removed
   FullscreenWatch: { videoUrl: string };
 };
 
@@ -75,13 +75,7 @@ export default function RootStackNavigator() {
           headerShown: false,
         }}
       />
-      <Stack.Screen
-        name="ExploreAll"
-        component={ExploreAllScreen}
-        options={{
-          headerShown: false,
-        }}
-      />
+      {/* ExploreAll screen removed */}
       <Stack.Screen
         name="FullscreenWatch"
         component={FullscreenWatchScreen}

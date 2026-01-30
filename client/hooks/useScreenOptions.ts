@@ -20,8 +20,8 @@ export function useScreenOptions({
     headerTintColor: theme.text,
     headerStyle: {
       backgroundColor: Platform.select({
-        ios: undefined,
-        android: theme.backgroundRoot,
+        ios: "transparent",
+        android: "transparent",
         web: theme.backgroundRoot,
       }),
     },

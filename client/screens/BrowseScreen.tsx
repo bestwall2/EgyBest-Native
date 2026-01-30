@@ -74,6 +74,12 @@ export default function BrowseScreen() {
     queryKey: [discoverEndpoint + queryParams],
     initialPageParam: 1,
     getNextPageParam: (lastPage) => {
+      if (!lastPage || !lastPage.results) return undefined;
+      if (
+        typeof lastPage.page !== "number" ||
+        typeof lastPage.total_pages !== "number"
+      )
+        return undefined;
       if (lastPage.page < lastPage.total_pages) {
         return lastPage.page + 1;
       }
@@ -101,7 +107,10 @@ export default function BrowseScreen() {
     setSelectedGenreId(null);
   }, []);
 
-  const allItems = discoverData?.pages.flatMap((page) => page.results) || [];
+  const allItems =
+    discoverData?.pages?.flatMap((page) =>
+      Array.isArray(page?.results) ? page.results : [],
+    ) || [];
 
   const renderItem = useCallback(
     ({ item }: { item: Movie | TVShow }) => {

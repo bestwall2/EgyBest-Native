@@ -3,9 +3,11 @@
   "main": "client/index.js",
   "version": "1.0.0",
   "scripts": {
-    "expo:dev": "EXPO_PACKAGER_PROXY_URL=https://$REPLIT_DEV_DOMAIN REACT_NATIVE_PACKAGER_HOSTNAME=$REPLIT_DEV_DOMAIN EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 npx expo start --localhost",
+    "expo:dev": "EXPO_PUBLIC_DOMAIN=$REPLIT_DEV_DOMAIN:5000 npx expo start --localhost",
     "npm ": "NODE_ENV=development tsx server/index.ts",
     "dev:server": "NODE_ENV=development tsx server/index.ts",
+    "dev:expo": "npx expo start --tunnel",
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:expo\"",
     "expo:start:static:build": "npx expo start --no-dev --minify --localhost",
     "expo:static:build": "node scripts/build.js",
     "server:build": "esbuild server/index.ts --platform=node --packages=external --bundle --format=esm --outdir=server_dist",
@@ -70,10 +72,12 @@
     "zod-validation-error": "^3.4.0"
   },
   "devDependencies": {
+    "@expo/ngrok": "^4.1.3",
     "@types/express": "^5.0.0",
     "@types/node": "24.10.0",
     "@types/react": "~19.1.0",
     "babel-plugin-module-resolver": "^5.0.2",
+    "concurrently": "^9.2.1",
     "drizzle-kit": "^0.31.4",
     "eslint": "^9.25.0",
     "eslint-config-expo": "~10.0.0",
