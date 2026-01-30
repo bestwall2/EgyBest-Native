@@ -54,7 +54,7 @@ export function NavHeader({
         ]}
       />
 
-      <View style={[styles.content, isRTL && { flexDirection: "row-reverse" }]}>
+      <View style={styles.content}>
         <NavButton icon="settings" onPress={onSettingsPress} />
 
         <View style={styles.logoContainer}>

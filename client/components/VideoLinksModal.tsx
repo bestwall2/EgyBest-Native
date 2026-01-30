@@ -5,6 +5,7 @@ import { Feather } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 
 import { useTheme } from '@/hooks/useTheme';
+import { useLanguage } from '@/context/LanguageContext';
 import { Spacing, BorderRadius } from '@/constants/theme';
 import { ThemedText } from './ThemedText';
 
@@ -17,6 +18,7 @@ interface VideoLinksModalProps {
 export const VideoLinksModal: React.FC<VideoLinksModalProps> = ({ isVisible, links, onClose }) => {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
 
   const copyToClipboard = (link: string) => {
     Clipboard.setString(link);
@@ -47,11 +49,17 @@ export const VideoLinksModal: React.FC<VideoLinksModalProps> = ({ isVisible, lin
         <View style={[styles.modalView, { backgroundColor: theme.backgroundRoot, paddingTop: insets.top }]}>
           <Pressable
             onPress={onClose}
-            style={[styles.closeButton, { backgroundColor: theme.backgroundSecondary }]}
+            style={[
+              styles.closeButton,
+              {
+                backgroundColor: theme.backgroundSecondary,
+                [isRTL ? 'left' : 'right']: Spacing.md
+              }
+            ]}
           >
             <Feather name="x" size={24} color={theme.text} />
           </Pressable>
-          <ThemedText style={styles.modalTitle}>Captured Video Links</ThemedText>
+          <ThemedText style={styles.modalTitle}>{t("captured_links")}</ThemedText>
           {links.length > 0 ? (
             <FlatList
               data={links}
@@ -64,7 +72,7 @@ export const VideoLinksModal: React.FC<VideoLinksModalProps> = ({ isVisible, lin
             <View style={styles.noLinksContainer}>
               <Feather name="info" size={40} color={theme.textSecondary} />
               <ThemedText style={[styles.noLinksText, { color: theme.textSecondary }]}>
-                No video links captured yet.
+                {t("no_links_captured")}
               </ThemedText>
             </View>
           )}
@@ -100,7 +108,6 @@ const styles = StyleSheet.create({
   closeButton: {
     position: 'absolute',
     top: Spacing.md,
-    right: Spacing.md,
     zIndex: 1,
     width: 36,
     height: 36,
@@ -129,7 +136,7 @@ const styles = StyleSheet.create({
   },
   linkText: {
     flex: 1,
-    marginRight: Spacing.md,
+    marginEnd: Spacing.md,
     fontSize: 14,
   },
   copyButton: {

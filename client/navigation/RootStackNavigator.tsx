@@ -6,6 +6,7 @@ import WatchScreen from "@/screens/WatchScreen";
 import PersonScreen from "@/screens/PersonScreen";
 import SettingsScreen from "@/screens/SettingsScreen";
 import FullscreenWatchScreen from "@/screens/FullscreenWatchScreen";
+import ExploreAllScreen from "@/screens/ExploreAllScreen";
 import { useScreenOptions } from "@/hooks/useScreenOptions";
 import { MediaType } from "@/types/tmdb";
 import { PasswordModal } from "@/components/PasswordModal";
@@ -24,6 +25,7 @@ export type RootStackParamList = {
   Person: { id: number };
   Settings: undefined;
   FullscreenWatch: { videoUrl: string };
+  ExploreAll: { title: string; endpoint: string; mediaType: MediaType };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -76,6 +78,11 @@ export default function RootStackNavigator() {
         <Stack.Screen
           name="FullscreenWatch"
           component={FullscreenWatchScreen}
+          options={{ headerShown: false }}
+        />
+        <Stack.Screen
+          name="ExploreAll"
+          component={ExploreAllScreen}
           options={{ headerShown: false }}
         />
       </Stack.Navigator>

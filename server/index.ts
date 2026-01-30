@@ -199,30 +199,34 @@ function setupErrorHandler(app: express.Application) {
   });
 }
 
-(async () => {
-  // Add status endpoint first
-  app.get("/api/status", (_req, res) => {
-    res.json({ status: "ok", timestamp: new Date().toISOString() });
+// Initialize app components
+app.get("/api/status", (_req, res) => {
+  res.json({ status: "ok", timestamp: new Date().toISOString() });
+});
+
+setupCors(app);
+setupBodyParsing(app);
+setupRequestLogging(app);
+configureExpoAndLanding(app);
+
+// Use a promise to track initialization
+const routesRegistered = registerRoutes(app);
+setupErrorHandler(app);
+
+// Start server only if not running as a serverless function (Vercel)
+if (process.env.NODE_ENV !== "production" || !process.env.VERCEL) {
+  routesRegistered.then((server) => {
+    const port = parseInt(process.env.PORT || "5000", 10);
+    server.listen(
+      {
+        port,
+        host: "0.0.0.0",
+      },
+      () => {
+        log(`express server serving on port ${port}`);
+      },
+    );
   });
+}
 
-  setupCors(app);
-  setupBodyParsing(app);
-  setupRequestLogging(app);
-
-  configureExpoAndLanding(app);
-
-  const server = await registerRoutes(app);
-
-  setupErrorHandler(app);
-
-  const port = parseInt(process.env.PORT || "5000", 10);
-  server.listen(
-    {
-      port,
-      host: "0.0.0.0",
-    },
-    () => {
-      log(`express server serving on port ${port}`);
-    },
-  );
-})();
+export default app;

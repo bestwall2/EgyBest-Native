@@ -5,6 +5,7 @@ import { ThemedText } from "@/components/ThemedText";
 import { MediaCard } from "@/components/MediaCard";
 import { MediaCardSkeleton } from "@/components/SkeletonLoader";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, Typography, BorderRadius } from "@/constants/theme";
 import { Movie, TVShow, MediaType } from "@/types/tmdb";
 import { isMovie } from "@/utils/helpers";
@@ -29,6 +30,7 @@ export function HorizontalList({
   showSeeAll = false,
 }: HorizontalListProps) {
   const { theme } = useTheme();
+  const { t, isRTL } = useLanguage();
 
   const safeData = Array.isArray(data) ? data : [];
 
@@ -72,9 +74,13 @@ export function HorizontalList({
             ]}
           >
             <ThemedText style={[styles.seeAllText, { color: theme.primary }]}>
-              Explore All
+              {t("explore_all")}
             </ThemedText>
-            <Feather name="chevron-right" size={16} color={theme.primary} />
+            <Feather
+              name={isRTL ? "chevron-left" : "chevron-right"}
+              size={16}
+              color={theme.primary}
+            />
           </Pressable>
         ) : null}
       </View>

@@ -89,7 +89,7 @@ export function CastCard({ cast, onPress }: CastCardProps) {
 const styles = StyleSheet.create({
   container: {
     width: 80,
-    marginRight: Spacing.md,
+    marginEnd: Spacing.md,
     alignItems: "center",
   },
   imageContainer: {

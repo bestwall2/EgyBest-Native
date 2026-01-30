@@ -34,7 +34,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get("window");
 export default function PersonScreen() {
   const insets = useSafeAreaInsets();
   const { theme } = useTheme();
-  const { t , isRTL} = useLanguage();
+  const { language, t, isRTL } = useLanguage();
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<PersonRouteProp>();
   const { id } = route.params;
@@ -92,8 +92,8 @@ export default function PersonScreen() {
     .slice(0, 20);
 
   const formatDate = (date: string | null) => {
-    if (!date) return "Unknown";
-    return new Date(date).toLocaleDateString("en-US", {
+    if (!date) return t("unknown");
+    return new Date(date).toLocaleDateString(language === "ar" ? "ar-EG" : language === "fr" ? "fr-FR" : "en-US", {
       month: "long",
       day: "numeric",
       year: "numeric",
@@ -120,8 +120,10 @@ export default function PersonScreen() {
               onPress={() => navigation.goBack()}
               style={[
                 styles.backButton,
-                { top: insets.top + 10 },
-                isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+                {
+                  top: insets.top + 10,
+                  [isRTL ? "right" : "left"]: Spacing.lg
+                },
               ]}
             >
               <Feather
@@ -188,7 +190,7 @@ export default function PersonScreen() {
                     <ThemedText
                       style={[styles.statAge, { color: theme.textSecondary }]}
                     >
-                      ({age} years{person.deathday ? " old" : ""})
+                      ({age} {t("years")}{person.deathday ? ` ${t("old")}` : ""})
                     </ThemedText>
                   ) : null}
                 </View>

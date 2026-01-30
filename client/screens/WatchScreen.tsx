@@ -684,7 +684,7 @@ export default function WatchScreen() {
                       { color: theme.textSecondary },
                     ]}
                   >
-                    {item.runtime} min
+                    {item.runtime} {t("minutes")}
                   </ThemedText>
                 ) : null}
                 {item.air_date ? (
@@ -718,8 +718,10 @@ export default function WatchScreen() {
           onPress={() => navigation.goBack()}
           style={[
             styles.backButton,
-            { top: insets.top + 10 },
-            isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+            {
+              top: insets.top + 10,
+              [isRTL ? "right" : "left"]: Spacing.lg
+            },
           ]}
         >
           <Feather
@@ -736,8 +738,10 @@ export default function WatchScreen() {
           }}
           style={[
             styles.fullscreenButton,
-            { top: insets.top + 10 },
-            isRTL ? { left: Spacing.lg } : { right: Spacing.lg },
+            {
+              top: insets.top + 10,
+              [isRTL ? "left" : "right"]: Spacing.lg
+            },
           ]}
         >
           <Feather name="maximize" size={24} color="#FFFFFF" />
@@ -925,7 +929,7 @@ export default function WatchScreen() {
                   </View>
                 ) : (
                   <ThemedText style={{ padding: Spacing.lg }}>
-                    {t("no_episodes_found") ?? "No episodes found"}
+                    {t("no_episodes_found")}
                   </ThemedText>
                 )
               ) : (

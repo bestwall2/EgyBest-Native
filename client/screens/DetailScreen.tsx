@@ -176,7 +176,7 @@ export default function DetailScreen() {
     const title = "title" in details ? details.title : details.name;
     try {
       await Share.share({
-        message: `Check out ${title} on EGYBEST!`,
+        message: t("share_message").replace("{title}", title),
         title: title,
       });
     } catch {}
@@ -239,7 +239,7 @@ export default function DetailScreen() {
           <ThemedText
             style={[styles.errorMessage, { color: theme.textSecondary }]}
           >
-            {error?.message || "Something went wrong. Please try again."}
+            {error?.message || t("error_message")}
           </ThemedText>
           <Button onPress={() => refetch()} style={styles.retryButton}>
             {t("try_again")}
@@ -297,8 +297,10 @@ export default function DetailScreen() {
         onPress={() => navigation.goBack()}
         style={[
           styles.backButton,
-          { top: insets.top + 10 },
-          isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
+          {
+            top: insets.top + 10,
+            [isRTL ? "right" : "left"]: Spacing.lg
+          },
         ]}
       >
         <Feather
@@ -476,7 +478,7 @@ export default function DetailScreen() {
                   <ThemedText
                     style={[styles.readMore, { color: theme.primary }]}
                   >
-                    {showFullOverview ? "Show less" : "Read more"}
+                    {showFullOverview ? t("show_less") : t("read_more")}
                   </ThemedText>
                 ) : null}
               </Pressable>
@@ -732,7 +734,7 @@ const styles = StyleSheet.create({
   poster: { width: "100%", height: "100%" },
   metaContainer: {
     flex: 1,
-    marginLeft: Spacing.lg,
+    marginStart: Spacing.lg,
     justifyContent: "flex-end",
   },
   title: { fontSize: 22, fontWeight: "700", marginBottom: Spacing.sm },

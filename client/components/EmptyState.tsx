@@ -6,7 +6,7 @@ import { useTheme } from "@/hooks/useTheme";
 import { Spacing } from "@/constants/theme";
 
 interface EmptyStateProps {
-  image: any;
+  image?: any;
   title: string;
   message: string;
   actionLabel?: string;
@@ -14,7 +14,7 @@ interface EmptyStateProps {
 }
 
 export function EmptyState({
-  image,
+  image = require("../../assets/images/icon.png"),
   title,
   message,
   actionLabel,

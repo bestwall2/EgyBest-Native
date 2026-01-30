@@ -17,6 +17,7 @@ import { BlurView } from "expo-blur";
 
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 
 import {
@@ -31,6 +32,7 @@ interface Props {
 
 export const PasswordModal: React.FC<Props> = ({ onReady }) => {
   const { theme } = useTheme();
+  const { t } = useLanguage();
 
   const [visible, setVisible] = useState(false);
   const [value, setValue] = useState("");
@@ -132,16 +134,16 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
             { backgroundColor: theme.backgroundRoot + "ee" },
           ]}
         >
-          <ThemedText style={styles.title}>Enter Password</ThemedText>
+          <ThemedText style={styles.title}>{t("enter_password") || "Enter Password"}</ThemedText>
 
           <Text style={[styles.desc, { color: theme.textSecondary }]}>
-            If you don't have the password click Get Code
+            {t("password_desc") || "If you don\u2019t have the password click Get Code"}
           </Text>
 
           <TextInput
             value={value}
             onChangeText={setValue}
-            placeholder="Password"
+            placeholder={t("password") || "Password"}
             placeholderTextColor={theme.textSecondary}
             secureTextEntry
             style={[
@@ -171,7 +173,7 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.btnText}>Enter</Text>
+                <Text style={styles.btnText}>{t("enter") || "Enter"}</Text>
               )}
             </Pressable>
 
@@ -186,7 +188,7 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
               ]}
             >
               <Text style={{ fontWeight: "700", color: theme.text }}>
-                Get Code
+                {t("get_code") || "Get Code"}
               </Text>
             </Pressable>
           </View>

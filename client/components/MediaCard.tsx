@@ -211,7 +211,7 @@ export function HeroCard({
 
 const styles = StyleSheet.create({
   container: {
-    marginRight: Spacing.md,
+    marginEnd: Spacing.md,
   },
   posterContainer: {
     borderRadius: BorderRadius.md,
@@ -235,11 +235,11 @@ const styles = StyleSheet.create({
   ratingContainer: {
     position: "absolute",
     top: Spacing.xs,
-    right: Spacing.xs,
+    end: Spacing.xs,
   },
   info: {
     marginTop: Spacing.sm,
-    paddingRight: Spacing.xs,
+    paddingEnd: Spacing.xs,
   },
   title: {
     fontSize: 13,
