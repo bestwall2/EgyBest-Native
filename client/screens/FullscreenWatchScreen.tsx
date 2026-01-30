@@ -32,24 +32,55 @@ const injectedJavaScript = `
     });
   };
 
-  // Remove navbar + back buttons
-  const hideNavbarElements = () => {
-    try {
-      document.querySelectorAll('div').forEach(el => {
-        const cls = el.className || '';
-        if (typeof cls === 'string' && cls.includes('pointer-events-auto') && cls.includes('top-0') && el.children.length > 0) {
-          if (!el.querySelector('video')) el.remove();
-        }
-      });
-      document.querySelectorAll('a').forEach(a => {
-        const text = (a.innerText || '').toLowerCase();
-        const cls = a.className || '';
-        if (text.includes('back to home') || cls.includes('bg-buttons-cancel') || cls.includes('tabbable')) {
-          a.remove();
-        }
-      });
-    } catch(e) {}
-  };
+  
+const hideNavbarElements = () => {
+  try {
+    // Close popup only once
+    document.querySelectorAll(".popout-wrapper").forEach(wrapper => {
+      if (wrapper.dataset.closed === "true") return; // already closed
+
+      const closeBtn = wrapper.querySelector("button");
+
+      if (closeBtn) {
+        closeBtn.click();
+        wrapper.dataset.closed = "true"; // mark as closed
+      }
+    });
+
+    // Remove unwanted divs
+    document.querySelectorAll("div").forEach(el => {
+      const cls = el.className || "";
+
+      if (
+        typeof cls === "string" &&
+        cls.includes("pointer-events-auto") &&
+        cls.includes("top-0") &&
+        el.children.length > 0 &&
+        !el.querySelector("video")
+      ) {
+        el.remove();
+      }
+    });
+
+    // Remove unwanted links/buttons
+    document.querySelectorAll("a").forEach(a => {
+      const text = (a.innerText || "").toLowerCase();
+      const cls = a.className || "";
+
+      if (
+        text.includes("back to home") ||
+        cls.includes("bg-buttons-cancel") ||
+        cls.includes("tabbable")
+      ) {
+        a.remove();
+      }
+    });
+
+  } catch (e) {
+    console.error("hideNavbarElements error:", e);
+  }
+};
+
   hideNavbarElements();
   const observer = new MutationObserver(hideNavbarElements);
   observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
