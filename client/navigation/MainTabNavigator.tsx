@@ -9,6 +9,8 @@ import SearchStackNavigator from "@/navigation/SearchStackNavigator";
 import LibraryStackNavigator from "@/navigation/LibraryStackNavigator";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
+import { Fonts } from "@/constants/theme";
+import { ScalablePressable } from "@/components/ScalablePressable";
 
 export type MainTabParamList = {
   HomeTab: undefined;
@@ -29,12 +31,19 @@ export default function MainTabNavigator() {
       screenOptions={{
         tabBarActiveTintColor: theme.primary,
         tabBarInactiveTintColor: theme.tabIconDefault,
+        tabBarLabelStyle: {
+          fontFamily: Fonts.semiBold,
+          fontSize: 10,
+        },
         tabBarStyle: {
           position: "absolute",
           backgroundColor: "black",
           borderTopWidth: 0,
           elevation: 0,
         },
+        tabBarButton: (props) => (
+          <ScalablePressable {...(props as any)} scaleTo={0.9} />
+        ),
         tabBarBackground: () =>
           Platform.OS === "ios" ? (
             <BlurView

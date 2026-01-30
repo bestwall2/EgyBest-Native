@@ -1,5 +1,6 @@
 import { Text, type TextProps } from "react-native";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 import { Typography, Fonts } from "@/constants/theme";
 
 export type ThemedTextProps = TextProps & {
@@ -26,6 +27,7 @@ export function ThemedText({
   ...rest
 }: ThemedTextProps) {
   const { theme, isDark } = useTheme();
+  const { isRTL } = useLanguage();
 
   const color =
     isDark && darkColor
@@ -65,6 +67,7 @@ export function ThemedText({
           color,
           fontFamily: getFontFamily(),
           padding: 2, // Small padding to all text elements
+          textAlign: isRTL ? "right" : "left",
         },
         Typography[type === "logo" ? "h1" : type] || Typography.body,
         style,

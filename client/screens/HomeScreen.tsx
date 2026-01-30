@@ -117,12 +117,9 @@ export default function HomeScreen() {
     navigation.navigate("Settings");
   }, [navigation]);
 
-  const handleExploreAll = useCallback(
-    (title: string, endpoint: string, mediaType: MediaType) => {
-      navigation.navigate("ExploreAll", { title, endpoint, mediaType });
-    },
-    [navigation],
-  );
+  const handleExploreAll = useCallback(() => {
+    navigation.navigate("BrowseTab" as any);
+  }, [navigation]);
 
   const heroData = trendingAll?.results?.slice(0, 5) || [];
 
@@ -188,13 +185,7 @@ export default function HomeScreen() {
                 isLoading={loadingTrending}
                 onItemPress={handleItemPress}
                 showSeeAll
-                onSeeAllPress={() =>
-                  handleExploreAll(
-                    t("trending_movies"),
-                    "/api/tmdb/trending/movie/day",
-                    "movie",
-                  )
-                }
+                onSeeAllPress={handleExploreAll}
               />
             )}
 
@@ -208,13 +199,7 @@ export default function HomeScreen() {
                 isLoading={loadingPopular}
                 onItemPress={handleItemPress}
                 showSeeAll
-                onSeeAllPress={() =>
-                  handleExploreAll(
-                    t("popular_movies"),
-                    "/api/tmdb/movie/popular",
-                    "movie",
-                  )
-                }
+                onSeeAllPress={handleExploreAll}
               />
             )}
 
@@ -228,13 +213,7 @@ export default function HomeScreen() {
                 isLoading={loadingTopRated}
                 onItemPress={handleItemPress}
                 showSeeAll
-                onSeeAllPress={() =>
-                  handleExploreAll(
-                    t("top_rated"),
-                    "/api/tmdb/movie/top_rated",
-                    "movie",
-                  )
-                }
+                onSeeAllPress={handleExploreAll}
               />
             )}
 
@@ -248,13 +227,7 @@ export default function HomeScreen() {
                 isLoading={loadingTrendingTV}
                 onItemPress={handleItemPress}
                 showSeeAll
-                onSeeAllPress={() =>
-                  handleExploreAll(
-                    t("trending_tv"),
-                    "/api/tmdb/trending/tv/day",
-                    "tv",
-                  )
-                }
+                onSeeAllPress={handleExploreAll}
               />
             )}
 
@@ -268,13 +241,7 @@ export default function HomeScreen() {
                 isLoading={loadingPopularTV}
                 onItemPress={handleItemPress}
                 showSeeAll
-                onSeeAllPress={() =>
-                  handleExploreAll(
-                    t("popular_tv"),
-                    "/api/tmdb/tv/popular",
-                    "tv",
-                  )
-                }
+                onSeeAllPress={handleExploreAll}
               />
             )}
           </View>
