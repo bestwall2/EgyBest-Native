@@ -1,5 +1,12 @@
 import React, { useState, useRef } from "react";
-import { View, TextInput, StyleSheet, Pressable, Platform, I18nManager } from "react-native";
+import {
+  View,
+  TextInput,
+  StyleSheet,
+  Pressable,
+  Platform,
+  I18nManager,
+} from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -8,7 +15,7 @@ import Animated, {
 } from "react-native-reanimated";
 import { Feather } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/useTheme";
-import { BorderRadius, Spacing } from "@/constants/theme";
+import { BorderRadius, Spacing, Fonts } from "@/constants/theme";
 
 interface SearchBarProps {
   value: string;
@@ -130,6 +137,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     paddingVertical: Platform.OS === "ios" ? Spacing.sm : 0,
     textAlign: I18nManager.isRTL ? "right" : "left",
+    fontFamily: Fonts.semiBold, // Apply Cairo SemiBold to input
   },
   clearButton: {
     marginStart: Spacing.sm,

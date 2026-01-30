@@ -14,7 +14,7 @@ import * as Haptics from "expo-haptics";
 import { NavHeader } from "@/components/NavHeader";
 import { HeroCarousel } from "@/components/HeroCarousel";
 import { HorizontalList } from "@/components/HorizontalList";
-import { SectionSkeleton } from "@/components/SkeletonLoader";
+import { SectionSkeleton, HeroSkeleton } from "@/components/SkeletonLoader";
 import { EmptyState } from "@/components/EmptyState";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
@@ -87,8 +87,6 @@ export default function HomeScreen() {
     setRefreshing(false);
   }, [queryClient]);
 
-  
-
   const handleItemPress = useCallback(
     (id: number, mediaType: MediaType) => {
       navigation.navigate("Detail", { id, mediaType });
@@ -146,9 +144,7 @@ export default function HomeScreen() {
           <EmptyState
             image={require("../../assets/images/icon.png")}
             title={t("unable_load")}
-            message={
-              (error as any)?.message || t("error_message")
-            }
+            message={(error as any)?.message || t("error_message")}
             actionLabel={t("try_again")}
             onAction={handleRetry}
           />
@@ -172,7 +168,7 @@ export default function HomeScreen() {
           }
         >
           {loadingTrendingAll ? (
-            <View style={styles.heroPlaceholder} />
+            <HeroSkeleton />
           ) : heroData.length > 0 ? (
             <HeroCarousel
               data={heroData}
@@ -294,9 +290,6 @@ const styles = StyleSheet.create({
   },
   scrollView: {
     flex: 1,
-  },
-  heroPlaceholder: {
-    height: 450,
   },
   sectionsContainer: {
     marginTop: Spacing.lg,

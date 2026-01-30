@@ -18,7 +18,7 @@ import { BlurView } from "expo-blur";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
-import { Spacing, BorderRadius } from "@/constants/theme";
+import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
 
 import {
   shouldPromptForPassword,
@@ -134,10 +134,18 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
             { backgroundColor: theme.backgroundRoot + "ee" },
           ]}
         >
-          <ThemedText style={styles.title}>{t("enter_password") || "Enter Password"}</ThemedText>
+          <ThemedText style={styles.title}>
+            {t("enter_password") || "Enter Password"}
+          </ThemedText>
 
-          <Text style={[styles.desc, { color: theme.textSecondary }]}>
-            {t("password_desc") || "If you don\u2019t have the password click Get Code"}
+          <Text
+            style={[
+              styles.desc,
+              { color: theme.textSecondary, fontFamily: Fonts.semiBold },
+            ]}
+          >
+            {t("password_desc") ||
+              "If you don\u2019t have the password click Get Code"}
           </Text>
 
           <TextInput
@@ -152,11 +160,16 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
                 color: theme.text,
                 borderColor: theme.primary,
                 backgroundColor: theme.backgroundSecondary,
+                fontFamily: Fonts.semiBold,
               },
             ]}
           />
 
-          {error && <Text style={styles.error}>{error}</Text>}
+          {error && (
+            <Text style={[styles.error, { fontFamily: Fonts.semiBold }]}>
+              {error}
+            </Text>
+          )}
 
           <View style={styles.row}>
             <Pressable
@@ -173,7 +186,9 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={styles.btnText}>{t("enter") || "Enter"}</Text>
+                <Text style={[styles.btnText, { fontFamily: Fonts.bold }]}>
+                  {t("enter") || "Enter"}
+                </Text>
               )}
             </Pressable>
 
@@ -187,7 +202,13 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
                 },
               ]}
             >
-              <Text style={{ fontWeight: "700", color: theme.text }}>
+              <Text
+                style={{
+                  fontWeight: "700",
+                  color: theme.text,
+                  fontFamily: Fonts.bold,
+                }}
+              >
                 {t("get_code") || "Get Code"}
               </Text>
             </Pressable>
@@ -213,7 +234,6 @@ const styles = StyleSheet.create({
 
   title: {
     fontSize: 20,
-    fontWeight: "700",
     marginBottom: 6,
   },
 
@@ -250,6 +270,5 @@ const styles = StyleSheet.create({
 
   btnText: {
     color: "#fff",
-    fontWeight: "700",
   },
 });

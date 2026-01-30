@@ -720,7 +720,7 @@ export default function WatchScreen() {
             styles.backButton,
             {
               top: insets.top + 10,
-              [isRTL ? "right" : "left"]: Spacing.lg
+              [isRTL ? "right" : "left"]: Spacing.lg,
             },
           ]}
         >
@@ -740,7 +740,7 @@ export default function WatchScreen() {
             styles.fullscreenButton,
             {
               top: insets.top + 10,
-              [isRTL ? "left" : "right"]: Spacing.lg
+              [isRTL ? "left" : "right"]: Spacing.lg,
             },
           ]}
         >

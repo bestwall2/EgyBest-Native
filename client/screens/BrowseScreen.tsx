@@ -249,7 +249,5 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: Spacing.lg,
     justifyContent: "space-between",
-   
-  
   },
 });

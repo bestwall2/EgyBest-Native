@@ -31,6 +31,7 @@ import { RatingBadge } from "@/components/RatingBadge";
 import { CastCard } from "@/components/CastCard";
 import { MediaCard } from "@/components/MediaCard";
 import { Button } from "@/components/Button";
+import { ScalablePressable } from "@/components/ScalablePressable";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius, Shadows } from "@/constants/theme";
@@ -57,11 +58,10 @@ import {
   isInFavorites,
   addToWatchHistory,
 } from "@/services/storage";
+import { fetchRemotePassword } from "@/services/password";
 
 type NavigationProp = NativeStackNavigationProp<RootStackParamList>;
 type DetailRouteProp = RouteProp<RootStackParamList, "Detail">;
-
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 export default function DetailScreen() {
   const insets = useSafeAreaInsets();
@@ -74,6 +74,7 @@ export default function DetailScreen() {
   const [inWatchlist, setInWatchlist] = useState(false);
   const [inFavorites, setInFavorites] = useState(false);
   const [showFullOverview, setShowFullOverview] = useState(false);
+  const [getCodeLink, setGetCodeLink] = useState("");
 
   const {
     data: details,
@@ -109,6 +110,10 @@ export default function DetailScreen() {
       setInFavorites(favoritesStatus);
     };
     checkStatus();
+
+    fetchRemotePassword().then((data) => {
+      if (data?.getCode) setGetCodeLink(data.getCode);
+    });
   }, [id, mediaType]);
 
   useEffect(() => {
@@ -174,9 +179,13 @@ export default function DetailScreen() {
   const handleShare = async () => {
     if (!details) return;
     const title = "title" in details ? details.title : details.name;
+    const shareMessage = t("share_message").replace("{title}", title);
+    const linkToInclude = getCodeLink || "https://egybest.app";
+    const invitation = t("share_invitation").replace("{link}", linkToInclude);
+
     try {
       await Share.share({
-        message: t("share_message").replace("{title}", title),
+        message: `${shareMessage}\n\n${invitation}`,
         title: title,
       });
     } catch {}
@@ -293,22 +302,32 @@ export default function DetailScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <Pressable
-        onPress={() => navigation.goBack()}
-        style={[
-          styles.backButton,
-          {
-            top: insets.top + 10,
-            [isRTL ? "right" : "left"]: Spacing.lg
-          },
-        ]}
-      >
-        <Feather
-          name={isRTL ? "chevron-right" : "chevron-left"}
-          size={24}
-          color="#FFFFFF"
+      {/* Top Header with Logo and Back Button */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <LinearGradient
+          colors={["rgba(0,0,0,0.8)", "transparent"]}
+          style={StyleSheet.absoluteFill}
         />
-      </Pressable>
+        <View style={styles.headerContent}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Feather
+              name={isRTL ? "chevron-right" : "chevron-left"}
+              size={24}
+              color="#FFFFFF"
+            />
+          </Pressable>
+          <ThemedText
+            type="logo"
+            style={[styles.logo, { color: theme.primary }]}
+          >
+            EGYBEST
+          </ThemedText>
+          <View style={{ width: 40 }} />
+        </View>
+      </View>
 
       <ScrollView
         style={styles.scrollView}
@@ -402,7 +421,7 @@ export default function DetailScreen() {
           </View>
 
           <View style={styles.playButtonsRow}>
-            <Pressable
+            <ScalablePressable
               onPress={handlePlay}
               style={[styles.playButton, { backgroundColor: theme.primary }]}
             >
@@ -414,8 +433,8 @@ export default function DetailScreen() {
               <ThemedText style={styles.playButtonText}>
                 {t("watch_now")}
               </ThemedText>
-            </Pressable>
-            <Pressable
+            </ScalablePressable>
+            <ScalablePressable
               onPress={handleWatchlistToggle}
               style={[
                 styles.infoButton,
@@ -433,7 +452,7 @@ export default function DetailScreen() {
               <ThemedText style={styles.infoButtonText}>
                 {inWatchlist ? t("added") : t("my_list")}
               </ThemedText>
-            </Pressable>
+            </ScalablePressable>
           </View>
 
           <View style={styles.actionsRow}>
@@ -616,12 +635,9 @@ export default function DetailScreen() {
           },
         ]}
       >
-        <Pressable
+        <ScalablePressable
           onPress={handlePlay}
-          style={({ pressed }) => [
-            styles.floatingButtonInner,
-            { opacity: pressed ? 0.8 : 1 },
-          ]}
+          style={styles.floatingButtonInner}
         >
           <Feather
             name={isRTL ? "play-circle" : "play"}
@@ -631,7 +647,7 @@ export default function DetailScreen() {
           <ThemedText style={styles.floatingButtonText}>
             {t("watch_now")}
           </ThemedText>
-        </Pressable>
+        </ScalablePressable>
       </View>
     </View>
   );
@@ -808,15 +824,32 @@ const styles = StyleSheet.create({
     gap: Spacing.sm,
   },
   floatingButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
-  backButton: {
+  header: {
     position: "absolute",
-    zIndex: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    height: 60,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    height: 60,
+  },
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  logo: {
+    fontSize: 20,
+    letterSpacing: 1.5,
   },
   titleLogo: {
     width: "100%",

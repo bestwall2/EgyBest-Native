@@ -58,7 +58,10 @@ export function NavHeader({
         <NavButton icon="settings" onPress={onSettingsPress} />
 
         <View style={styles.logoContainer}>
-          <ThemedText style={[styles.logo, { color: theme.primary }]}>
+          <ThemedText
+            type="logo"
+            style={[styles.logo, { color: theme.primary }]}
+          >
             EGYBEST
           </ThemedText>
         </View>
@@ -130,7 +133,6 @@ const styles = StyleSheet.create({
   },
   logo: {
     fontSize: 24,
-    fontWeight: "900",
     letterSpacing: 2,
   },
   iconButton: {

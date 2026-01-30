@@ -122,7 +122,7 @@ function HeroSlide({
             transition={300}
           />
         ) : (
-          <ThemedText style={styles.title} numberOfLines={2}>
+          <ThemedText type="logo" style={styles.title} numberOfLines={2}>
             {title}
           </ThemedText>
         )}
@@ -258,30 +258,36 @@ function HeroButton({ icon, label, variant, onPress }: HeroButtonProps) {
   const isPrimary = variant === "primary";
 
   return (
-    <AnimatedPressable
-      onPress={onPress}
-      onPressIn={handlePressIn}
-      onPressOut={handlePressOut}
-      style={[
-        styles.heroButton,
-        isPrimary ? styles.primaryButton : styles.secondaryButton,
-        animatedStyle,
-      ]}
-    >
-      <Feather
-        name={icon as any}
-        size={18}
-        color={isPrimary ? "#000000" : "#FFFFFF"}
+    <View style={styles.heroButtonWrapper}>
+      <LinearGradient
+        colors={["transparent", "rgba(0,0,0,0.3)"]}
+        style={StyleSheet.absoluteFill}
       />
-      <ThemedText
+      <AnimatedPressable
+        onPress={onPress}
+        onPressIn={handlePressIn}
+        onPressOut={handlePressOut}
         style={[
-          styles.buttonLabel,
-          { color: isPrimary ? "#000000" : "#FFFFFF" },
+          styles.heroButton,
+          isPrimary ? styles.primaryButton : styles.secondaryButton,
+          animatedStyle,
         ]}
       >
-        {label}
-      </ThemedText>
-    </AnimatedPressable>
+        <Feather
+          name={icon as any}
+          size={18}
+          color={isPrimary ? "#000000" : "#FFFFFF"}
+        />
+        <ThemedText
+          style={[
+            styles.buttonLabel,
+            { color: isPrimary ? "#000000" : "#FFFFFF" },
+          ]}
+        >
+          {label}
+        </ThemedText>
+      </AnimatedPressable>
+    </View>
   );
 }
 
@@ -349,7 +355,6 @@ const styles = StyleSheet.create({
   badgeText: {
     color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: "700",
     letterSpacing: 1,
   },
   yearBadge: {
@@ -360,11 +365,9 @@ const styles = StyleSheet.create({
   yearText: {
     color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: "500",
   },
   title: {
     fontSize: 30,
-    fontWeight: "800",
     marginBottom: 10,
     lineHeight: 30,
     textShadowColor: "rgba(0,0,0,0.5)",
@@ -386,13 +389,16 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: Spacing.md,
   },
+  heroButtonWrapper: {
+    borderRadius: BorderRadius.sm,
+    overflow: "hidden",
+  },
   heroButton: {
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
     paddingVertical: Spacing.md,
     paddingHorizontal: Spacing.xl,
-    borderRadius: BorderRadius.sm,
     gap: Spacing.sm,
     minWidth: 120,
   },
@@ -406,7 +412,6 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 14,
-    fontWeight: "700",
     letterSpacing: 0.5,
   },
   dotsContainer: {
