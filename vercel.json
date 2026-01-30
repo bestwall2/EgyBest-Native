@@ -4,7 +4,5 @@
       "runtime": "nodejs@20.x"
     }
   },
-  "routes": [
-    { "src": "/(.*)", "dest": "api/index.js" }
-  ]
+  "routes": [{ "src": "/(.*)", "dest": "api/index.js" }]
 }

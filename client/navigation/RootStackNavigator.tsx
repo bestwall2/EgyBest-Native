@@ -44,7 +44,6 @@ export default function RootStackNavigator() {
           ...screenOptions,
           animation: "slide_from_right",
           gestureEnabled: true,
-          
         }}
       >
         <Stack.Screen
@@ -87,8 +86,11 @@ export default function RootStackNavigator() {
         />
       </Stack.Navigator>
 
-      <PasswordModal onReady={() => { /* optional: run code when unlocked */ }} />
-
+      <PasswordModal
+        onReady={() => {
+          /* optional: run code when unlocked */
+        }}
+      />
     </>
   );
 }

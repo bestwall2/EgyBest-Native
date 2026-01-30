@@ -135,12 +135,7 @@ export default function ExploreAllScreen() {
         </View>
       );
     }
-    return (
-      <EmptyState
-        title={t("no_results")}
-        message={t("unable_load")}
-      />
-    );
+    return <EmptyState title={t("no_results")} message={t("unable_load")} />;
   }, [isLoading, t]);
 
   return (

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   View,
   StyleSheet,
@@ -9,14 +9,16 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useNavigation } from "@react-navigation/native";
-import { Feather } from "@expo/vector-icons";
+import { Feather, FontAwesome } from "@expo/vector-icons";
 import * as Haptics from "expo-haptics";
 import Animated, { FadeInDown, ZoomIn } from "react-native-reanimated";
 
 import { ThemedText } from "@/components/ThemedText";
+import { ScalablePressable } from "@/components/ScalablePressable";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
+import { fetchRemotePassword } from "@/services/password";
 
 interface LanguageOption {
   code: "en" | "ar" | "fr";
@@ -37,6 +39,13 @@ export default function SettingsScreen() {
   const navigation = useNavigation();
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
 
+  useEffect(() => {
+    // Keep it here for potential future use or just remove if completely unnecessary
+    fetchRemotePassword().then((data) => {
+      // do nothing for now in Settings
+    });
+  }, []);
+
   const handleLanguageSelect = async (code: "en" | "ar" | "fr") => {
     Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     await setLanguage(code);
@@ -53,16 +62,16 @@ export default function SettingsScreen() {
     subtitle: string,
     rightElement: React.ReactNode,
     index: number,
+    iconType: "feather" | "fontawesome" = "feather",
   ) => (
     <Animated.View
       key={title}
       entering={FadeInDown.delay(index * 50).duration(300)}
     >
-      <Pressable
-        style={({ pressed }) => [
+      <ScalablePressable
+        style={[
           styles.settingItem,
           { backgroundColor: theme.backgroundSecondary },
-          pressed && { opacity: 0.7 },
         ]}
       >
         <View
@@ -71,7 +80,11 @@ export default function SettingsScreen() {
             { backgroundColor: theme.backgroundRoot },
           ]}
         >
-          <Feather name={icon as any} size={20} color={theme.primary} />
+          {iconType === "feather" ? (
+            <Feather name={icon as any} size={20} color={theme.primary} />
+          ) : (
+            <FontAwesome name={icon as any} size={20} color={theme.primary} />
+          )}
         </View>
         <View style={styles.settingInfo}>
           <ThemedText style={styles.settingTitle}>{title}</ThemedText>
@@ -82,13 +95,13 @@ export default function SettingsScreen() {
           </ThemedText>
         </View>
         {rightElement}
-      </Pressable>
+      </ScalablePressable>
     </Animated.View>
   );
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      {/* Back Button */}
+      {/* Header */}
       <View
         style={[
           styles.header,
@@ -119,9 +132,47 @@ export default function SettingsScreen() {
       >
         <ThemedText style={styles.screenTitle}>{t("settings")}</ThemedText>
 
-        {/* Language Section */}
+        {/* Join Us Section - MOVED TO TOP */}
         <ThemedText
           style={[styles.sectionTitle, { color: theme.textSecondary }]}
+        >
+          {t("join_us")}
+        </ThemedText>
+        <View style={styles.settingsGroup}>
+          {renderSettingItem(
+            "whatsapp",
+            t("whatsapp_channel"),
+            t("whatsapp_desc"),
+            <AnimatedPressButton
+              color="#25D366"
+              onPress={() =>
+                openLink(
+                  "https://whatsapp.com/channel/0029Vb7TmNA3QxS8zfeYtr06",
+                )
+              }
+            />,
+            0,
+            "fontawesome",
+          )}
+          {renderSettingItem(
+            "telegram",
+            t("telegram_group"),
+            t("telegram_desc"),
+            <AnimatedPressButton
+              color="#0088cc"
+              onPress={() => openLink("https://t.me/watchegybest")}
+            />,
+            1,
+            "fontawesome",
+          )}
+        </View>
+
+        {/* Language Section */}
+        <ThemedText
+          style={[
+            styles.sectionTitle,
+            { color: theme.textSecondary, marginTop: Spacing.xl },
+          ]}
         >
           {t("language_settings")}
         </ThemedText>
@@ -132,7 +183,7 @@ export default function SettingsScreen() {
           ]}
         >
           {languages.map((lang) => (
-            <Pressable
+            <ScalablePressable
               key={lang.code}
               onPress={() => handleLanguageSelect(lang.code)}
               style={[
@@ -173,7 +224,7 @@ export default function SettingsScreen() {
                   <Feather name="check" size={16} color="#FFFFFF" />
                 </View>
               )}
-            </Pressable>
+            </ScalablePressable>
           ))}
         </View>
 
@@ -197,7 +248,7 @@ export default function SettingsScreen() {
               trackColor={{ false: theme.backgroundRoot, true: theme.primary }}
               thumbColor="#FFFFFF"
             />,
-            0,
+            2,
           )}
           {renderSettingItem(
             "play-circle",
@@ -209,41 +260,7 @@ export default function SettingsScreen() {
               trackColor={{ false: theme.backgroundRoot, true: theme.primary }}
               thumbColor="#FFFFFF"
             />,
-            1,
-          )}
-        </View>
-
-        {/* Join Us Section */}
-        <ThemedText
-          style={[
-            styles.sectionTitle,
-            { color: theme.textSecondary, marginTop: Spacing.xl },
-          ]}
-        >
-          {t("join_us")}
-        </ThemedText>
-        <View style={styles.settingsGroup}>
-          {renderSettingItem(
-            "message-circle",
-            t("whatsapp_channel"),
-            t("whatsapp_desc"),
-            <AnimatedPressButton
-              color="#25D366"
-              onPress={() =>
-                openLink("https://chat.whatsapp.com/YOUR_CHANNEL_LINK")
-              }
-            />,
-            5,
-          )}
-          {renderSettingItem(
-            "send",
-            t("telegram_group"),
-            t("telegram_desc"),
-            <AnimatedPressButton
-              color="#0088cc"
-              onPress={() => openLink("https://t.me/YOUR_GROUP_LINK")}
-            />,
-            6,
+            3,
           )}
         </View>
 
@@ -266,7 +283,7 @@ export default function SettingsScreen() {
               size={20}
               color={theme.textSecondary}
             />,
-            2,
+            4,
           )}
           {renderSettingItem(
             "shield",
@@ -277,7 +294,7 @@ export default function SettingsScreen() {
               size={20}
               color={theme.textSecondary}
             />,
-            3,
+            5,
           )}
           {renderSettingItem(
             "file-text",
@@ -288,13 +305,16 @@ export default function SettingsScreen() {
               size={20}
               color={theme.textSecondary}
             />,
-            4,
+            6,
           )}
         </View>
 
         {/* Branding */}
         <View style={styles.brandingContainer}>
-          <ThemedText style={[styles.brandingLogo, { color: theme.primary }]}>
+          <ThemedText
+            type="logo"
+            style={[styles.brandingLogo, { color: theme.primary }]}
+          >
             EGYBEST
           </ThemedText>
           <ThemedText
@@ -319,16 +339,12 @@ const AnimatedPressButton = ({
   const { t } = useLanguage();
   return (
     <Animated.View entering={ZoomIn.duration(200)}>
-      <Pressable
+      <ScalablePressable
         onPress={onPress}
-        style={({ pressed }) => [
-          styles.joinButton,
-          { backgroundColor: color },
-          pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
-        ]}
+        style={[styles.joinButton, { backgroundColor: color }]}
       >
         <ThemedText style={styles.joinButtonText}>{t("join")}</ThemedText>
-      </Pressable>
+      </ScalablePressable>
     </Animated.View>
   );
 };
@@ -338,13 +354,11 @@ const styles = StyleSheet.create({
   scrollView: { flex: 1 },
   screenTitle: {
     fontSize: 28,
-    fontWeight: "800",
     marginBottom: Spacing.xl,
     paddingTop: 10,
   },
   sectionTitle: {
     fontSize: 13,
-    fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 1,
     marginBottom: Spacing.md,
@@ -358,7 +372,7 @@ const styles = StyleSheet.create({
     marginBottom: Spacing.xs,
     borderWidth: 1,
   },
-  languageName: { fontSize: 16, fontWeight: "600", flex: 1 },
+  languageName: { fontSize: 16, flex: 1 },
   languageNative: { fontSize: 14, marginEnd: Spacing.md },
   checkIcon: {
     width: 24,
@@ -384,20 +398,20 @@ const styles = StyleSheet.create({
     marginEnd: Spacing.md,
   },
   settingInfo: { flex: 1 },
-  settingTitle: { fontSize: 16, fontWeight: "600" },
+  settingTitle: { fontSize: 16 },
   settingSubtitle: { fontSize: 13, marginTop: 2 },
   joinButton: {
     paddingVertical: 6,
     paddingHorizontal: 12,
     borderRadius: BorderRadius.md,
   },
-  joinButtonText: { color: "#FFFFFF", fontWeight: "600", fontSize: 14 },
+  joinButtonText: { color: "#FFFFFF", fontSize: 14 },
   brandingContainer: {
     alignItems: "center",
     marginTop: Spacing["3xl"],
     paddingTop: Spacing.xl,
   },
-  brandingLogo: { fontSize: 24, fontWeight: "900", letterSpacing: 2 },
+  brandingLogo: { fontSize: 24, letterSpacing: 2 },
   brandingTagline: { fontSize: 12, marginTop: Spacing.xs },
   header: {
     flexDirection: "row",

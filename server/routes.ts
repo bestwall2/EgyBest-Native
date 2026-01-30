@@ -36,7 +36,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Trending
   app.get("/api/tmdb/trending/:mediaType/:timeWindow", async (req, res) => {
     const { mediaType, timeWindow } = req.params;
-    await handleProxiedRequest(req, res, `/trending/${mediaType}/${timeWindow}`);
+    await handleProxiedRequest(
+      req,
+      res,
+      `/trending/${mediaType}/${timeWindow}`,
+    );
   });
 
   // Movie endpoints
@@ -105,21 +109,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Search endpoints
   app.get("/api/tmdb/search/movie", async (req, res) => {
     if (!req.query.query) {
-      return res.json({ results: [], page: 1, total_pages: 0, total_results: 0 });
+      return res.json({
+        results: [],
+        page: 1,
+        total_pages: 0,
+        total_results: 0,
+      });
     }
     await handleProxiedRequest(req, res, "/search/movie");
   });
 
   app.get("/api/tmdb/search/tv", async (req, res) => {
     if (!req.query.query) {
-      return res.json({ results: [], page: 1, total_pages: 0, total_results: 0 });
+      return res.json({
+        results: [],
+        page: 1,
+        total_pages: 0,
+        total_results: 0,
+      });
     }
     await handleProxiedRequest(req, res, "/search/tv");
   });
 
   app.get("/api/tmdb/search/multi", async (req, res) => {
     if (!req.query.query) {
-      return res.json({ results: [], page: 1, total_pages: 0, total_results: 0 });
+      return res.json({
+        results: [],
+        page: 1,
+        total_pages: 0,
+        total_results: 0,
+      });
     }
     await handleProxiedRequest(req, res, "/search/multi");
   });

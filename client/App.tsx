@@ -19,7 +19,6 @@ if (Platform.OS === "web") {
 }
 
 export default function App() {
-
   const [fontsLoaded] = useFonts({
     "Cairo-Black": require("./../assets/fonts/Cairo-Black.ttf"),
     "Cairo-Bold": require("./../assets/fonts/Cairo-Bold.ttf"),

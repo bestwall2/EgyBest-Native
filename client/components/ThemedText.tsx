@@ -5,7 +5,17 @@ import { Typography, Fonts } from "@/constants/theme";
 export type ThemedTextProps = TextProps & {
   lightColor?: string;
   darkColor?: string;
-  type?: "hero" | "h1" | "h2" | "h3" | "h4" | "body" | "small" | "caption" | "link";
+  type?:
+    | "hero"
+    | "h1"
+    | "h2"
+    | "h3"
+    | "h4"
+    | "body"
+    | "small"
+    | "caption"
+    | "link"
+    | "logo";
 };
 
 export function ThemedText({
@@ -21,29 +31,29 @@ export function ThemedText({
     isDark && darkColor
       ? darkColor
       : !isDark && lightColor
-      ? lightColor
-      : type === "link"
-      ? theme.link
-      : theme.text;
+        ? lightColor
+        : type === "link"
+          ? theme.link
+          : theme.text;
 
   // Map Typography types to Cairo font weights
   const getFontFamily = () => {
     switch (type) {
+      case "logo":
+        return Fonts.extraBold;
       case "hero":
       case "h1":
-        return Fonts.bold;
       case "h2":
       case "h3":
       case "h4":
-        return Fonts.semiBold;
+        return Fonts.bold;
       case "body":
       case "link":
-        return Fonts.regular;
       case "small":
       case "caption":
-        return Fonts.medium;
+        return Fonts.semiBold;
       default:
-        return Fonts.regular;
+        return Fonts.semiBold;
     }
   };
 
@@ -54,8 +64,9 @@ export function ThemedText({
         {
           color,
           fontFamily: getFontFamily(),
+          padding: 2, // Small padding to all text elements
         },
-        Typography[type] || Typography.body,
+        Typography[type === "logo" ? "h1" : type] || Typography.body,
         style,
       ]}
     />

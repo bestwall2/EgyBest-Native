@@ -24,20 +24,24 @@ export function getApiUrl(): string {
 
   let host = process.env.EXPO_PUBLIC_DOMAIN;
 
-  if (!host) {
-    // Fallback for web if EXPO_PUBLIC_DOMAIN is missing
+  if (!host || host === ":5000") {
+    // Fallback for web if EXPO_PUBLIC_DOMAIN is missing or malformed
     if (typeof window !== "undefined" && window.location) {
       return `${window.location.origin}/`;
     }
-    throw new Error("EXPO_PUBLIC_DOMAIN is not set");
+    // Default to localhost if absolutely nothing else
+    host = "localhost:5000";
   }
 
   // Ensure host doesn't have protocol
   const cleanHost = host.replace(/^https?:\/\//, "");
   const protocol = "http";
-  const url = new URL(`${protocol}://${cleanHost}`);
-
-  return url.href;
+  try {
+    const url = new URL(`${protocol}://${cleanHost}`);
+    return url.href;
+  } catch (e) {
+    return "/";
+  }
 }
 
 async function throwIfResNotOk(res: Response) {

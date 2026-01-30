@@ -38,7 +38,7 @@ export default function PersonScreen() {
   const navigation = useNavigation<NavigationProp>();
   const route = useRoute<PersonRouteProp>();
   const { id } = route.params;
-  
+
   const { data: person, isLoading } = useQuery<PersonDetails>({
     queryKey: [`/api/tmdb/person/${id}?append_to_response=combined_credits`],
   });
@@ -93,11 +93,14 @@ export default function PersonScreen() {
 
   const formatDate = (date: string | null) => {
     if (!date) return t("unknown");
-    return new Date(date).toLocaleDateString(language === "ar" ? "ar-EG" : language === "fr" ? "fr-FR" : "en-US", {
-      month: "long",
-      day: "numeric",
-      year: "numeric",
-    });
+    return new Date(date).toLocaleDateString(
+      language === "ar" ? "ar-EG" : language === "fr" ? "fr-FR" : "en-US",
+      {
+        month: "long",
+        day: "numeric",
+        year: "numeric",
+      },
+    );
   };
 
   const calculateAge = (birthday: string | null, deathday: string | null) => {
@@ -116,22 +119,33 @@ export default function PersonScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-       <Pressable
-              onPress={() => navigation.goBack()}
-              style={[
-                styles.backButton,
-                {
-                  top: insets.top + 10,
-                  [isRTL ? "right" : "left"]: Spacing.lg
-                },
-              ]}
-            >
-              <Feather
-                name={isRTL ? "chevron-right" : "chevron-left"}
-                size={24}
-                color="#FFFFFF"
-              />
-            </Pressable>
+      {/* Top Header with Logo and Back Button */}
+      <View style={[styles.header, { paddingTop: insets.top }]}>
+        <LinearGradient
+          colors={["rgba(0,0,0,0.8)", "transparent"]}
+          style={StyleSheet.absoluteFill}
+        />
+        <View style={styles.headerContent}>
+          <Pressable
+            onPress={() => navigation.goBack()}
+            style={styles.backButton}
+          >
+            <Feather
+              name={isRTL ? "chevron-right" : "chevron-left"}
+              size={24}
+              color="#FFFFFF"
+            />
+          </Pressable>
+          <ThemedText
+            type="logo"
+            style={[styles.logo, { color: theme.primary }]}
+          >
+            EGYBEST
+          </ThemedText>
+          <View style={{ width: 40 }} />
+        </View>
+      </View>
+
       <ScrollView
         style={styles.scrollView}
         contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.xl }}
@@ -190,7 +204,8 @@ export default function PersonScreen() {
                     <ThemedText
                       style={[styles.statAge, { color: theme.textSecondary }]}
                     >
-                      ({age} {t("years")}{person.deathday ? ` ${t("old")}` : ""})
+                      ({age} {t("years")}
+                      {person.deathday ? ` ${t("old")}` : ""})
                     </ThemedText>
                   ) : null}
                 </View>
@@ -324,13 +339,11 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 28,
-    fontWeight: "800",
     marginBottom: Spacing.xs,
     paddingTop: 10,
   },
   department: {
     fontSize: 16,
-    fontWeight: "600",
     marginBottom: Spacing.lg,
   },
   statsRow: {
@@ -344,14 +357,12 @@ const styles = StyleSheet.create({
   },
   statLabel: {
     fontSize: 11,
-    fontWeight: "600",
     textTransform: "uppercase",
     letterSpacing: 0.5,
     marginBottom: Spacing.xs,
   },
   statValue: {
     fontSize: 14,
-    fontWeight: "600",
   },
   statAge: {
     fontSize: 12,
@@ -363,7 +374,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "700",
     marginBottom: Spacing.md,
   },
   biography: {
@@ -373,14 +383,31 @@ const styles = StyleSheet.create({
   creditsList: {
     paddingRight: Spacing.lg,
   },
-  backButton: {
+  header: {
     position: "absolute",
-    zIndex: 20,
+    top: 0,
+    left: 0,
+    right: 0,
+    zIndex: 100,
+    height: 60,
+  },
+  headerContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingHorizontal: Spacing.lg,
+    height: 60,
+  },
+  backButton: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: "rgba(0,0,0,0.5)",
+    backgroundColor: "rgba(0,0,0,0.3)",
     justifyContent: "center",
     alignItems: "center",
+  },
+  logo: {
+    fontSize: 20,
+    letterSpacing: 1.5,
   },
 });

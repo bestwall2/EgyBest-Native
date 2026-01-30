@@ -57,6 +57,7 @@ const translations: Record<Language, Record<string, string>> = {
     search_message:
       "Find your favorite movies and TV shows by searching above.",
     no_results: "No Results",
+    all: "All",
     try_different_search:
       'We couldn\'t find anything for "{query}". Try a different search.',
     unable_load: "Unable to load content",
@@ -96,6 +97,7 @@ const translations: Record<Language, Record<string, string>> = {
     show_less: "Show less",
     read_more: "Read more",
     share_message: "Check out {title} on EGYBEST!",
+    share_invitation: "Download the app to watch: {link}",
     no_episodes_found: "No episodes found",
     minutes: "min",
     years: "years",
@@ -154,6 +156,7 @@ const translations: Record<Language, Record<string, string>> = {
     search_placeholder: "ابحث عن أفلام ومسلسلات",
     search_message: "ابحث عن أفلامك ومسلسلاتك المفضلة بالأعلى.",
     no_results: "لا توجد نتائج",
+    all: "الكل",
     try_different_search:
       'لم نتمكن من العثور على أي شيء لـ "{query}". جرب بحثاً آخر.',
     unable_load: "تعذر تحميل المحتوى",
@@ -193,6 +196,7 @@ const translations: Record<Language, Record<string, string>> = {
     show_less: "عرض أقل",
     read_more: "اقرأ المزيد",
     share_message: "شاهد {title} على إيجي بست!",
+    share_invitation: "حمل التطبيق للمشاهدة: {link}",
     no_episodes_found: "لم يتم العثور على حلقات",
     minutes: "دقيقة",
     years: "سنوات",
@@ -251,6 +255,7 @@ const translations: Record<Language, Record<string, string>> = {
     search_placeholder: "Films & Séries",
     search_message: "Trouvez vos films et séries préférés.",
     no_results: "Aucun résultat",
+    all: "Tout",
     try_different_search: 'Aucun résultat pour "{query}".',
     unable_load: "Impossible de charger le contenu",
     try_again: "Réessayer",
@@ -290,6 +295,7 @@ const translations: Record<Language, Record<string, string>> = {
     show_less: "Voir moins",
     read_more: "Lire plus",
     share_message: "Regardez {title} sur EGYBEST!",
+    share_invitation: "Téléchargez l'application pour regarder: {link}",
     no_episodes_found: "Aucun épisode trouvé",
     minutes: "min",
     years: "ans",
@@ -299,7 +305,8 @@ const translations: Record<Language, Record<string, string>> = {
     captured_links: "Liens vidéo capturés",
     no_links_captured: "Aucun lien vidéo capturé pour le moment.",
     enter_password: "Entrer le mot de passe",
-    password_desc: "Si vous n'avez pas le mot de passe, cliquez sur Obtenir le code",
+    password_desc:
+      "Si vous n'avez pas le mot de passe, cliquez sur Obtenir le code",
     password: "Mot de passe",
     enter: "Entrer",
     get_code: "Obtenir le code",
@@ -314,12 +321,25 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
-  const [language, setLang] = useState<Language>("en");
+  const [language, setLang] = useState<Language>("ar"); // Default to Arabic
 
   useEffect(() => {
     AsyncStorage.getItem("user-language").then((lang) => {
       if (lang) {
         setLang(lang as Language);
+      } else {
+        // First time use, set RTL for Arabic default
+        const isRTL = true;
+        AsyncStorage.setItem("user-language", "ar");
+        if (I18nManager.isRTL !== isRTL) {
+          I18nManager.allowRTL(isRTL);
+          I18nManager.forceRTL(isRTL);
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          } else {
+            Updates.reloadAsync().catch(() => {});
+          }
+        }
       }
     });
   }, []);
@@ -333,12 +353,16 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       I18nManager.allowRTL(isRTL);
       I18nManager.forceRTL(isRTL);
       // Need to restart for RTL changes
-      Updates.reloadAsync();
+      if (typeof window !== "undefined") {
+        window.location.reload();
+      } else {
+        Updates.reloadAsync().catch(() => {});
+      }
     }
   };
 
   const t = (key: string) => {
-    return translations[language][key] || key;
+    return translations[language][key] || translations["en"][key] || key;
   };
 
   const isRTL = language === "ar";

@@ -8,6 +8,7 @@ import BrowseStackNavigator from "@/navigation/BrowseStackNavigator";
 import SearchStackNavigator from "@/navigation/SearchStackNavigator";
 import LibraryStackNavigator from "@/navigation/LibraryStackNavigator";
 import { useTheme } from "@/hooks/useTheme";
+import { useLanguage } from "@/context/LanguageContext";
 
 export type MainTabParamList = {
   HomeTab: undefined;
@@ -19,7 +20,8 @@ export type MainTabParamList = {
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
 export default function MainTabNavigator() {
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
+  const { t } = useLanguage();
 
   return (
     <Tab.Navigator
@@ -48,7 +50,7 @@ export default function MainTabNavigator() {
         name="HomeTab"
         component={HomeStackNavigator}
         options={{
-          title: "Home",
+          title: t("home"),
           tabBarIcon: ({ color, size }) => (
             <Feather name="home" size={size} color={color} />
           ),
@@ -58,7 +60,7 @@ export default function MainTabNavigator() {
         name="BrowseTab"
         component={BrowseStackNavigator}
         options={{
-          title: "Browse",
+          title: t("browse"),
           tabBarIcon: ({ color, size }) => (
             <Feather name="grid" size={size} color={color} />
           ),
@@ -68,7 +70,7 @@ export default function MainTabNavigator() {
         name="SearchTab"
         component={SearchStackNavigator}
         options={{
-          title: "Search",
+          title: t("search"),
           tabBarIcon: ({ color, size }) => (
             <Feather name="search" size={size} color={color} />
           ),
@@ -78,7 +80,7 @@ export default function MainTabNavigator() {
         name="LibraryTab"
         component={LibraryStackNavigator}
         options={{
-          title: "Library",
+          title: t("library"),
           tabBarIcon: ({ color, size }) => (
             <Feather name="bookmark" size={size} color={color} />
           ),

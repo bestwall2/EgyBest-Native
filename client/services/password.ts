@@ -13,7 +13,7 @@ let SecureStore: any = null;
 
 try {
   // optional encrypted storage
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
+
   SecureStore = require("react-native-encrypted-storage");
 } catch (e) {
   SecureStore = null;

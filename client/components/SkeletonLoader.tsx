@@ -18,7 +18,7 @@ import { LinearGradient } from "expo-linear-gradient";
 import { useTheme } from "@/hooks/useTheme";
 import { BorderRadius, Spacing } from "@/constants/theme";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
+const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / 2;
 
 interface SkeletonLoaderProps {
@@ -46,7 +46,11 @@ export function SkeletonLoader({
   }, [shimmerPosition]);
 
   const animatedStyle = useAnimatedStyle(() => {
-    const translateX = interpolate(shimmerPosition.value, [0, 1], [-200, 200]);
+    const translateX = interpolate(
+      shimmerPosition.value,
+      [0, 1],
+      [-SCREEN_WIDTH, SCREEN_WIDTH],
+    );
     return {
       transform: [{ translateX }],
     };
@@ -120,12 +124,45 @@ export function MediaCardSkeleton({
 
 export function HeroSkeleton() {
   return (
-    <SkeletonLoader
-      width="100%"
-      height={220}
-      borderRadius={BorderRadius.lg}
-      style={{ marginBottom: 24 }}
-    />
+    <View style={styles.heroSkeleton}>
+      <SkeletonLoader
+        width="100%"
+        height={SCREEN_HEIGHT * 0.65}
+        borderRadius={0}
+      />
+      <View style={styles.heroSkeletonContent}>
+        <SkeletonLoader
+          width={100}
+          height={20}
+          borderRadius={BorderRadius.sm}
+          style={{ marginBottom: Spacing.md }}
+        />
+        <SkeletonLoader
+          width={250}
+          height={40}
+          borderRadius={BorderRadius.sm}
+          style={{ marginBottom: Spacing.md }}
+        />
+        <SkeletonLoader
+          width="90%"
+          height={60}
+          borderRadius={BorderRadius.sm}
+          style={{ marginBottom: Spacing.xl }}
+        />
+        <View style={styles.heroSkeletonButtons}>
+          <SkeletonLoader
+            width={120}
+            height={48}
+            borderRadius={BorderRadius.sm}
+          />
+          <SkeletonLoader
+            width={120}
+            height={48}
+            borderRadius={BorderRadius.sm}
+          />
+        </View>
+      </View>
+    </View>
   );
 }
 
@@ -156,7 +193,7 @@ const styles = StyleSheet.create({
     height: "100%",
   },
   gradient: {
-    width: 200,
+    width: SCREEN_WIDTH,
     height: "100%",
   },
   mediaCardInfo: {
@@ -167,5 +204,20 @@ const styles = StyleSheet.create({
   },
   horizontalList: {
     flexDirection: "row",
+  },
+  heroSkeleton: {
+    width: "100%",
+    height: SCREEN_HEIGHT * 0.65,
+    position: "relative",
+  },
+  heroSkeletonContent: {
+    position: "absolute",
+    bottom: 50,
+    left: Spacing.lg,
+    right: Spacing.lg,
+  },
+  heroSkeletonButtons: {
+    flexDirection: "row",
+    gap: Spacing.md,
   },
 });
