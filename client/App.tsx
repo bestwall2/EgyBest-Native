@@ -21,7 +21,14 @@ if (Platform.OS === "web") {
 export default function App() {
 
   const [fontsLoaded] = useFonts({
-    Inter: require("./../assets/fonts/Cairo-SemiBold.ttf"), // <-- change to your font
+    "Cairo-Black": require("./../assets/fonts/Cairo-Black.ttf"),
+    "Cairo-Bold": require("./../assets/fonts/Cairo-Bold.ttf"),
+    "Cairo-ExtraBold": require("./../assets/fonts/Cairo-ExtraBold.ttf"),
+    "Cairo-ExtraLight": require("./../assets/fonts/Cairo-ExtraLight.ttf"),
+    "Cairo-Light": require("./../assets/fonts/Cairo-Light.ttf"),
+    "Cairo-Medium": require("./../assets/fonts/Cairo-Medium.ttf"),
+    "Cairo-Regular": require("./../assets/fonts/Cairo-Regular.ttf"),
+    "Cairo-SemiBold": require("./../assets/fonts/Cairo-SemiBold.ttf"),
   });
 
   if (!fontsLoaded) {

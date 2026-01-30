@@ -16,7 +16,6 @@ import * as Haptics from "expo-haptics";
 
 import { SearchBar } from "@/components/SearchBar";
 import { MediaCard } from "@/components/MediaCard";
-import { TabSwitch } from "@/components/FilterChips";
 import { MediaCardSkeleton } from "@/components/SkeletonLoader";
 import { EmptyState } from "@/components/EmptyState";
 import { ThemedText } from "@/components/ThemedText";
@@ -162,7 +161,7 @@ export default function SearchScreen() {
     }
 
     return null;
-  }, [isLoading, debouncedQuery]);
+  }, [isLoading, debouncedQuery, t]);
 
   const renderSearchHistory = () => (
     <View style={styles.historyContainer}>
@@ -217,7 +216,6 @@ export default function SearchScreen() {
           image={require("../../assets/images/icon.png")}
           title={t("search_placeholder")}
           message={t("search_message")}
-           // remove background
         />
       )}
     </View>

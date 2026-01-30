@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from "react";
+import React, { useCallback } from "react";
 import { View, StyleSheet, RefreshControl } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useBottomTabBarHeight } from "@react-navigation/bottom-tabs";
@@ -120,9 +120,8 @@ export default function HomeScreen() {
   }, [navigation]);
 
   const handleExploreAll = useCallback(
-    (_title: string, _endpoint: string, _mediaType: MediaType) => {
-      // Open the Browse tab instead of the removed ExploreAll screen
-      navigation.navigate("BrowseTab");
+    (title: string, endpoint: string, mediaType: MediaType) => {
+      navigation.navigate("ExploreAll", { title, endpoint, mediaType });
     },
     [navigation],
   );
@@ -148,8 +147,7 @@ export default function HomeScreen() {
             image={require("../../assets/images/icon.png")}
             title={t("unable_load")}
             message={
-              (error as any)?.message ||
-              "Something went wrong while fetching data from the server."
+              (error as any)?.message || t("error_message")
             }
             actionLabel={t("try_again")}
             onAction={handleRetry}

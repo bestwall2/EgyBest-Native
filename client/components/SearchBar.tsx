@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { View, TextInput, StyleSheet, Pressable, Platform } from "react-native";
+import { View, TextInput, StyleSheet, Pressable, Platform, I18nManager } from "react-native";
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -123,15 +123,16 @@ const styles = StyleSheet.create({
     marginHorizontal: Spacing.lg,
   },
   searchIcon: {
-    marginRight: Spacing.sm,
+    marginEnd: Spacing.sm,
   },
   input: {
     flex: 1,
     fontSize: 16,
     paddingVertical: Platform.OS === "ios" ? Spacing.sm : 0,
+    textAlign: I18nManager.isRTL ? "right" : "left",
   },
   clearButton: {
-    marginLeft: Spacing.sm,
+    marginStart: Spacing.sm,
   },
   clearIconContainer: {
     width: 18,

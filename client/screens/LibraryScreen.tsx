@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect } from "react";
+import React, { useState, useCallback } from "react";
 import {
   View,
   FlatList,
@@ -15,8 +15,6 @@ import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { MediaCard } from "@/components/MediaCard";
 import { TabSwitch } from "@/components/FilterChips";
 import { EmptyState } from "@/components/EmptyState";
-import { ThemedText } from "@/components/ThemedText";
-import { HorizontalList } from "@/components/HorizontalList";
 import { useTheme } from "@/hooks/useTheme";
 import { useLanguage } from "@/context/LanguageContext";
 import { Spacing } from "@/constants/theme";
@@ -106,25 +104,22 @@ export default function LibraryScreen() {
   const renderEmpty = useCallback(() => {
     const emptyStates = [
       {
-        
         title: t("empty_watchlist_title"),
         message: t("empty_watchlist_msg"),
       },
       {
-        
-       title: t("empty_favorites_title"),
+        title: t("empty_favorites_title"),
         message: t("empty_favorites_msg"),
       },
       {
-        
         title: t("empty_history_title"),
         message: t("empty_history_msg"),
       },
     ];
 
-    const { image, title, message } = emptyStates[selectedTab];
+    const { title, message } = emptyStates[selectedTab];
 
-    return <EmptyState image={image} title={title} message={message} />;
+    return <EmptyState title={title} message={message} />;
   }, [selectedTab, t]);
 
   return (

@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   icon: {
-    marginRight: 4,
+    marginEnd: 4,
   },
   text: {
     fontWeight: "600",

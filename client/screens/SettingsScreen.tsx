@@ -35,7 +35,6 @@ export default function SettingsScreen() {
   const { theme } = useTheme();
   const { language, setLanguage, t, isRTL } = useLanguage();
   const navigation = useNavigation();
-  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [autoPlayEnabled, setAutoPlayEnabled] = useState(true);
 
   const handleLanguageSelect = async (code: "en" | "ar" | "fr") => {
@@ -101,11 +100,7 @@ export default function SettingsScreen() {
       >
         <Pressable
           onPress={() => navigation.goBack()}
-          style={[
-            styles.backButton,
-            { top: insets.right + Spacing.sm },
-            isRTL ? { right: Spacing.lg } : { left: Spacing.lg },
-          ]}
+          style={styles.backButton}
         >
           <Feather
             name={isRTL ? "chevron-right" : "chevron-left"}
@@ -195,7 +190,7 @@ export default function SettingsScreen() {
           {renderSettingItem(
             "moon",
             t("dark_mode"),
-            "Cinematic dark theme always active",
+            t("dark_mode_desc") || "Cinematic dark theme always active",
             <Switch
               value={true}
               disabled
@@ -206,8 +201,8 @@ export default function SettingsScreen() {
           )}
           {renderSettingItem(
             "play-circle",
-            "Auto-play",
-            "Automatically play next episode",
+            t("auto_play"),
+            t("auto_play_desc"),
             <Switch
               value={autoPlayEnabled}
               onValueChange={setAutoPlayEnabled}
@@ -230,8 +225,8 @@ export default function SettingsScreen() {
         <View style={styles.settingsGroup}>
           {renderSettingItem(
             "message-circle",
-            "WhatsApp Channel",
-            "Join our WhatsApp channel for updates",
+            t("whatsapp_channel"),
+            t("whatsapp_desc"),
             <AnimatedPressButton
               color="#25D366"
               onPress={() =>
@@ -242,8 +237,8 @@ export default function SettingsScreen() {
           )}
           {renderSettingItem(
             "send",
-            "Telegram Group",
-            "Join our Telegram group",
+            t("telegram_group"),
+            t("telegram_desc"),
             <AnimatedPressButton
               color="#0088cc"
               onPress={() => openLink("https://t.me/YOUR_GROUP_LINK")}
@@ -275,8 +270,8 @@ export default function SettingsScreen() {
           )}
           {renderSettingItem(
             "shield",
-            "Privacy Policy",
-            "How we protect your data",
+            t("privacy_policy"),
+            t("privacy_desc"),
             <Feather
               name="chevron-right"
               size={20}
@@ -286,8 +281,8 @@ export default function SettingsScreen() {
           )}
           {renderSettingItem(
             "file-text",
-            "Terms of Service",
-            "Usage terms and conditions",
+            t("terms_of_service"),
+            t("terms_desc"),
             <Feather
               name="chevron-right"
               size={20}
@@ -305,7 +300,7 @@ export default function SettingsScreen() {
           <ThemedText
             style={[styles.brandingTagline, { color: theme.textSecondary }]}
           >
-            Stream Unlimited Entertainment
+            {t("tagline") || "Stream Unlimited Entertainment"}
           </ThemedText>
         </View>
       </ScrollView>
@@ -321,6 +316,7 @@ const AnimatedPressButton = ({
   color: string;
   onPress: () => void;
 }) => {
+  const { t } = useLanguage();
   return (
     <Animated.View entering={ZoomIn.duration(200)}>
       <Pressable
@@ -331,7 +327,7 @@ const AnimatedPressButton = ({
           pressed && { opacity: 0.7, transform: [{ scale: 0.95 }] },
         ]}
       >
-        <ThemedText style={styles.joinButtonText}>Join</ThemedText>
+        <ThemedText style={styles.joinButtonText}>{t("join")}</ThemedText>
       </Pressable>
     </Animated.View>
   );
@@ -363,7 +359,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   languageName: { fontSize: 16, fontWeight: "600", flex: 1 },
-  languageNative: { fontSize: 14, marginRight: Spacing.md },
+  languageNative: { fontSize: 14, marginEnd: Spacing.md },
   checkIcon: {
     width: 24,
     height: 24,
@@ -385,7 +381,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     justifyContent: "center",
     alignItems: "center",
-    marginRight: Spacing.md,
+    marginEnd: Spacing.md,
   },
   settingInfo: { flex: 1 },
   settingTitle: { fontSize: 16, fontWeight: "600" },
@@ -409,5 +405,5 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.lg,
     marginBottom: Spacing.md,
   },
-  backButton: { marginRight: Spacing.md, padding: 4 },
+  backButton: { marginEnd: Spacing.md, padding: 4 },
 });

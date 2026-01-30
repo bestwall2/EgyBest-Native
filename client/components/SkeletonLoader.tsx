@@ -140,7 +140,7 @@ export function SectionSkeleton() {
       />
       <View style={styles.horizontalList}>
         {[1, 2, 3].map((i) => (
-          <MediaCardSkeleton key={i} style={{ marginRight: 12 }} />
+          <MediaCardSkeleton key={i} style={{ marginEnd: 12 }} />
         ))}
       </View>
     </View>
