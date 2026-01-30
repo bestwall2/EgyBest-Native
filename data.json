@@ -1,0 +1,59 @@
+{
+  "password": 203030,
+  "GETCODE": "https://best10tips.com/",
+  "servers": [
+    {
+      "name": "LEGEND",
+      "movie": "https://legacy.aether.mom/media/tmdb-movie-{id}-{title}",
+      "tv": "https://legacy.aether.mom/media/tmdb-tv-{id}-{title}/{season}/{episode}"
+    },
+    {
+      "name": "FAST",
+      "movie": "https://vidfast.pro/movie/{id}",
+      "tv": "https://vidfast.pro/tv/{id}/{season}/{episode}"
+    },
+
+    {
+      "name": "LIGHT",
+      "movie": "https://vidsrcme.ru/embed/movie?tmdb={id}",
+      "tv": "https://vidsrcme.ru/embed/tv?tmdb={id}&season={season}&episode={episode}"
+    },
+
+    {
+      "name": "MULTI",
+      "movie": "https://player.videasy.net/movie/{id}",
+      "tv": "https://player.videasy.net/tv/{id}/{season}/{episode}"
+    },
+    {
+      "name": "VISASY",
+      "movie": "https://vidsrc.cc/v2/embed/movie/{id}",
+      "tv": "https://vidsrc.cc/v2/embed/tv/{id}/{season}/{episode}"
+    },
+    {
+      "name": "VPRO",
+      "movie": "https://vidlink.pro/movie/{id}",
+      "tv": "https://vidlink.pro/tv/{id}/{season}/{episode}"
+    },
+    {
+      "name": "BACKUP",
+      "movie": "https://111movies.com/movie/{id}",
+      "tv": "https://111movies.com/tv/{id}/{season}/{episode}"
+    },
+    {
+      "name": "EASY",
+      "movie": "https://player.vidzee.wtf/embed/movie/{id}",
+      "tv": "https://player.vidzee.wtf/embed/tv/{id}/{season}/{episode}"
+    },
+
+    {
+      "name": "K-DRAMA",
+      "movie": "https://mapple.uk/watch/movie/{id}",
+      "tv": "https://mapple.uk/watch/tv/{id}-{season}-{episode}"
+    },
+    {
+      "name": "BACK(AD)",
+      "movie": "https://www.nontongo.win/embed/movie/{id}",
+      "tv": "https://www.nontongo.win/embed/tv/{id}/{season}/{episode}"
+    }
+  ]
+}
