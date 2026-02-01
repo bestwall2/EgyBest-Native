@@ -31,7 +31,7 @@
       "supportsRTL": true,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.streamflix.app",
+      "package": "com.johan.egybest.app",
       "jsEngine": "hermes"
     },
     "web": {
