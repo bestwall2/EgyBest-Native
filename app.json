@@ -1,17 +1,17 @@
 {
   "expo": {
-    "name": "StreamFlix",
-    "slug": "streamflix",
+    "name": "EgyBest",
+    "slug": "egybest",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
-    "scheme": "streamflix",
+    "scheme": "egybest",
     "userInterfaceStyle": "dark",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "supportsRTL": true,
-      "bundleIdentifier": "com.streamflix.app",
+      "bundleIdentifier": "com.egybest.live.app",
       "infoPlist": {
         "NSAppTransportSecurity": {
           "NSExceptionDomains": {
@@ -54,11 +54,6 @@
     ],
     "experiments": {
       "reactCompiler": true
-    },
-    "extra": {
-      "eas": {
-        "projectId": "97ab8a22-bd16-4fd1-a62c-ea08d289f5d4"
-      }
     }
   }
 }
