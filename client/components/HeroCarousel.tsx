@@ -397,8 +397,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    paddingVertical: Spacing.md,
-    paddingHorizontal: Spacing.xl,
+    paddingVertical: Spacing.sm,
+    paddingHorizontal: Spacing.md,
     gap: Spacing.sm,
     minWidth: 120,
   },
@@ -407,7 +407,7 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     backgroundColor: "rgba(255,255,255,0.15)",
-    borderWidth: 1,
+    borderWidth: 0,
     borderColor: "rgba(255,255,255,0.3)",
   },
   buttonLabel: {
