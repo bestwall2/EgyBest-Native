@@ -63,6 +63,7 @@ export default function SettingsScreen() {
     rightElement: React.ReactNode,
     index: number,
     iconType: "feather" | "fontawesome" = "feather",
+    iconColor?: string,
   ) => (
     <Animated.View
       key={title}
@@ -81,9 +82,9 @@ export default function SettingsScreen() {
           ]}
         >
           {iconType === "feather" ? (
-            <Feather name={icon as any} size={20} color={theme.primary} />
+            <Feather name={icon as any} size={20} color={iconColor || theme.primary} />
           ) : (
-            <FontAwesome name={icon as any} size={20} color={theme.primary} />
+            <FontAwesome name={icon as any} size={20} color={iconColor || theme.primary} />
           )}
         </View>
         <View style={styles.settingInfo}>
@@ -153,6 +154,7 @@ export default function SettingsScreen() {
             />,
             0,
             "fontawesome",
+            '#25D366',
           )}
           {renderSettingItem(
             "telegram",
@@ -164,6 +166,7 @@ export default function SettingsScreen() {
             />,
             1,
             "fontawesome",
+            '#0088cc',
           )}
         </View>
 
