@@ -1,6 +1,5 @@
 import { TMDB_IMAGE_BASE, TMDBImageSizes } from "@/constants/theme";
 import { Movie, TVShow, MediaItem, MediaType } from "@/types/tmdb";
-import { getApiUrl } from "@/lib/query-client";
 
 export function getImageUrl(
   path: string | null,
