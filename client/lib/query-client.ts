@@ -89,7 +89,7 @@ export const getQueryFn: <T>(options: {
       url = new URL(`${TMDB_BASE_URL}/${tmdbPath}`);
       url.searchParams.append("api_key", TMDB_API_KEY);
 
-      const currentLang = (await AsyncStorage.getItem("user-language")) || "en";
+      const currentLang = (await AsyncStorage.getItem("user-language")) || "ar";
       url.searchParams.append("language", currentLang);
     } else {
       const baseUrl = getApiUrl();
