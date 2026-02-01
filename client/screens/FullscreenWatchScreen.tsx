@@ -1,5 +1,5 @@
-import React, { useEffect, useRef, useCallback, useMemo } from "react";
-import { View, StyleSheet, Pressable, Dimensions } from "react-native";
+import React, { useEffect, useRef, useCallback } from "react";
+import { View, StyleSheet, Pressable } from "react-native";
 import { useNavigation, useRoute, RouteProp } from "@react-navigation/native";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 import { WebView } from "react-native-webview";
@@ -8,7 +8,6 @@ import * as ScreenOrientation from "expo-screen-orientation";
 import { setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
 
-const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
 const injectedJavaScript = `
 (function() {

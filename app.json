@@ -10,7 +10,6 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "supportsRTL": true,
       "bundleIdentifier": "com.egybest.live.app",
       "infoPlist": {
         "NSAppTransportSecurity": {
@@ -28,7 +27,6 @@
         "backgroundColor": "#0A0A0A",
         "foregroundImage": "./assets/images/icon.png"
       },
-      "supportsRTL": true,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.streamflix.app",
