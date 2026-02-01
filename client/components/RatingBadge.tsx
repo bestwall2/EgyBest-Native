@@ -46,7 +46,7 @@ export function RatingBadge({
           style={styles.icon}
         />
       ) : null}
-      <ThemedText style={[styles.text, { fontSize, color }]}>
+      <ThemedText weight="600" style={[styles.text, { fontSize, color }]}>
         {formatRating(rating)}
       </ThemedText>
     </View>
@@ -63,7 +63,5 @@ const styles = StyleSheet.create({
   icon: {
     marginEnd: 4,
   },
-  text: {
-    fontWeight: "600",
-  },
+  text: {},
 });

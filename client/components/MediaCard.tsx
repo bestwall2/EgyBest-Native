@@ -115,7 +115,7 @@ export function MediaCard({
         ) : null}
       </View>
       <View style={styles.info}>
-        <ThemedText style={styles.title} numberOfLines={2}>
+        <ThemedText weight="500" style={styles.title} numberOfLines={2}>
           {title}
         </ThemedText>
         {releaseDate ? (
@@ -192,7 +192,7 @@ export function HeroCard({
         />
       </View>
       <View style={styles.heroContent}>
-        <ThemedText style={styles.heroTitle} numberOfLines={2}>
+        <ThemedText weight="700" style={styles.heroTitle} numberOfLines={2}>
           {title}
         </ThemedText>
         <ThemedText
@@ -243,7 +243,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 13,
-    fontWeight: "500",
     lineHeight: 18,
   },
   year: {
@@ -281,7 +280,6 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     fontSize: 22,
-    fontWeight: "700",
     marginBottom: Spacing.xs,
   },
   heroOverview: {

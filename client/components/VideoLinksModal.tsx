@@ -2,7 +2,6 @@ import React from "react";
 import {
   Modal,
   View,
-  Text,
   Pressable,
   StyleSheet,
   FlatList,
@@ -80,7 +79,7 @@ export const VideoLinksModal: React.FC<VideoLinksModalProps> = ({
           >
             <Feather name="x" size={24} color={theme.text} />
           </Pressable>
-          <ThemedText style={styles.modalTitle}>
+          <ThemedText weight="bold" style={styles.modalTitle}>
             {t("captured_links")}
           </ThemedText>
           {links.length > 0 ? (
@@ -142,7 +141,6 @@ const styles = StyleSheet.create({
   },
   modalTitle: {
     fontSize: 20,
-    fontWeight: "bold",
     marginBottom: Spacing.lg,
   },
   linksList: {

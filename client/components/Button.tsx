@@ -71,6 +71,7 @@ export function Button({
     >
       <ThemedText
         type="body"
+        weight="600"
         style={[styles.buttonText, { color: theme.buttonText }]}
       >
         {children}
@@ -86,7 +87,5 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  buttonText: {
-    fontWeight: "600",
-  },
+  buttonText: {},
 });

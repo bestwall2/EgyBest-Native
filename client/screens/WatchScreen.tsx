@@ -363,11 +363,7 @@ export default function WatchScreen() {
   const webViewRef = useRef<WebView>(null);
 
   // --- Load servers from remote JSON ---
-  const {
-    servers,
-    buildUrl,
-    loading: serversLoading,
-  } = useRemoteServers(
+  const { servers, buildUrl } = useRemoteServers(
     "https://raw.githubusercontent.com/bestwall2/EgyBest-Native/refs/heads/main/data.json",
   );
 
@@ -382,10 +378,6 @@ export default function WatchScreen() {
     queryFn: () => getTVSeasonDetails(Number(id), selectedSeason),
     enabled: mediaType === "tv" && !!tvShowDetails,
   });
-
-  const currentEpisode = seasonDetails?.episodes?.find(
-    (ep) => ep.episode_number === selectedEpisode,
-  );
 
   const videoUrl = useMemo(() => {
     if (!servers) return "";
@@ -496,7 +488,6 @@ export default function WatchScreen() {
   // Enhanced hostname-based navigation blocking with media/worker/TMDB/subtitle support
   const handleShouldStartLoadWithRequest = useCallback(
     (request: any) => {
-      const requestUrl = request.url.toLowerCase();
       const requestHostname = getHostname(request.url);
 
       console.log("Navigation request to:", requestHostname);
@@ -649,7 +640,7 @@ export default function WatchScreen() {
                 </View>
               )}
               <View style={styles.episodeNumberBadge}>
-                <ThemedText style={styles.episodeNumberText}>
+                <ThemedText weight="600" style={styles.episodeNumberText}>
                   {t("episodes")} {item.episode_number}
                 </ThemedText>
               </View>
@@ -660,14 +651,18 @@ export default function WatchScreen() {
                     { backgroundColor: theme.primary },
                   ]}
                 >
-                  <ThemedText style={styles.playingText}>
+                  <ThemedText weight="800" style={styles.playingText}>
                     {t("now_playing")}
                   </ThemedText>
                 </View>
               )}
             </View>
             <View style={styles.episodeGridInfo}>
-              <ThemedText style={styles.episodeGridTitle} numberOfLines={1}>
+              <ThemedText
+                weight="700"
+                style={styles.episodeGridTitle}
+                numberOfLines={1}
+              >
                 {item.name}
               </ThemedText>
               <ThemedText
@@ -817,7 +812,7 @@ export default function WatchScreen() {
         contentContainerStyle={{ paddingBottom: insets.bottom + Spacing.xl }}
       >
         <View style={styles.titleSection}>
-          <ThemedText style={styles.title} numberOfLines={2}>
+          <ThemedText weight="700" style={styles.title} numberOfLines={2}>
             {title}
           </ThemedText>
           {mediaType === "tv" ? (
@@ -830,7 +825,7 @@ export default function WatchScreen() {
         </View>
 
         <View style={styles.serversSection}>
-          <ThemedText style={styles.sectionTitle}>
+          <ThemedText weight="600" style={styles.sectionTitle}>
             {t("select_server")}
           </ThemedText>
           <View style={styles.gridRow}>
@@ -852,6 +847,7 @@ export default function WatchScreen() {
                   ]}
                 >
                   <ThemedText
+                    weight="700"
                     style={[
                       styles.serverGridText,
                       {
@@ -870,7 +866,7 @@ export default function WatchScreen() {
         {mediaType === "tv" ? (
           <>
             <View style={styles.seasonsSection}>
-              <ThemedText style={styles.sectionTitle}>
+              <ThemedText weight="600" style={styles.sectionTitle}>
                 {t("seasons")}
               </ThemedText>
               <View style={styles.gridRow}>
@@ -896,6 +892,7 @@ export default function WatchScreen() {
                     ]}
                   >
                     <ThemedText
+                      weight="600"
                       style={[
                         styles.seasonGridText,
                         {
@@ -914,7 +911,7 @@ export default function WatchScreen() {
             </View>
 
             <View style={styles.episodesSection}>
-              <ThemedText style={styles.sectionTitle}>
+              <ThemedText weight="600" style={styles.sectionTitle}>
                 {t("episodes")}{" "}
                 {seasonDetails?.episodes?.length
                   ? `(${seasonDetails.episodes.length})`
@@ -999,7 +996,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "700",
   },
   episodeLabel: {
     fontSize: 14,
@@ -1011,7 +1007,6 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     fontSize: 16,
-    fontWeight: "600",
     marginBottom: Spacing.md,
   },
   gridRow: {
@@ -1027,7 +1022,6 @@ const styles = StyleSheet.create({
   },
   serverGridText: {
     fontSize: 14,
-    fontWeight: "700",
   },
   seasonsSection: {
     paddingHorizontal: Spacing.lg,
@@ -1041,7 +1035,6 @@ const styles = StyleSheet.create({
   },
   seasonGridText: {
     fontSize: 13,
-    fontWeight: "600",
   },
   episodesSection: {
     paddingHorizontal: Spacing.lg,
@@ -1083,7 +1076,6 @@ const styles = StyleSheet.create({
   episodeNumberText: {
     color: "#FFFFFF",
     fontSize: 11,
-    fontWeight: "600",
   },
   episodeGridInfo: {
     flex: 1,
@@ -1092,7 +1084,6 @@ const styles = StyleSheet.create({
   },
   episodeGridTitle: {
     fontSize: 14,
-    fontWeight: "700",
   },
   episodeOverview: {
     fontSize: 12,
@@ -1117,7 +1108,6 @@ const styles = StyleSheet.create({
   playingText: {
     color: "#FFFFFF",
     fontSize: 9,
-    fontWeight: "800",
     letterSpacing: 1,
   },
   fab: {
