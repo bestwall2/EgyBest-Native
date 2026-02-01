@@ -1,6 +1,9 @@
 import { QueryClient, QueryFunction } from "@tanstack/react-query";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
+export const TMDB_API_KEY = "90a823390bd37b5c1ba175bef7e2d5a8";
+export const TMDB_BASE_URL = "https://api.themoviedb.org/3";
+
 /**
  * Gets the base URL for the Express API server (e.g., "http://localhost:3000")
  * @returns {string} The API base URL
@@ -39,7 +42,7 @@ export function getApiUrl(): string {
   try {
     const url = new URL(`${protocol}://${cleanHost}`);
     return url.href;
-  } catch (e) {
+  } catch {
     return "/";
   }
 }
@@ -75,23 +78,29 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey, pageParam }) => {
-    const baseUrl = getApiUrl();
+    let url: URL;
     const joinedKey = queryKey.join("/") as string;
-    const url = new URL(joinedKey, baseUrl);
 
-    // Add language as query parameter for TMDB API calls
-    if (joinedKey.includes("/api/tmdb/")) {
+    if (
+      joinedKey.startsWith("/api/tmdb/") ||
+      joinedKey.startsWith("api/tmdb/")
+    ) {
+      const tmdbPath = joinedKey.replace(/^(\/)?api\/tmdb\//, "");
+      url = new URL(`${TMDB_BASE_URL}/${tmdbPath}`);
+      url.searchParams.append("api_key", TMDB_API_KEY);
+
       const currentLang = (await AsyncStorage.getItem("user-language")) || "en";
       url.searchParams.append("language", currentLang);
+    } else {
+      const baseUrl = getApiUrl();
+      url = new URL(joinedKey, baseUrl);
     }
 
     if (pageParam) {
       url.searchParams.append("page", String(pageParam));
     }
 
-    const res = await fetch(url, {
-      // Credentials not needed for proxy
-    });
+    const res = await fetch(url);
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
