@@ -12,7 +12,7 @@ import { Feather } from "@expo/vector-icons";
 import { ThemedView } from "@/components/ThemedView";
 import { ThemedText } from "@/components/ThemedText";
 import { useTheme } from "@/hooks/useTheme";
-import { Spacing, BorderRadius, Fonts } from "@/constants/theme";
+import { Spacing, BorderRadius } from "@/constants/theme";
 
 export type ErrorFallbackProps = {
   error: Error;
@@ -79,6 +79,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
         >
           <ThemedText
             type="body"
+            weight="600"
             style={[styles.buttonText, { color: theme.buttonText }]}
           >
             Try Again
@@ -96,7 +97,7 @@ export function ErrorFallback({ error, resetError }: ErrorFallbackProps) {
           <View style={styles.modalOverlay}>
             <ThemedView style={styles.modalContainer}>
               <View style={styles.modalHeader}>
-                <ThemedText type="h2" style={styles.modalTitle}>
+                <ThemedText type="h2" weight="600" style={styles.modalTitle}>
                   Error Details
                 </ThemedText>
                 <Pressable
@@ -195,7 +196,6 @@ const styles = StyleSheet.create({
     elevation: 3,
   },
   buttonText: {
-    fontWeight: "600",
     textAlign: "center",
     fontSize: 16,
   },
@@ -220,9 +220,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: "rgba(128, 128, 128, 0.2)",
   },
-  modalTitle: {
-    fontWeight: "600",
-  },
+  modalTitle: {},
   closeButton: {
     padding: Spacing.xs,
   },

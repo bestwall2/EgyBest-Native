@@ -73,7 +73,7 @@ export function CastCard({ cast, onPress }: CastCardProps) {
           </View>
         )}
       </View>
-      <ThemedText style={styles.name} numberOfLines={1}>
+      <ThemedText weight="500" style={styles.name} numberOfLines={1}>
         {cast.name}
       </ThemedText>
       <ThemedText
@@ -111,7 +111,6 @@ const styles = StyleSheet.create({
   },
   name: {
     fontSize: 12,
-    fontWeight: "500",
     textAlign: "center",
   },
   character: {

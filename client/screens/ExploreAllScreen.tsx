@@ -151,7 +151,9 @@ export default function ExploreAllScreen() {
             color="#FFFFFF"
           />
         </Pressable>
-        <ThemedText style={styles.headerTitle}>{title}</ThemedText>
+        <ThemedText weight="700" style={styles.headerTitle}>
+          {title}
+        </ThemedText>
       </View>
 
       <FlatList
@@ -201,7 +203,6 @@ const styles = StyleSheet.create({
   },
   headerTitle: {
     fontSize: 20,
-    fontWeight: "700",
   },
   listContent: {
     paddingHorizontal: Spacing.lg,

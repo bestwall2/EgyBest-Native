@@ -31,7 +31,8 @@
       "supportsRTL": true,
       "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
-      "package": "com.streamflix.app"
+      "package": "com.streamflix.app",
+      "jsEngine": "hermes"
     },
     "web": {
       "output": "single",

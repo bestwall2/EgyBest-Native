@@ -205,7 +205,7 @@ const translations: Record<Language, Record<string, string>> = {
     error_message: "حدث خطأ ما. يرجى المحاولة مرة أخرى.",
     captured_links: "روابط الفيديو الملتقطة",
     no_links_captured: "لم يتم التقاط أي روابط فيديو بعد.",
-    enter_password:"ادخل رمز التفعيل",
+    enter_password: "ادخل رمز التفعيل",
     password_desc: "إذا لم يكن لديك رمز التفعيل، اضغط على الحصول على الرمز",
     password: "رمز التفعيل",
     enter: "دخول",

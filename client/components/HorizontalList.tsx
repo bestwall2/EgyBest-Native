@@ -38,7 +38,9 @@ export function HorizontalList({
     return (
       <View style={styles.container}>
         <View style={styles.header}>
-          <ThemedText style={styles.title}>{title}</ThemedText>
+          <ThemedText weight="700" style={styles.title}>
+            {title}
+          </ThemedText>
         </View>
         <FlatList
           horizontal
@@ -63,7 +65,9 @@ export function HorizontalList({
           <View
             style={[styles.indicator, { backgroundColor: theme.primary }]}
           />
-          <ThemedText style={styles.title}>{title}</ThemedText>
+          <ThemedText weight="700" style={styles.title}>
+            {title}
+          </ThemedText>
         </View>
         {showSeeAll ? (
           <Pressable
@@ -73,7 +77,10 @@ export function HorizontalList({
               { opacity: pressed ? 0.7 : 1 },
             ]}
           >
-            <ThemedText style={[styles.seeAllText, { color: theme.primary }]}>
+            <ThemedText
+              weight="500"
+              style={[styles.seeAllText, { color: theme.primary }]}
+            >
               {t("explore_all")}
             </ThemedText>
             <Feather
@@ -139,7 +146,6 @@ const styles = StyleSheet.create({
   },
   title: {
     ...Typography.h2,
-    fontWeight: "700",
   },
   seeAllButton: {
     flexDirection: "row",
@@ -147,7 +153,6 @@ const styles = StyleSheet.create({
   },
   seeAllText: {
     fontSize: 14,
-    fontWeight: "500",
   },
   listContent: {
     paddingHorizontal: Spacing.lg,

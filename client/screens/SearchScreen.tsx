@@ -168,14 +168,17 @@ export default function SearchScreen() {
       {searchHistory.length > 0 ? (
         <>
           <View style={styles.historyHeader}>
-            <ThemedText style={styles.historyTitle}>
+            <ThemedText weight="600" style={styles.historyTitle}>
               {t("recent_searches")}
             </ThemedText>
             <Pressable
               onPress={handleClearHistory}
               style={({ pressed }) => ({ opacity: pressed ? 0.7 : 1 })}
             >
-              <ThemedText style={[styles.clearText, { color: theme.primary }]}>
+              <ThemedText
+                weight="500"
+                style={[styles.clearText, { color: theme.primary }]}
+              >
                 {t("clear_all")}
               </ThemedText>
             </Pressable>
@@ -300,11 +303,9 @@ const styles = StyleSheet.create({
   },
   historyTitle: {
     fontSize: 18,
-    fontWeight: "600",
   },
   clearText: {
     fontSize: 14,
-    fontWeight: "500",
   },
   historyItem: {
     flexDirection: "row",

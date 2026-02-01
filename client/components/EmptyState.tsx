@@ -23,7 +23,9 @@ export function EmptyState({
 
   return (
     <View style={styles.container}>
-      <ThemedText style={styles.title}>{title}</ThemedText>
+      <ThemedText weight="600" style={styles.title}>
+        {title}
+      </ThemedText>
       <ThemedText style={[styles.message, { color: theme.textSecondary }]}>
         {message}
       </ThemedText>
@@ -45,7 +47,6 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "600",
     textAlign: "center",
     marginBottom: Spacing.sm,
   },

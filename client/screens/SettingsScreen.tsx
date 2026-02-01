@@ -82,9 +82,17 @@ export default function SettingsScreen() {
           ]}
         >
           {iconType === "feather" ? (
-            <Feather name={icon as any} size={20} color={iconColor || theme.primary} />
+            <Feather
+              name={icon as any}
+              size={20}
+              color={iconColor || theme.primary}
+            />
           ) : (
-            <FontAwesome name={icon as any} size={20} color={iconColor || theme.primary} />
+            <FontAwesome
+              name={icon as any}
+              size={20}
+              color={iconColor || theme.primary}
+            />
           )}
         </View>
         <View style={styles.settingInfo}>
@@ -154,7 +162,7 @@ export default function SettingsScreen() {
             />,
             0,
             "fontawesome",
-            '#25D366',
+            "#25D366",
           )}
           {renderSettingItem(
             "telegram",
@@ -166,7 +174,7 @@ export default function SettingsScreen() {
             />,
             1,
             "fontawesome",
-            '#0088cc',
+            "#0088cc",
           )}
         </View>
 

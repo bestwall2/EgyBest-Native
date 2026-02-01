@@ -243,7 +243,9 @@ export default function DetailScreen() {
       >
         <View style={styles.errorContainer}>
           <Feather name="alert-circle" size={48} color={theme.primary} />
-          <ThemedText style={styles.errorTitle}>{t("unable_load")}</ThemedText>
+          <ThemedText weight="600" style={styles.errorTitle}>
+            {t("unable_load")}
+          </ThemedText>
           <ThemedText
             style={[styles.errorMessage, { color: theme.textSecondary }]}
           >
@@ -382,7 +384,7 @@ export default function DetailScreen() {
                   contentFit="contain"
                 />
               ) : (
-                <ThemedText style={styles.title} numberOfLines={3}>
+                <ThemedText weight="700" style={styles.title} numberOfLines={3}>
                   {title}
                 </ThemedText>
               )}
@@ -422,7 +424,7 @@ export default function DetailScreen() {
                 size={20}
                 color="#FFFFFF"
               />
-              <ThemedText style={styles.playButtonText}>
+              <ThemedText weight="600" style={styles.playButtonText}>
                 {t("watch_now")}
               </ThemedText>
             </ScalablePressable>
@@ -441,7 +443,7 @@ export default function DetailScreen() {
                 size={20}
                 color="#FFFFFF"
               />
-              <ThemedText style={styles.infoButtonText}>
+              <ThemedText weight="600" style={styles.infoButtonText}>
                 {inWatchlist ? t("added") : t("my_list")}
               </ThemedText>
             </ScalablePressable>
@@ -475,7 +477,7 @@ export default function DetailScreen() {
               entering={FadeInUp.delay(100).duration(300)}
               style={styles.section}
             >
-              <ThemedText style={styles.sectionTitle}>
+              <ThemedText weight="600" style={styles.sectionTitle}>
                 {t("overview")}
               </ThemedText>
               <Pressable onPress={() => setShowFullOverview(!showFullOverview)}>
@@ -487,6 +489,7 @@ export default function DetailScreen() {
                 </ThemedText>
                 {details.overview && details.overview.length > 200 ? (
                   <ThemedText
+                    weight="500"
                     style={[styles.readMore, { color: theme.primary }]}
                   >
                     {showFullOverview ? t("show_less") : t("read_more")}
@@ -500,7 +503,7 @@ export default function DetailScreen() {
             entering={FadeInUp.delay(150).duration(300)}
             style={styles.section}
           >
-            <ThemedText style={styles.sectionTitle}>
+            <ThemedText weight="600" style={styles.sectionTitle}>
               {t("information")}
             </ThemedText>
             <View style={styles.infoGrid}>
@@ -561,7 +564,9 @@ export default function DetailScreen() {
               entering={FadeInUp.delay(200).duration(300)}
               style={styles.section}
             >
-              <ThemedText style={styles.sectionTitle}>{t("cast")}</ThemedText>
+              <ThemedText weight="600" style={styles.sectionTitle}>
+                {t("cast")}
+              </ThemedText>
               <FlatList
                 horizontal
                 data={cast as any}
@@ -583,7 +588,7 @@ export default function DetailScreen() {
               entering={FadeInUp.delay(300).duration(300)}
               style={styles.section}
             >
-              <ThemedText style={styles.sectionTitle}>
+              <ThemedText weight="600" style={styles.sectionTitle}>
                 {t("similar")}
               </ThemedText>
               <FlatList
@@ -636,7 +641,7 @@ export default function DetailScreen() {
             size={20}
             color="#FFFFFF"
           />
-          <ThemedText style={styles.floatingButtonText}>
+          <ThemedText weight="600" style={styles.floatingButtonText}>
             {t("watch_now")}
           </ThemedText>
         </ScalablePressable>
@@ -715,7 +720,6 @@ const styles = StyleSheet.create({
   },
   errorTitle: {
     fontSize: 18,
-    fontWeight: "600",
     marginTop: Spacing.lg,
     marginBottom: Spacing.sm,
   },
@@ -745,7 +749,7 @@ const styles = StyleSheet.create({
     marginStart: Spacing.lg,
     justifyContent: "flex-end",
   },
-  title: { fontSize: 22, fontWeight: "700", marginBottom: Spacing.sm },
+  title: { fontSize: 22, marginBottom: Spacing.sm },
   metaRow: {
     flexDirection: "row",
     alignItems: "center",
@@ -768,7 +772,7 @@ const styles = StyleSheet.create({
     borderRadius: BorderRadius.md,
     gap: Spacing.sm,
   },
-  playButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  playButtonText: { color: "#FFFFFF", fontSize: 16 },
   infoButton: {
     flex: 1,
     flexDirection: "row",
@@ -779,7 +783,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     gap: Spacing.sm,
   },
-  infoButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  infoButtonText: { color: "#FFFFFF", fontSize: 16 },
   actionsRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -797,9 +801,9 @@ const styles = StyleSheet.create({
   },
   actionLabel: { fontSize: 12 },
   section: { marginBottom: Spacing.xl },
-  sectionTitle: { fontSize: 18, fontWeight: "600", marginBottom: Spacing.md },
+  sectionTitle: { fontSize: 18, marginBottom: Spacing.md },
   overview: { fontSize: 15, lineHeight: 24 },
-  readMore: { fontSize: 14, fontWeight: "500", marginTop: Spacing.xs },
+  readMore: { fontSize: 14, marginTop: Spacing.xs },
   castList: { paddingRight: Spacing.lg },
   floatingButton: {
     position: "absolute",
@@ -815,7 +819,7 @@ const styles = StyleSheet.create({
     paddingVertical: Spacing.md,
     gap: Spacing.sm,
   },
-  floatingButtonText: { color: "#FFFFFF", fontSize: 16, fontWeight: "600" },
+  floatingButtonText: { color: "#FFFFFF", fontSize: 16 },
   header: {
     position: "absolute",
     top: 0,
@@ -858,7 +862,6 @@ const styles = StyleSheet.create({
   infoLabel: {
     width: 100,
     fontSize: 14,
-    fontWeight: "600",
   },
   infoValue: {
     flex: 1,
@@ -870,7 +873,10 @@ function InfoRow({ label, value }: { label: string; value: any }) {
   const { theme } = useTheme();
   return (
     <View style={styles.infoRow}>
-      <ThemedText style={[styles.infoLabel, { color: theme.textSecondary }]}>
+      <ThemedText
+        weight="600"
+        style={[styles.infoLabel, { color: theme.textSecondary }]}
+      >
         {label}
       </ThemedText>
       <ThemedText style={styles.infoValue}>{value}</ThemedText>

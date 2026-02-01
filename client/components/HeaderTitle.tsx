@@ -19,7 +19,7 @@ export function HeaderTitle({ title }: HeaderTitleProps) {
         style={styles.icon}
         resizeMode="contain"
       />
-      <ThemedText style={[styles.title, { color: theme.primary }]}>
+      <ThemedText weight="700" style={[styles.title, { color: theme.primary }]}>
         {title}
       </ThemedText>
     </View>
@@ -40,6 +40,5 @@ const styles = StyleSheet.create({
   },
   title: {
     fontSize: 20,
-    fontWeight: "700",
   },
 });

@@ -4,7 +4,6 @@ import {
   Modal,
   TextInput,
   Pressable,
-  Text,
   ActivityIndicator,
   Alert,
   StyleSheet,
@@ -138,15 +137,13 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
             {t("enter_password") || "Enter Password"}
           </ThemedText>
 
-          <Text
-            style={[
-              styles.desc,
-              { color: theme.textSecondary, fontFamily: Fonts.semiBold },
-            ]}
+          <ThemedText
+            weight="600"
+            style={[styles.desc, { color: theme.textSecondary }]}
           >
             {t("password_desc") ||
               "If you don\u2019t have the password click Get Code"}
-          </Text>
+          </ThemedText>
 
           <TextInput
             value={value}
@@ -166,9 +163,9 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
           />
 
           {error && (
-            <Text style={[styles.error, { fontFamily: Fonts.semiBold }]}>
+            <ThemedText weight="600" style={styles.error}>
               {error}
-            </Text>
+            </ThemedText>
           )}
 
           <View style={styles.row}>
@@ -186,9 +183,12 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
               {loading ? (
                 <ActivityIndicator color="#fff" />
               ) : (
-                <Text style={[styles.btnText, { fontFamily: Fonts.bold }]}>
+                <ThemedText
+                  weight="700"
+                  style={[styles.btnText, { color: "#FFFFFF" }]}
+                >
                   {t("enter") || "Enter"}
-                </Text>
+                </ThemedText>
               )}
             </Pressable>
 
@@ -202,15 +202,9 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
                 },
               ]}
             >
-              <Text
-                style={{
-                  fontWeight: "700",
-                  color: theme.text,
-                  fontFamily: Fonts.bold,
-                }}
-              >
+              <ThemedText weight="700" style={{ color: theme.text }}>
                 {t("get_code") || "Get Code"}
-              </Text>
+              </ThemedText>
             </Pressable>
           </View>
         </Animated.View>

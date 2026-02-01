@@ -103,6 +103,7 @@ function FilterChip({ label, isSelected, onPress }: FilterChipProps) {
       ]}
     >
       <ThemedText
+        weight="500"
         style={[
           styles.chipText,
           {
@@ -192,6 +193,7 @@ function TabItem({
       ]}
     >
       <ThemedText
+        weight="600"
         style={[
           styles.tabText,
           {
@@ -219,7 +221,6 @@ const styles = StyleSheet.create({
   },
   chipText: {
     fontSize: 14,
-    fontWeight: "500",
   },
   tabContainer: {
     flexDirection: "row",
@@ -235,6 +236,5 @@ const styles = StyleSheet.create({
   },
   tabText: {
     fontSize: 14,
-    fontWeight: "600",
   },
 });

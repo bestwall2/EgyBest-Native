@@ -279,6 +279,7 @@ function HeroButton({ icon, label, variant, onPress }: HeroButtonProps) {
           color={isPrimary ? "#000000" : "#FFFFFF"}
         />
         <ThemedText
+          weight="600"
           style={[
             styles.buttonLabel,
             { color: isPrimary ? "#000000" : "#FFFFFF" },
@@ -412,7 +413,6 @@ const styles = StyleSheet.create({
   },
   buttonLabel: {
     fontSize: 14,
-    fontWeight: "600",
     letterSpacing: 0.5,
   },
   dotsContainer: {
