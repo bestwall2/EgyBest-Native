@@ -45,11 +45,13 @@ export const PasswordModal: React.FC<Props> = ({ onReady }) => {
   const checkPasswordStatus = async () => {
     try {
       const remote = await fetchRemotePassword();
-      if (remote?.getCode) setGetCodeLink(remote.getCode);
+      const getCode = remote?.getCode;
+      if (getCode) setGetCodeLink(getCode);
 
       const need = await shouldPromptForPassword();
-      console.log("Password required:", remote);
-      if (need) {
+
+      // If remote password or get-code link is missing, don't show modal
+      if (need && remote?.password && getCode) {
         setVisible(true);
       } else {
         setVisible(false);
@@ -257,7 +259,7 @@ const styles = StyleSheet.create({
 
   button: {
     flex: 1,
-    padding: Spacing.md,
+    padding: Spacing.sm,
     borderRadius: BorderRadius.md,
     alignItems: "center",
   },

@@ -112,7 +112,6 @@ export function ThemedText({
         {
           color,
           fontFamily: getFontFamily(),
-          padding: 2, // Small padding to all text elements
           textAlign: isRTL ? "right" : "left",
         },
         Typography[type === "logo" ? "h1" : type] || Typography.body,
