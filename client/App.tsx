@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, LogBox, Platform } from "react-native";
+import { StyleSheet, LogBox, Platform, I18nManager } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { KeyboardProvider } from "react-native-keyboard-controller";
@@ -17,6 +17,9 @@ import { ErrorBoundary } from "@/components/ErrorBoundary";
 if (Platform.OS === "web") {
   LogBox.ignoreLogs(["props.pointerEvents is deprecated"]);
 }
+
+// Enable RTL support as early as possible
+I18nManager.allowRTL(true);
 
 export default function App() {
   const [fontsLoaded] = useFonts({

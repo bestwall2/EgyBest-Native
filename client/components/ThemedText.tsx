@@ -112,6 +112,7 @@ export function ThemedText({
         {
           color,
           fontFamily: getFontFamily(),
+          padding: 2,
           textAlign: isRTL ? "right" : "left",
         },
         Typography[type === "logo" ? "h1" : type] || Typography.body,
