@@ -59,12 +59,16 @@
     "updates": {
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "url": "https://u.expo.dev/f286ce22-3348-4878-8be8-5fb1a76875ac"
     },
     "extra": {
       "eas": {
         "projectId": "f286ce22-3348-4878-8be8-5fb1a76875ac"
       }
+    },
+    "runtimeVersion": {
+      "policy": "appVersion"
     }
   }
 }

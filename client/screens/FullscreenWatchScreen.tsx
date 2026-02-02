@@ -7,6 +7,8 @@ import { Feather } from "@expo/vector-icons";
 import * as ScreenOrientation from "expo-screen-orientation";
 import { setStatusBarHidden } from "expo-status-bar";
 import { RootStackParamList } from "@/navigation/RootStackNavigator";
+import * as NavigationBar from "expo-navigation-bar";
+import { Platform } from "react-native";
 
 const { width: SCREEN_WIDTH } = Dimensions.get("window");
 
@@ -258,17 +260,42 @@ export default function FullscreenWatchScreen() {
   );
 
   useEffect(() => {
+    // Lock to landscape
     ScreenOrientation.lockAsync(
       ScreenOrientation.OrientationLock.LANDSCAPE_LEFT,
     );
+
+    // Hide status bar
     setStatusBarHidden(true, "fade");
+
+    if (Platform.OS === "android") {
+      // Hide Android navigation buttons
+      NavigationBar.setVisibilityAsync("hidden");
+
+      // Allow swipe to show temporarily (immersive mode)
+      NavigationBar.setBehaviorAsync("overlay-swipe");
+
+      // Make nav bar transparent just in case
+      NavigationBar.setBackgroundColorAsync("transparent");
+    }
+
     return () => {
+      // Restore orientation
       ScreenOrientation.lockAsync(
         ScreenOrientation.OrientationLock.PORTRAIT_UP,
       );
+
+      // Restore status bar
       setStatusBarHidden(false, "fade");
+
+      if (Platform.OS === "android") {
+        // Show navigation bar again
+        NavigationBar.setVisibilityAsync("visible");
+        NavigationBar.setBehaviorAsync("inset-swipe");
+      }
     };
   }, []);
+
 
   return (
     <View style={styles.container}>
