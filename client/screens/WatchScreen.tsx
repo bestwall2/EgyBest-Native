@@ -354,7 +354,7 @@ export default function WatchScreen() {
     episode: initialEpisode = 1,
   } = route.params;
 
-  const [selectedServer, setSelectedServer] = useState("LEGEND");
+  const [selectedServer, setSelectedServer] = useState("FAST");
   const [selectedSeason, setSelectedSeason] = useState(initialSeason);
   const [selectedEpisode, setSelectedEpisode] = useState(initialEpisode);
   const [isLoading, setIsLoading] = useState(true);
