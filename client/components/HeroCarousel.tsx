@@ -27,6 +27,7 @@ import { useLanguage } from "@/context/LanguageContext";
 import { Spacing, BorderRadius } from "@/constants/theme";
 import { getImageUrl } from "@/utils/helpers";
 import { Movie, TVShow, MediaType, TMDBImages } from "@/types/tmdb";
+import { RatingBadge } from "./RatingBadge";
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get("window");
 const HERO_HEIGHT = SCREEN_HEIGHT * 0.65;
@@ -53,6 +54,7 @@ function HeroSlide({
   const isMovie = "title" in item;
   const title = isMovie ? item.title : item.name;
   const mediaType = isMovie ? "movie" : "tv";
+  const voteAverage = item.vote_average;
   const backdropUrl = getImageUrl(item.backdrop_path, "backdrop", "original");
   const year = isMovie
     ? item.release_date?.substring(0, 4)
@@ -110,8 +112,14 @@ function HeroSlide({
             >
               <ThemedText style={styles.yearText}>{year}</ThemedText>
             </View>
-          ) : null}
+          ) : null} 
+          {voteAverage > 0 ? (
+          <View>
+            <RatingBadge rating={voteAverage} size="small" showIcon={true} />
+          </View>
+        ) : null}
         </View>
+       
 
         {logoUrl ? (
           <Image

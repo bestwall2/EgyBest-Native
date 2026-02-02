@@ -109,7 +109,7 @@ export function MediaCard({
         )}
         {voteAverage > 0 ? (
           <View style={styles.ratingContainer}>
-            <RatingBadge rating={voteAverage} size="small" showIcon={false} />
+            <RatingBadge rating={voteAverage} size="small" showIcon={true} />
           </View>
         ) : null}
       </View>
@@ -200,7 +200,7 @@ export function HeroCard({
           {overview}
         </ThemedText>
         <View style={styles.heroMeta}>
-          <RatingBadge rating={voteAverage} size="medium" />
+          <RatingBadge rating={voteAverage} size="small" showIcon={true} />
         </View>
       </View>
     </AnimatedPressable>

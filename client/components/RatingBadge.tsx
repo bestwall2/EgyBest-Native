@@ -32,8 +32,9 @@ export function RatingBadge({
         styles.container,
         {
           paddingHorizontal: padding,
-          paddingVertical: padding / 2,
-          backgroundColor: `${color}20`,
+          paddingVertical: 0.5,
+          backgroundColor: `${color}50`,
+          shadowColor: color,
           borderColor: color,
         },
       ]}
@@ -57,7 +58,7 @@ const styles = StyleSheet.create({
   container: {
     flexDirection: "row",
     alignItems: "center",
-    borderRadius: BorderRadius.xs,
+    borderRadius: BorderRadius.xl,
     borderWidth: 1,
   },
   icon: {
