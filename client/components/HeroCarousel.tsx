@@ -75,7 +75,6 @@ function HeroSlide({
           source={{ uri: backdropUrl }}
           style={styles.backdropImage}
           contentFit="cover"
-          transition={500}
         />
       ) : (
         <View
@@ -119,7 +118,6 @@ function HeroSlide({
             source={{ uri: logoUrl }}
             style={styles.logoTitle}
             contentFit="contain"
-            transition={300}
           />
         ) : (
           <ThemedText type="logo" style={styles.title} numberOfLines={2}>

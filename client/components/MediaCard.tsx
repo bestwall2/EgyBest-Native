@@ -94,7 +94,6 @@ export function MediaCard({
             source={{ uri: imageUrl }}
             style={styles.poster}
             contentFit="cover"
-            transition={300}
           />
         ) : (
           <View
@@ -183,7 +182,6 @@ export function HeroCard({
             source={{ uri: imageUrl }}
             style={styles.heroImage}
             contentFit="cover"
-            transition={300}
           />
         ) : null}
         <LinearGradient
