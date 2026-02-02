@@ -60,6 +60,11 @@
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
+    },
+    "extra": {
+      "eas": {
+        "projectId": "f286ce22-3348-4878-8be8-5fb1a76875ac"
+      }
     }
   }
 }
