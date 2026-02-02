@@ -2,11 +2,7 @@
   "password": "HELLO",
   "GETCODE": "https://best10tips.com/",
   "servers": [
-    {
-      "name": "LEGEND",
-      "movie": "https://legacy.aether.mom/media/tmdb-movie-{id}-{title}",
-      "tv": "https://legacy.aether.mom/media/tmdb-tv-{id}-{title}/{season}/{episode}"
-    },
+    
     {
       "name": "FAST",
       "movie": "https://vidfast.pro/movie/{id}",
@@ -33,6 +29,11 @@
       "name": "VPRO",
       "movie": "https://vidlink.pro/movie/{id}",
       "tv": "https://vidlink.pro/tv/{id}/{season}/{episode}"
+    },
+    {
+      "name": "LEGEND",
+      "movie": "https://legacy.aether.mom/media/tmdb-movie-{id}-{title}",
+      "tv": "https://legacy.aether.mom/media/tmdb-tv-{id}-{title}/{season}/{episode}"
     },
     {
       "name": "BACKUP",
