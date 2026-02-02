@@ -112,6 +112,11 @@ const translations: Record<Language, Record<string, string>> = {
     enter: "Enter",
     get_code: "Get Code",
     tagline: "Stream Unlimited Entertainment",
+    update_available: "Update Available",
+    update_msg:
+      "A new version of the app is available. Restart now to apply the update?",
+    restart: "Restart",
+    later: "Later",
   },
   ar: {
     home: "الرئيسية",
@@ -211,6 +216,11 @@ const translations: Record<Language, Record<string, string>> = {
     enter: "دخول",
     get_code: "الحصول على الرمز",
     tagline: "استمتع بمشاهدة غير محدودة",
+    update_available: "تحديث جديد",
+    update_msg:
+      "يتوفر إصدار جديد من التطبيق. هل تريد إعادة التشغيل الآن لتطبيق التحديث؟",
+    restart: "إعادة التشغيل",
+    later: "لاحقاً",
   },
   fr: {
     home: "Accueil",
@@ -311,6 +321,11 @@ const translations: Record<Language, Record<string, string>> = {
     enter: "Entrer",
     get_code: "Obtenir le code",
     tagline: "Regardez des divertissements en illimité",
+    update_available: "Mise à jour disponible",
+    update_msg:
+      "Une nouvelle version de l'application est disponible. Redémarrer maintenant pour l'appliquer ?",
+    restart: "Redémarrer",
+    later: "Plus tard",
   },
 };
 

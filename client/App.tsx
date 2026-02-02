@@ -10,6 +10,7 @@ import { useFonts } from "expo-font";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { queryClient } from "@/lib/query-client";
 import { LanguageProvider } from "@/context/LanguageContext";
+import { useUpdates } from "@/hooks/useUpdates";
 
 import RootStackNavigator from "@/navigation/RootStackNavigator";
 import { ErrorBoundary } from "@/components/ErrorBoundary";
@@ -20,6 +21,11 @@ if (Platform.OS === "web") {
 
 // Enable RTL support as early as possible
 I18nManager.allowRTL(true);
+
+const AppUpdater = () => {
+  useUpdates();
+  return null;
+};
 
 export default function App() {
   const [fontsLoaded] = useFonts({
@@ -41,6 +47,7 @@ export default function App() {
     <ErrorBoundary>
       <QueryClientProvider client={queryClient}>
         <LanguageProvider>
+          <AppUpdater />
           <SafeAreaProvider>
             <GestureHandlerRootView style={styles.root}>
               <KeyboardProvider>

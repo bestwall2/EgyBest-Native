@@ -296,7 +296,6 @@ export default function FullscreenWatchScreen() {
     };
   }, []);
 
-
   return (
     <View style={styles.container}>
       <Pressable
