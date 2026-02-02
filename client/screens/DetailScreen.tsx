@@ -729,8 +729,8 @@ const styles = StyleSheet.create({
   backdrop: { width: "100%", height: "100%" },
   backdropGradient: {
     position: "absolute",
-    left: 0,
-    right: 0,
+    start: 0,
+    end: 0,
     bottom: 0,
     height: 160,
   },
@@ -807,8 +807,8 @@ const styles = StyleSheet.create({
   castList: { paddingRight: Spacing.lg },
   floatingButton: {
     position: "absolute",
-    left: Spacing.lg,
-    right: Spacing.lg,
+    start: Spacing.lg,
+    end: Spacing.lg,
     borderRadius: BorderRadius.lg,
     overflow: "hidden",
   },
@@ -823,8 +823,8 @@ const styles = StyleSheet.create({
   header: {
     position: "absolute",
     top: 0,
-    left: 0,
-    right: 0,
+    start: 0,
+    end: 0,
     zIndex: 100,
     height: 60,
   },

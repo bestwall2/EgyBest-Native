@@ -38,7 +38,6 @@ const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / 2;
 
 export default function LibraryScreen() {
   const insets = useSafeAreaInsets();
-  const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { t } = useLanguage();
@@ -124,9 +123,7 @@ export default function LibraryScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <View
-        style={[styles.tabContainer, { paddingTop: headerHeight + Spacing.md }]}
-      >
+      <View style={styles.tabContainer}>
         <TabSwitch
           tabs={[t("watchlist"), t("favorites"), t("history")]}
           selectedIndex={selectedTab}

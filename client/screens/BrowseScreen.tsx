@@ -32,7 +32,6 @@ const CARD_WIDTH = (SCREEN_WIDTH - Spacing.lg * 3) / 2;
 
 export default function BrowseScreen() {
   const insets = useSafeAreaInsets();
-  const headerHeight = useHeaderHeight();
   const tabBarHeight = useBottomTabBarHeight();
   const { theme } = useTheme();
   const { t } = useLanguage();
@@ -171,12 +170,7 @@ export default function BrowseScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.backgroundRoot }]}>
-      <View
-        style={[
-          styles.filtersContainer,
-          { paddingTop: headerHeight + Spacing.md },
-        ]}
-      >
+      <View style={styles.filtersContainer}>
         <TabSwitch
           tabs={[t("trending_movies"), t("trending_tv")]}
           selectedIndex={selectedTab}

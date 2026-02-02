@@ -134,16 +134,15 @@ export async function clearStoredToken(): Promise<void> {
 export async function shouldPromptForPassword(): Promise<boolean> {
   try {
     const remote = await fetchRemotePassword();
-    if (!remote) {
-      // couldn't fetch remote; conservative choice: don't prompt (app keeps working).
-      // If you prefer to force prompt when remote unreachable, return true here.
+    if (!remote || !remote.password) {
+      // couldn't fetch remote or remote password is empty; do not prompt.
       return false;
     }
 
     const stored = await getStoredToken();
 
     // compare trimmed strings safely
-    const remotePwd = remote.password ? String(remote.password).trim() : null;
+    const remotePwd = String(remote.password).trim();
     const storedPwd = stored ? String(stored).trim() : null;
 
     return storedPwd !== remotePwd;

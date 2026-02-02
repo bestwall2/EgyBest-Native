@@ -326,7 +326,19 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   useEffect(() => {
     AsyncStorage.getItem("user-language").then((lang) => {
       if (lang) {
-        setLang(lang as Language);
+        const selectedLang = lang as Language;
+        setLang(selectedLang);
+        // Ensure RTL state matches the stored language on startup
+        const isRTL = selectedLang === "ar";
+        if (I18nManager.isRTL !== isRTL) {
+          I18nManager.allowRTL(isRTL);
+          I18nManager.forceRTL(isRTL);
+          if (typeof window !== "undefined") {
+            window.location.reload();
+          } else {
+            Updates.reloadAsync().catch(() => {});
+          }
+        }
       } else {
         // First time use, set RTL for Arabic default
         const isRTL = true;
