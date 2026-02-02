@@ -117,7 +117,7 @@ const translations: Record<Language, Record<string, string>> = {
     home: "الرئيسية",
     browse: "تصفح",
     search: "بحث",
-    library: "المكتبة",
+    library: "مكتبتي",
     settings: "الإعدادات",
     trending_movies: "أفلام رائجة",
     popular_movies: "أفلام شائعة",
