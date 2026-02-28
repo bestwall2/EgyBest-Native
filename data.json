@@ -10,6 +10,12 @@
     },
 
     {
+      "name": "EYBT",
+      "movie": "https://vidrock.net/movie/{id}?autoplay=true&autonext=true&theme=FF0000&download=false&lang=ar",
+      "tv": "https://vidrock.net/tv/{id}/{season}/{episode}?autoplay=true&autonext=true&theme=FF0000&download=false&lang=ar"
+    },
+
+    {
       "name": "LIGHT",
       "movie": "https://vidsrcme.ru/embed/movie?tmdb={id}",
       "tv": "https://vidsrcme.ru/embed/tv?tmdb={id}&season={season}&episode={episode}"
