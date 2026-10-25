@@ -7,7 +7,6 @@
     "icon": "./assets/images/icon.png",
     "scheme": "egybest",
     "userInterfaceStyle": "dark",
-    "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
       "supportsRTL": true,
