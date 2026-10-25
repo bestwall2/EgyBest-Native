@@ -16,6 +16,12 @@ export function useScreenOptions({
     headerTitleAlign: "center",
     headerTransparent: transparent,
     headerBlurEffect: isDark ? "dark" : "light",
+    scrollEdgeEffects: {
+      top: "hidden",
+      bottom: "hidden",
+      left: "hidden",
+      right: "hidden",
+    },
     headerTintColor: theme.text,
     headerStyle: {
       backgroundColor: transparent ? "transparent" : theme.backgroundRoot,

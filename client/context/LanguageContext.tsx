@@ -318,6 +318,22 @@ const LanguageContext = createContext<LanguageContextType | undefined>(
   undefined,
 );
 
+const reloadApp = () => {
+  if (typeof window !== "undefined") {
+    window.location.reload();
+    return;
+  }
+
+  if (Updates && typeof Updates.reloadAsync === "function") {
+    Updates.reloadAsync().catch((err) => {
+      console.error("Failed to reload app:", err);
+    });
+    return;
+  }
+
+  console.warn("App reload is unavailable in this environment.");
+};
+
 export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
   children,
 }) => {
@@ -333,13 +349,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
         if (I18nManager.isRTL !== needsRTL) {
           I18nManager.allowRTL(needsRTL);
           I18nManager.forceRTL(needsRTL);
-          if (typeof window !== "undefined") {
-            window.location.reload();
-          } else {
-            Updates.reloadAsync().catch((err) => {
-              console.error("Failed to reload for RTL:", err);
-            });
-          }
+          reloadApp();
         }
       } else {
         // First time use, set RTL for Arabic default
@@ -348,11 +358,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
         if (I18nManager.isRTL !== isRTL) {
           I18nManager.allowRTL(isRTL);
           I18nManager.forceRTL(isRTL);
-          if (typeof window !== "undefined") {
-            window.location.reload();
-          } else {
-            Updates.reloadAsync().catch(() => {});
-          }
+          reloadApp();
         }
       }
     });
@@ -367,11 +373,7 @@ export const LanguageProvider: React.FC<{ children: React.ReactNode }> = ({
       I18nManager.allowRTL(isRTL);
       I18nManager.forceRTL(isRTL);
       // Need to restart for RTL changes
-      if (typeof window !== "undefined") {
-        window.location.reload();
-      } else {
-        Updates.reloadAsync().catch(() => {});
-      }
+      reloadApp();
     }
   };
 
