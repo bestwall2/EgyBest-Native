@@ -43,8 +43,8 @@
     },
     {
       "name": "BACKUP",
-      "movie": "https://111movies.com/movie/{id}",
-      "tv": "https://111movies.com/tv/{id}/{season}/{episode}"
+      "movie": "https://www.movy.sx/movie/{id}",
+      "tv": "https://www.movy.sx/tv/{id}/{season}/{episode}?play=true"
     },
     {
       "name": "EASY",
