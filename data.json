@@ -17,8 +17,8 @@
 
     {
       "name": "LIGHT",
-      "movie": "https://vidsrcme.sh/embed/movie?tmdb={id}",
-      "tv": "https://vidsrcme.sh/embed/tv?tmdb={id}&season={season}&episode={episode}"
+      "movie": "https://vidsrc.sh/embed/movie?tmdb={id}",
+      "tv": "https://vidsrc.sh/embed/tv?tmdb={id}&season={season}&episode={episode}"
     },
 
     {
