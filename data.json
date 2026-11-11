@@ -1,26 +1,22 @@
 {
-  "password": "",
+  "password": "1234",
   "GETCODE": "https://cutt.ly/itvYle4c",
   "servers": [
-    
     {
       "name": "FAST",
       "movie": "https://vidfast.pro/movie/{id}",
       "tv": "https://vidfast.pro/tv/{id}/{season}/{episode}"
     },
-
     {
       "name": "EYBT",
       "movie": "https://vidrock.net/movie/{id}?autoplay=true&autonext=true&theme=FF0000&download=false&lang=ar",
       "tv": "https://vidrock.net/tv/{id}/{season}/{episode}?autoplay=true&autonext=true&theme=FF0000&download=false&lang=ar"
     },
-
     {
       "name": "LIGHT",
       "movie": "https://vidsrc.sh/embed/movie?tmdb={id}",
       "tv": "https://vidsrc.sh/embed/tv?tmdb={id}&season={season}&episode={episode}"
     },
-
     {
       "name": "MULTI",
       "movie": "https://player.videasy.net/movie/{id}",
@@ -51,7 +47,6 @@
       "movie": "https://player.vidzee.wtf/embed/movie/{id}",
       "tv": "https://player.vidzee.wtf/embed/tv/{id}/{season}/{episode}"
     },
-
     {
       "name": "K-DRAMA",
       "movie": "https://mapple.uk/watch/movie/{id}",
