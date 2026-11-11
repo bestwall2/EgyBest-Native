@@ -59,11 +59,11 @@
       "enabled": true,
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0,
-      "url": "https://u.expo.dev/f286ce22-3348-4878-8be8-5fb1a76875ac"
+      "url": "https://u.expo.dev/97ab8a22-bd16-4fd1-a62c-ea08d289f5d4"
     },
     "extra": {
       "eas": {
-        "projectId": "f286ce22-3348-4878-8be8-5fb1a76875ac"
+        "projectId": "97ab8a22-bd16-4fd1-a62c-ea08d289f5d4"
       }
     },
     "runtimeVersion": {
