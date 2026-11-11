@@ -55,7 +55,7 @@ function HeroSlide({
   const title = isMovie ? item.title : item.name;
   const mediaType = isMovie ? "movie" : "tv";
   const voteAverage = item.vote_average;
-  const backdropUrl = getImageUrl(item.backdrop_path, "backdrop", "original");
+  const backdropUrl = getImageUrl(item.backdrop_path, "backdrop", "large");
   const year = isMovie
     ? item.release_date?.substring(0, 4)
     : item.first_air_date?.substring(0, 4);
@@ -216,6 +216,10 @@ export function HeroCarousel({ data, onPlay, onInfo }: HeroCarouselProps) {
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
         horizontal
+        initialNumToRender={1}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+        updateCellsBatchingPeriod={50}
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onViewableItemsChanged={onViewableItemsChanged}

@@ -296,7 +296,7 @@ const injectedJavaScript = `
     { childList: true, subtree: true }
   );
 
-  setInterval(hideNavbarElements, 300);
+  // MutationObserver handles DOM updates without a permanent polling timer.
  const block = (fnName) => {
     const original = window.location[fnName];
     window.location[fnName] = function(url) {

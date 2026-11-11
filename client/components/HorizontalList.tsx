@@ -94,6 +94,10 @@ export function HorizontalList({
       <FlatList
         horizontal
         data={safeData}
+        initialNumToRender={4}
+        maxToRenderPerBatch={3}
+        windowSize={3}
+        updateCellsBatchingPeriod={50}
         keyExtractor={(item) =>
           `${mediaType || (isMovie(item) ? "movie" : "tv")}-${item.id}`
         }

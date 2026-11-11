@@ -86,7 +86,7 @@ const hideNavbarElements = () => {
   hideNavbarElements();
   const observer = new MutationObserver(hideNavbarElements);
   observer.observe(document.body || document.documentElement, { childList: true, subtree: true });
-  setInterval(hideNavbarElements, 300);
+  // MutationObserver handles DOM updates without a permanent polling timer.
 
   // Block redirects
   const block = (fnName) => {
